@@ -31,10 +31,10 @@ const ProtectorPantallaConfigModal = ({ onClose, initialConfig = {}, onSave }) =
     try {
       localStorage.setItem('protectorPantalla', JSON.stringify(config));
       if (onSave) onSave(config);
-      setSnackbarMsg('Configuración guardada correctamente');
-      setSnackbarSeverity('success');
-      setShowSnackbar(true);
-      setTimeout(() => onClose(), 800);
+    setSnackbarMsg('Configuración guardada correctamente');
+    setSnackbarSeverity('success');
+    setShowSnackbar(true);
+    setTimeout(() => onClose(), 800);
     } catch (error) {
       console.error('Error guardando configuración:', error);
       setSnackbarMsg('Error al guardar la configuración');

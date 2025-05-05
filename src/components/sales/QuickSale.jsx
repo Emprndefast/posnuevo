@@ -907,22 +907,20 @@ const QuickSale = () => {
         console.error('❌ Error al enviar notificación:', error);
       }
 
-      // Enviar notificación de WhatsApp si el usuario tiene configurado el número y API Key
+      // Enviar notificación de WhatsApp si el usuario tiene configurado el número
       try {
-        // Supón que tienes los datos en el usuario o en la configuración
         const userWhatsAppNumber = user?.whatsapp?.number;
-        const userApiKey = user?.whatsapp?.apiKey;
         console.log('Datos WhatsApp:', user?.whatsapp);
-        console.log('Número:', userWhatsAppNumber, 'API Key:', userApiKey);
-        if (userWhatsAppNumber && userApiKey) {
+        console.log('Número:', userWhatsAppNumber);
+        
+        if (userWhatsAppNumber) {
           await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/notifications/test-whatsapp`, {
             phone: userWhatsAppNumber,
-            message: `🛒 Nueva venta realizada\nTicket: ${saleId}\nTotal: $${saleData.total}\nCliente: ${saleData.customer?.name || 'General'}`,
-            apiKey: userApiKey
+            message: `🛒 Nueva venta realizada\nTicket: ${saleId}\nTotal: $${saleData.total}\nCliente: ${saleData.customer?.name || 'General'}`
           });
           console.log('✅ Notificación de WhatsApp enviada');
         } else {
-          console.log('❌ No se enviará notificación de WhatsApp: datos incompletos');
+          console.log('❌ No se enviará notificación de WhatsApp: número no configurado');
         }
       } catch (error) {
         console.error('❌ Error al enviar notificación de WhatsApp:', error);

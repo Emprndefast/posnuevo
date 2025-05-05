@@ -205,39 +205,39 @@ const PantallaBloqueo = ({ onUnlock, onLogout, pinGuardado }) => {
       )}
       {mostrarCuadro && (
         <Box sx={{ zIndex: 2, p: 4, borderRadius: 3, bgcolor: 'rgba(20,20,20,0.85)', boxShadow: 6, minWidth: 320, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Lock sx={{ fontSize: 48, color: '#38bdf8', mb: 2 }} />
-          <Typography variant="h6" sx={{ color: '#fff', mb: 2, textAlign: 'center' }}>
-            Sistema bloqueado. Ingresa tu PIN para continuar.
-          </Typography>
-          <TextField
-            label="PIN"
-            type={showPin ? 'text' : 'password'}
-            value={pin}
-            onChange={e => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-            onKeyDown={handleKeyDown}
+        <Lock sx={{ fontSize: 48, color: '#38bdf8', mb: 2 }} />
+        <Typography variant="h6" sx={{ color: '#fff', mb: 2, textAlign: 'center' }}>
+          Sistema bloqueado. Ingresa tu PIN para continuar.
+        </Typography>
+        <TextField
+          label="PIN"
+          type={showPin ? 'text' : 'password'}
+          value={pin}
+          onChange={e => setPin(e.target.value.replace(/[^0-9]/g, ''))}
+          onKeyDown={handleKeyDown}
             inputRef={inputRef}
-            autoFocus
-            inputProps={{ maxLength: 8, style: { textAlign: 'center', letterSpacing: 6, fontSize: 24, color: '#38bdf8' } }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPin(v => !v)} edge="end" tabIndex={-1}>
-                    {showPin ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
+          autoFocus
+          inputProps={{ maxLength: 8, style: { textAlign: 'center', letterSpacing: 6, fontSize: 24, color: '#38bdf8' } }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton onClick={() => setShowPin(v => !v)} edge="end" tabIndex={-1}>
+                  {showPin ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            )
+          }}
             sx={{ mb: 2, bgcolor: '#222', borderRadius: 2, input: { color: '#38bdf8' }, zIndex: 3 }}
-          />
-          <Button variant="contained" color="primary" onClick={handleUnlock} sx={{ mb: 1, minWidth: 120 }}>
-            Desbloquear
-          </Button>
-          {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
-          {intentos > 0 && <Typography sx={{ color: '#fff', mt: 1, fontSize: 13 }}>Intentos: {intentos} / 3</Typography>}
-        </Box>
+        />
+        <Button variant="contained" color="primary" onClick={handleUnlock} sx={{ mb: 1, minWidth: 120 }}>
+          Desbloquear
+        </Button>
+        {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
+        {intentos > 0 && <Typography sx={{ color: '#fff', mt: 1, fontSize: 13 }}>Intentos: {intentos} / 3</Typography>}
+      </Box>
       )}
     </Box>
   );
 };
 
-export default PantallaBloqueo;
+export default PantallaBloqueo; 
