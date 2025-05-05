@@ -1,0 +1,79 @@
+export const ROLES = {
+  ADMIN: 'admin',
+  STAFF: 'staff',
+  USUARIO: 'usuario'
+};
+
+export const PERMISSIONS = {
+  // Permisos de dashboard
+  VIEW_DASHBOARD: 'view_dashboard',
+  
+  // Permisos de ventas
+  VIEW_SALES: 'view_sales',
+  CREATE_SALES: 'create_sales',
+  EDIT_SALES: 'edit_sales',
+  DELETE_SALES: 'delete_sales',
+  
+  // Permisos de productos
+  VIEW_PRODUCTS: 'view_products',
+  CREATE_PRODUCTS: 'create_products',
+  EDIT_PRODUCTS: 'edit_products',
+  DELETE_PRODUCTS: 'delete_products',
+  
+  // Permisos de inventario
+  VIEW_INVENTORY: 'view_inventory',
+  MANAGE_INVENTORY: 'manage_inventory',
+  
+  // Permisos de clientes
+  VIEW_CUSTOMERS: 'view_customers',
+  CREATE_CUSTOMERS: 'create_customers',
+  EDIT_CUSTOMERS: 'edit_customers',
+  
+  // Permisos de configuración
+  VIEW_SETTINGS: 'view_settings',
+  MANAGE_SETTINGS: 'manage_settings',
+  
+  // Permisos de reportes
+  VIEW_REPORTS: 'view_reports',
+  EXPORT_REPORTS: 'export_reports'
+};
+
+export const ROLE_PERMISSIONS = {
+  [ROLES.ADMIN]: [
+    PERMISSIONS.VIEW_DASHBOARD,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.CREATE_SALES,
+    PERMISSIONS.EDIT_SALES,
+    PERMISSIONS.DELETE_SALES,
+    PERMISSIONS.VIEW_PRODUCTS,
+    PERMISSIONS.CREATE_PRODUCTS,
+    PERMISSIONS.EDIT_PRODUCTS,
+    PERMISSIONS.DELETE_PRODUCTS,
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.MANAGE_INVENTORY,
+    PERMISSIONS.VIEW_CUSTOMERS,
+    PERMISSIONS.CREATE_CUSTOMERS,
+    PERMISSIONS.EDIT_CUSTOMERS,
+    PERMISSIONS.VIEW_SETTINGS,
+    PERMISSIONS.MANAGE_SETTINGS,
+    PERMISSIONS.VIEW_REPORTS,
+    PERMISSIONS.EXPORT_REPORTS
+  ],
+  [ROLES.STAFF]: [
+    PERMISSIONS.VIEW_DASHBOARD,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.CREATE_SALES,
+    PERMISSIONS.VIEW_PRODUCTS,
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.VIEW_CUSTOMERS,
+    PERMISSIONS.CREATE_CUSTOMERS,
+    PERMISSIONS.VIEW_REPORTS
+  ],
+  [ROLES.USUARIO]: [
+    PERMISSIONS.VIEW_DASHBOARD,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.VIEW_PRODUCTS,
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.VIEW_CUSTOMERS
+  ]
+}; 

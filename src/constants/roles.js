@@ -1,0 +1,78 @@
+export const ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  ADMIN: 'admin',
+  MANAGER: 'manager',
+  TECHNICIAN: 'technician',
+  CASHIER: 'cashier',
+  VIEWER: 'viewer'
+};
+
+export const PERMISSIONS = {
+  // Gestión de usuarios
+  MANAGE_USERS: 'manage_users',
+  VIEW_USERS: 'view_users',
+  
+  // Gestión de inventario
+  MANAGE_INVENTORY: 'manage_inventory',
+  VIEW_INVENTORY: 'view_inventory',
+  
+  // Gestión de reparaciones
+  MANAGE_REPAIRS: 'manage_repairs',
+  VIEW_REPAIRS: 'view_repairs',
+  
+  // Gestión de ventas
+  MANAGE_SALES: 'manage_sales',
+  VIEW_SALES: 'view_sales',
+  
+  // Gestión de reportes
+  MANAGE_REPORTS: 'manage_reports',
+  VIEW_REPORTS: 'view_reports',
+  
+  // Configuración del sistema
+  MANAGE_SETTINGS: 'manage_settings',
+  VIEW_SETTINGS: 'view_settings'
+};
+
+export const ROLE_PERMISSIONS = {
+  [ROLES.SUPER_ADMIN]: Object.values(PERMISSIONS),
+  [ROLES.ADMIN]: [
+    PERMISSIONS.MANAGE_USERS,
+    PERMISSIONS.VIEW_USERS,
+    PERMISSIONS.MANAGE_INVENTORY,
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.MANAGE_REPAIRS,
+    PERMISSIONS.VIEW_REPAIRS,
+    PERMISSIONS.MANAGE_SALES,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.MANAGE_REPORTS,
+    PERMISSIONS.VIEW_REPORTS,
+    PERMISSIONS.VIEW_SETTINGS
+  ],
+  [ROLES.MANAGER]: [
+    PERMISSIONS.VIEW_USERS,
+    PERMISSIONS.MANAGE_INVENTORY,
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.MANAGE_REPAIRS,
+    PERMISSIONS.VIEW_REPAIRS,
+    PERMISSIONS.MANAGE_SALES,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.VIEW_REPORTS
+  ],
+  [ROLES.TECHNICIAN]: [
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.MANAGE_REPAIRS,
+    PERMISSIONS.VIEW_REPAIRS,
+    PERMISSIONS.VIEW_SALES
+  ],
+  [ROLES.CASHIER]: [
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.MANAGE_SALES,
+    PERMISSIONS.VIEW_SALES
+  ],
+  [ROLES.VIEWER]: [
+    PERMISSIONS.VIEW_INVENTORY,
+    PERMISSIONS.VIEW_REPAIRS,
+    PERMISSIONS.VIEW_SALES,
+    PERMISSIONS.VIEW_REPORTS
+  ]
+}; 
