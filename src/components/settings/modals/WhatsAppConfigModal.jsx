@@ -36,19 +36,35 @@ const WhatsAppConfigModal = ({ onClose }) => {
     }
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/notifications/test-whatsapp`, {
-        instanceId: useGlobal ? undefined : instanceId,
-        token: useGlobal ? undefined : token,
-        phone,
-        message: '🔔 Prueba de notificación POS-NT'
+      console.log('Enviando prueba de WhatsApp:', {
+        useGlobal,
+        instanceId: useGlobal ? process.env.REACT_APP_WHATSAPP_INSTANCE_ID : instanceId,
+        phone: phone.replace(/\D/g, '')
       });
+
+      const response = await axios.post(`${API_URL}/api/notifications/test-whatsapp`, {
+        instanceId: useGlobal ? process.env.REACT_APP_WHATSAPP_INSTANCE_ID : instanceId,
+        token: useGlobal ? process.env.REACT_APP_WHATSAPP_TOKEN : token,
+        phone: phone.replace(/\D/g, '')
+      });
+
+      console.log('Respuesta del servidor:', response.data);
+
       if (response.data.success) {
         setAlert({ type: 'success', message: 'Mensaje de prueba enviado correctamente' });
       } else {
-        setAlert({ type: 'error', message: response.data.error });
+        setAlert({ type: 'error', message: response.data.error || 'Error al enviar mensaje' });
       }
     } catch (error) {
-      setAlert({ type: 'error', message: error.response?.data?.error || 'Error al enviar mensaje' });
+      console.error('Error en la petición:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+      setAlert({ 
+        type: 'error', 
+        message: error.response?.data?.error || error.message || 'Error al enviar mensaje' 
+      });
     } finally {
       setLoading(false);
     }
