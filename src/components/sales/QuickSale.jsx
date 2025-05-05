@@ -915,8 +915,15 @@ const QuickSale = () => {
         
         if (userWhatsAppNumber) {
           await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/notifications/test-whatsapp`, {
-            phone: userWhatsAppNumber,
-            message: `🛒 Nueva venta realizada\nTicket: ${saleId}\nTotal: $${saleData.total}\nCliente: ${saleData.customer?.name || 'General'}`
+            phone: userWhatsAppNumber.replace(/\D/g, ''), // Eliminar caracteres no numéricos
+            message: `🛒 Nueva venta realizada\nTicket: ${saleId}\nTotal: $${saleData.total}\nCliente: ${saleData.customer?.name || 'General'}`,
+            type: 'sales',
+            data: {
+              ticketNumber: saleId,
+              total: saleData.total,
+              customer: saleData.customer?.name || 'General',
+              date: new Date().toISOString()
+            }
           });
           console.log('✅ Notificación de WhatsApp enviada');
         } else {
