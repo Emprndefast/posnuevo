@@ -6,4 +6,4 @@ param (
 git status
 git add .
 git commit -m $mensaje
-git push
+git push origin master
