@@ -317,7 +317,7 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
             </p>
           ` : `
             <p style="margin: 10px 0; font-size: 8pt; font-style: italic;">
-              DOCUMENTO NO FISCAL
+              DOCUMENTO NO FISCAL.
               <br>
               NO VÁLIDO COMO FACTURA
             </p>
