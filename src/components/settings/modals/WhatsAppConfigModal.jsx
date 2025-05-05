@@ -36,20 +36,16 @@ const WhatsAppConfigModal = ({ onClose }) => {
     }
     setLoading(true);
     try {
-      console.log('Enviando prueba de WhatsApp:', {
-        useGlobal,
-        instanceId: useGlobal ? process.env.REACT_APP_WHATSAPP_INSTANCE_ID : instanceId,
+      const payload = {
         phone: phone.replace(/\D/g, '')
-      });
-
-      const response = await axios.post(`${API_URL}/api/notifications/test-whatsapp`, {
-        instanceId: useGlobal ? process.env.REACT_APP_WHATSAPP_INSTANCE_ID : instanceId,
-        token: useGlobal ? process.env.REACT_APP_WHATSAPP_TOKEN : token,
-        phone: phone.replace(/\D/g, '')
-      });
-
+      };
+      if (!useGlobal) {
+        payload.instanceId = instanceId;
+        payload.token = token;
+      }
+      console.log('Enviando prueba de WhatsApp:', payload);
+      const response = await axios.post(`${API_URL}/api/notifications/test-whatsapp`, payload);
       console.log('Respuesta del servidor:', response.data);
-
       if (response.data.success) {
         setAlert({ type: 'success', message: 'Mensaje de prueba enviado correctamente' });
       } else {
