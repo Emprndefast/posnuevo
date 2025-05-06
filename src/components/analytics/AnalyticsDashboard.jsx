@@ -99,6 +99,7 @@ import {
   Tooltip as ChartTooltip,
   Legend
 } from 'chart.js';
+import DailySummaryConfigCard from '../settings/DailySummaryConfigCard';
 
 ChartJS.register(
   CategoryScale,
@@ -1232,6 +1233,12 @@ export const AnalyticsDashboard = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={6} lg={4}>
+          <DailySummaryConfigCard user={user} />
+        </Grid>
+      </Grid>
     </Box>
   );
 };
