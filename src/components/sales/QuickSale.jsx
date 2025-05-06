@@ -919,32 +919,6 @@ const QuickSale = () => {
         console.error('❌ Error al enviar notificación:', error);
       }
 
-      // Enviar notificación de WhatsApp si el usuario tiene configurado el número
-      try {
-        const userWhatsAppNumber = user?.whatsapp?.number;
-        console.log('Datos WhatsApp:', user?.whatsapp);
-        console.log('Número:', userWhatsAppNumber);
-        
-        if (userWhatsAppNumber) {
-          await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/notifications/test-whatsapp`, {
-            phone: userWhatsAppNumber.replace(/\D/g, ''), // Eliminar caracteres no numéricos
-            message: `🛒 Nueva venta realizada\nTicket: ${saleId}\nTotal: $${saleData.total}\nCliente: ${saleData.customer?.name || 'General'}`,
-            type: 'sales',
-            data: {
-              ticketNumber: saleId,
-              total: saleData.total,
-              customer: saleData.customer?.name || 'General',
-              date: new Date().toISOString()
-            }
-          });
-          console.log('✅ Notificación de WhatsApp enviada');
-        } else {
-          console.log('❌ No se enviará notificación de WhatsApp: número no configurado');
-        }
-      } catch (error) {
-        console.error('❌ Error al enviar notificación de WhatsApp:', error);
-      }
-
       // Limpiar el carrito y mostrar mensaje de éxito
       setPaymentDialog(false);
       setCart([]);
