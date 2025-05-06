@@ -423,8 +423,8 @@ function App() {
             <CustomThemeProvider>
               <ThemeProvider theme={theme}>
                 <SubscriptionProvider>
-                  <ConfigProvider>
-                    <BusinessProvider>
+                  <BusinessProvider>
+                    <ConfigProvider>
                       <TelegramProvider>
                         <PrinterProvider>
                           <CrmProvider>
@@ -435,8 +435,8 @@ function App() {
                           </CrmProvider>
                         </PrinterProvider>
                       </TelegramProvider>
-                    </BusinessProvider>
-                  </ConfigProvider>
+                    </ConfigProvider>
+                  </BusinessProvider>
                 </SubscriptionProvider>
               </ThemeProvider>
             </CustomThemeProvider>
