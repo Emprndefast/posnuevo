@@ -793,14 +793,16 @@ const QuickSale = () => {
         productsToUpdate.push(productDoc.data());
       }
       
-      // Crear el objeto de venta
-      const customerPhone = selectedCustomer?.phone;
-      if (!customerPhone) {
-        setError('El cliente seleccionado no tiene número de WhatsApp.');
+      // Obtener el número de WhatsApp del usuario (quien hace la venta)
+      const userWhatsApp = user?.whatsapp?.number;
+      if (!userWhatsApp) {
+        setError('Debes configurar tu número de WhatsApp en tu perfil para recibir notificaciones.');
         setProcessingPayment(false);
-        enqueueSnackbar('El cliente seleccionado no tiene número de WhatsApp.', { variant: 'error' });
+        enqueueSnackbar('Debes configurar tu número de WhatsApp en tu perfil para recibir notificaciones.', { variant: 'error' });
         return;
       }
+      // Obtener el número del cliente si existe
+      const customerPhone = selectedCustomer?.phone;
       const saleData = {
         userId: user.uid,
         items: cart.map(item => ({
@@ -812,12 +814,13 @@ const QuickSale = () => {
         })),
         subtotal: calculateSubtotal(),
         total: calculateTotal(),
-        customer: {
+        customer: selectedCustomer ? {
           ...selectedCustomer,
           phone: customerPhone
-        },
+        } : null,
         paymentMethod: paymentMethod,
-        status: 'completed'
+        status: 'completed',
+        whatsappNumbers: [userWhatsApp, customerPhone].filter(Boolean) // Prioridad: usuario, luego cliente si existe
       };
 
       // Guardar la venta
