@@ -943,9 +943,10 @@ const QuickSale = () => {
   const handleCreateNewCustomer = () => {
     // Cerrar el diálogo de selección
     setCustomerDialogOpen(false);
-    
-    // Navegar a la página de crear cliente usando el servicio de navegación
-    window.location.href = '/customers/new';
+    // Emitir evento o llamar callback para abrir el modal de creación de cliente
+    if (typeof window.openCustomerModal === 'function') {
+      setTimeout(() => window.openCustomerModal(), 300);
+    }
   };
 
   const handleSelectCustomer = (customer) => {

@@ -192,6 +192,12 @@ export const Customers = () => {
     }
   }, [user]);
 
+  useEffect(() => {
+    // Permitir que otros componentes abran el modal de nuevo cliente
+    window.openCustomerModal = () => handleOpenDialog();
+    return () => { window.openCustomerModal = undefined; };
+  }, []);
+
   const fetchCustomers = async () => {
     if (!user?.uid) return;
     
