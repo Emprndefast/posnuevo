@@ -823,9 +823,10 @@ const QuickSale = () => {
         whatsappNumbers: [userWhatsApp, customerPhone].filter(Boolean) // Prioridad: usuario, luego cliente si existe
       };
 
-      // Guardar la venta
-      const saleRef = await addDoc(collection(db, 'sales'), saleData);
-      const saleId = saleRef.id;
+      // Guardar la venta en el backend en vez de Firestore
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await axios.post(`${API_URL}/api/sales`, saleData);
+      const saleId = response.data.sale?.id || response.data.sale?._id || response.data.sale?.ticketNumber || 'N/A';
 
       // Crear notificación en Firestore
       if (user && user.uid) {
