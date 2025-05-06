@@ -10,7 +10,8 @@ import {
   Receipt as InvoicesIcon,
   Build as RepairsIcon,
   Assessment as AnalyticsIcon,
-  AccountCircle as ProfileIcon
+  AccountCircle as ProfileIcon,
+  BusinessCenter as CrmIcon
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -20,6 +21,7 @@ const menuItems = [
   { text: 'Ventas', icon: <SalesIcon />, path: '/sales' },
   { text: 'Productos', icon: <ProductsIcon />, path: '/products' },
   { text: 'Clientes', icon: <CustomersIcon />, path: '/customers' },
+  { text: 'CRM', icon: <CrmIcon />, path: '/crm/customers' },
   { text: 'Facturación', icon: <InvoicesIcon />, path: '/billing' },
   { text: 'Reparaciones', icon: <RepairsIcon />, path: '/reparaciones' },
   { text: 'Analíticas', icon: <AnalyticsIcon />, path: '/analytics' },

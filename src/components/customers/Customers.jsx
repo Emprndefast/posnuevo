@@ -67,6 +67,7 @@ import { es } from 'date-fns/locale';
 import StatCard from '../StatCard';
 import { formatCurrency } from '../../utils/formatters';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const DeleteConfirmation = ({ open, onClose, onConfirm, customerName }) => (
   <Dialog 
@@ -183,6 +184,7 @@ export const Customers = () => {
   const { user } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -425,6 +427,17 @@ export const Customers = () => {
             }}
           >
             Actualizar
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => navigate('/crm/customers')}
+            sx={{
+              whiteSpace: 'nowrap',
+              fontWeight: 700
+            }}
+          >
+            Ir al CRM
           </Button>
         </Box>
       </Box>
