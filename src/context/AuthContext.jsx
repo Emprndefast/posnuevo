@@ -8,6 +8,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -23,6 +24,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -139,7 +141,11 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = '/login';
+      if (typeof navigate === 'function') {
+        navigate('/login');
+      } else {
+        window.location.href = '/login';
+      }
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
       setError(error);

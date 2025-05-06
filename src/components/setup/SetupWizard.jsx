@@ -162,7 +162,7 @@ const SetupWizard = () => {
         // Esperar un momento antes de redirigir
         console.log('SetupWizard - Preparando redirección al dashboard...');
         await new Promise(resolve => setTimeout(resolve, 2000)); // Aumentado a 2 segundos
-        window.location.href = '/modern-dashboard'; // Cambiado de '/dashboard' a '/modern-dashboard'
+        navigate('/modern-dashboard'); // Cambiado de window.location.href
         return;
       }
 

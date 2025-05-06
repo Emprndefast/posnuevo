@@ -14,6 +14,9 @@ const api = axios.create({
   }
 });
 
+let navigateToLogin = null;
+export function setNavigate(fn) { navigateToLogin = fn; }
+
 // Interceptor para agregar el token de autenticación y logging
 api.interceptors.request.use(
   (config) => {
@@ -38,7 +41,11 @@ api.interceptors.response.use(
     console.error('Response Error:', error.response || error);
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      if (navigateToLogin) {
+        navigateToLogin('/login');
+      } else {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
