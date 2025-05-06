@@ -12,8 +12,11 @@ import {
   FormControl,
   TextField,
   Alert,
-  Stack
+  Stack,
+  Dialog
 } from '@mui/material';
+import WhatsAppConfigModal from './modals/WhatsAppConfigModal';
+import TelegramConfigModal from './modals/TelegramConfigModal';
 
 // Simulación de consulta de configuración y canales disponibles
 const fetchUserNotificationConfig = async (userId) => {
@@ -38,6 +41,8 @@ const DailySummaryConfigCard = ({ user }) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [openWhatsApp, setOpenWhatsApp] = useState(false);
+  const [openTelegram, setOpenTelegram] = useState(false);
 
   useEffect(() => {
     if (user?.uid) {
@@ -71,6 +76,16 @@ const DailySummaryConfigCard = ({ user }) => {
     await saveUserNotificationConfig(user.uid, config);
     setSuccess('¡Configuración guardada!');
     setSaving(false);
+  };
+
+  const handleConfigClick = () => {
+    if (!config.hasWhatsapp && !config.hasTelegram) {
+      setOpenWhatsApp(true);
+    } else if (!config.hasWhatsapp) {
+      setOpenWhatsApp(true);
+    } else if (!config.hasTelegram) {
+      setOpenTelegram(true);
+    }
   };
 
   if (loading) return <Card><CardContent><Typography>Cargando configuración...</Typography></CardContent></Card>;
@@ -111,7 +126,7 @@ const DailySummaryConfigCard = ({ user }) => {
           {(!config.hasWhatsapp || !config.hasTelegram) && (
             <Alert severity="warning">
               Debes configurar {(!config.hasWhatsapp && !config.hasTelegram) ? 'WhatsApp o Telegram' : (!config.hasWhatsapp ? 'WhatsApp' : 'Telegram')} para activar esta función.
-              <Button variant="outlined" size="small" sx={{ ml: 2 }} href="/configuracion">Configurar</Button>
+              <Button variant="outlined" size="small" sx={{ ml: 2 }} onClick={handleConfigClick}>Configurar</Button>
             </Alert>
           )}
           {error && <Alert severity="error">{error}</Alert>}
@@ -125,6 +140,12 @@ const DailySummaryConfigCard = ({ user }) => {
             Guardar configuración
           </Button>
         </Stack>
+        <Dialog open={openWhatsApp} onClose={() => setOpenWhatsApp(false)} maxWidth="xs" fullWidth>
+          <WhatsAppConfigModal onClose={() => setOpenWhatsApp(false)} />
+        </Dialog>
+        <Dialog open={openTelegram} onClose={() => setOpenTelegram(false)} maxWidth="xs" fullWidth>
+          <TelegramConfigModal onClose={() => setOpenTelegram(false)} />
+        </Dialog>
       </CardContent>
     </Card>
   );
