@@ -17,22 +17,51 @@ import {
 } from '@mui/material';
 import WhatsAppConfigModal from './modals/WhatsAppConfigModal';
 import TelegramConfigModal from './modals/TelegramConfigModal';
+import { db } from '../../firebase/config';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useAuth } from '../../context/AuthContext';
 
-// Simulación de consulta de configuración y canales disponibles
+// Consulta real de configuración y canales disponibles
 const fetchUserNotificationConfig = async (userId) => {
-  // Aquí deberías consultar al backend
-  return {
+  const userRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userRef);
+  let hasWhatsapp = false;
+  let hasTelegram = false;
+  let whatsapp = {};
+  let telegram = {};
+  let config = {
     enabled: false,
     hour: '21:00',
-    channel: '', // 'whatsapp', 'telegram', 'both'
+    channel: '',
     hasWhatsapp: false,
     hasTelegram: false
   };
+  if (userSnap.exists()) {
+    whatsapp = userSnap.data().whatsapp || {};
+    telegram = userSnap.data().telegram || {};
+    hasWhatsapp = !!whatsapp.number;
+    hasTelegram = !!telegram.botToken && !!telegram.chatId;
+    if (userSnap.data().dailySummaryConfig) {
+      config = {
+        ...config,
+        ...userSnap.data().dailySummaryConfig
+      };
+    }
+  }
+  config.hasWhatsapp = hasWhatsapp;
+  config.hasTelegram = hasTelegram;
+  return config;
 };
 
 const saveUserNotificationConfig = async (userId, config) => {
-  // Aquí deberías guardar en el backend
-  return true;
+  const userRef = doc(db, 'users', userId);
+  await updateDoc(userRef, {
+    dailySummaryConfig: {
+      enabled: config.enabled,
+      hour: config.hour,
+      channel: config.channel
+    }
+  });
 };
 
 const DailySummaryConfigCard = ({ user }) => {
