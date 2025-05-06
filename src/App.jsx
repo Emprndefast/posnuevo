@@ -46,6 +46,7 @@ import PantallaBloqueo from './components/settings/PantallaBloqueo';
 import { ProductosProvider } from './context/ProductosContext';
 import { VentasProvider } from './context/VentasContext';
 import { ClientesProvider } from './context/ClientesContext';
+import { CrmProvider } from './context/CrmContext';
 
 // Configurar goober
 setup(createElement);
@@ -86,6 +87,7 @@ import PaymentGateways from './pages/PaymentGateways';
 import EInvoicing from './pages/EInvoicing';
 import Suppliers from './pages/Suppliers';
 import Promotions from './pages/Promotions';
+import CrmRoutes from './routes/CrmRoutes';
 
 function TestTrial() {
   const [userId, setUserId] = useState('');
@@ -396,6 +398,8 @@ const AppContent = () => {
                   <Route path="/promotions" element={<Promotions />} />
                   <Route path="/test-trial" element={<TestTrial />} />
                   <Route path="/test-huggingface" element={<HuggingFaceTest />} />
+                  {/* Rutas CRM */}
+                  <Route path="/crm/*" element={<CrmRoutes />} />
                   {/* Redirigir cualquier otra ruta a la página principal */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
@@ -412,38 +416,34 @@ const AppContent = () => {
 
 function App() {
   return (
-    <ProductosProvider>
-      <VentasProvider>
-        <ClientesProvider>
-          <Router>
-            <AuthProvider>
-              <PermissionsProvider>
-                <LanguageProvider>
-                  <CustomThemeProvider>
-                    <SnackbarProvider maxSnack={3}>
-                      <CssBaseline />
-                      <BusinessProvider>
-                        <SubscriptionProvider>
-                          <ConfigProvider>
-                            <TelegramProvider>
-                              <PrinterProvider>
-                                <PrintProvider>
-                                  <AppContent />
-                                </PrintProvider>
-                              </PrinterProvider>
-                            </TelegramProvider>
-                          </ConfigProvider>
-                        </SubscriptionProvider>
-                      </BusinessProvider>
-                    </SnackbarProvider>
-                  </CustomThemeProvider>
-                </LanguageProvider>
-              </PermissionsProvider>
-            </AuthProvider>
-          </Router>
-        </ClientesProvider>
-      </VentasProvider>
-    </ProductosProvider>
+    <Router>
+      <AuthProvider>
+        <LanguageProvider>
+          <PermissionsProvider>
+            <CustomThemeProvider>
+              <ThemeProvider theme={theme}>
+                <SubscriptionProvider>
+                  <ConfigProvider>
+                    <BusinessProvider>
+                      <TelegramProvider>
+                        <PrinterProvider>
+                          <CrmProvider>
+                            <SnackbarProvider maxSnack={3}>
+                              <CssBaseline />
+                              <AppContent />
+                            </SnackbarProvider>
+                          </CrmProvider>
+                        </PrinterProvider>
+                      </TelegramProvider>
+                    </BusinessProvider>
+                  </ConfigProvider>
+                </SubscriptionProvider>
+              </ThemeProvider>
+            </CustomThemeProvider>
+          </PermissionsProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
