@@ -427,12 +427,14 @@ function App() {
                     <ConfigProvider>
                       <TelegramProvider>
                         <PrinterProvider>
-                          <CrmProvider>
-                            <SnackbarProvider maxSnack={3}>
-                              <CssBaseline />
-                              <AppContent />
-                            </SnackbarProvider>
-                          </CrmProvider>
+                          <PrintProvider>
+                            <CrmProvider>
+                              <SnackbarProvider maxSnack={3}>
+                                <CssBaseline />
+                                <AppContent />
+                              </SnackbarProvider>
+                            </CrmProvider>
+                          </PrintProvider>
                         </PrinterProvider>
                       </TelegramProvider>
                     </ConfigProvider>
