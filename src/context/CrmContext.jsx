@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../config/api';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, setDoc, query, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
+import { getAuth } from 'firebase/auth';
 
 const CrmContext = createContext();
 
@@ -15,72 +17,102 @@ export const CrmProvider = ({ children }) => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get('/api/crm/customers');
-      setCustomers(res.data);
-      setError(null);
-    } catch (err) {
-      console.error('Error al cargar clientes CRM:', err);
+  // Escuchar cambios en clientes del usuario actual
+  useEffect(() => {
+    if (!user) {
+      setCustomers([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const q = query(collection(db, 'crm_customers'), where('userId', '==', user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCustomers(data);
+      setLoading(false);
+    }, (err) => {
       setError('Error al cargar los clientes');
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // CRUD de clientes
+  const fetchCustomers = async () => {
+    if (!user) return [];
+    setLoading(true);
+    try {
+      const q = query(collection(db, 'crm_customers'), where('userId', '==', user.uid));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCustomers(data);
+      setError(null);
+      return data;
+    } catch (err) {
+      setError('Error al cargar los clientes');
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
   const createCustomer = async (customerData) => {
-    try {
-      const res = await api.post('/api/crm/customers', customerData);
-      setCustomers(prev => [...prev, res.data]);
-      return res.data;
-    } catch (err) {
-      console.error('Error al crear cliente CRM:', err);
-      throw err;
-    }
+    if (!user) throw new Error('Usuario no autenticado');
+    const data = { ...customerData, userId: user.uid, createdAt: new Date(), updatedAt: new Date() };
+    const docRef = await addDoc(collection(db, 'crm_customers'), data);
+    return { id: docRef.id, ...data };
   };
 
   const updateCustomer = async (id, customerData) => {
-    try {
-      await api.put(`/api/crm/customers/${id}`, customerData);
-      setCustomers(prev => prev.map(c => c.id === id ? { ...c, ...customerData } : c));
-    } catch (err) {
-      console.error('Error al actualizar cliente CRM:', err);
-      throw err;
-    }
+    if (!user) throw new Error('Usuario no autenticado');
+    const ref = doc(db, 'crm_customers', id);
+    await updateDoc(ref, { ...customerData, updatedAt: new Date() });
   };
 
+  const deleteCustomer = async (id) => {
+    if (!user) throw new Error('Usuario no autenticado');
+    await deleteDoc(doc(db, 'crm_customers', id));
+  };
+
+  // Subcolecciones: Seguimientos, Tareas, Notas
   const addFollowUp = async (customerId, followUpData) => {
-    try {
-      await api.post(`/api/crm/customers/${customerId}/followups`, followUpData);
-    } catch (err) {
-      console.error('Error al agregar seguimiento:', err);
-      throw err;
-    }
+    if (!user) throw new Error('Usuario no autenticado');
+    const ref = collection(db, 'crm_customers', customerId, 'followups');
+    await addDoc(ref, { ...followUpData, createdAt: new Date(), userId: user.uid });
+  };
+
+  const getFollowUps = async (customerId) => {
+    const ref = collection(db, 'crm_customers', customerId, 'followups');
+    const snapshot = await getDocs(ref);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   };
 
   const addTask = async (customerId, taskData) => {
-    try {
-      await api.post(`/api/crm/customers/${customerId}/tasks`, taskData);
-    } catch (err) {
-      console.error('Error al agregar tarea:', err);
-      throw err;
-    }
+    if (!user) throw new Error('Usuario no autenticado');
+    const ref = collection(db, 'crm_customers', customerId, 'tasks');
+    await addDoc(ref, { ...taskData, createdAt: new Date(), userId: user.uid });
+  };
+
+  const getTasks = async (customerId) => {
+    const ref = collection(db, 'crm_customers', customerId, 'tasks');
+    const snapshot = await getDocs(ref);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   };
 
   const addNote = async (customerId, noteData) => {
-    try {
-      await api.post(`/api/crm/customers/${customerId}/notes`, noteData);
-    } catch (err) {
-      console.error('Error al agregar nota:', err);
-      throw err;
-    }
+    if (!user) throw new Error('Usuario no autenticado');
+    const ref = collection(db, 'crm_customers', customerId, 'notes');
+    await addDoc(ref, { ...noteData, createdAt: new Date(), userId: user.uid });
   };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
+  const getNotes = async (customerId) => {
+    const ref = collection(db, 'crm_customers', customerId, 'notes');
+    const snapshot = await getDocs(ref);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  };
 
   const value = {
     customers,
@@ -89,9 +121,13 @@ export const CrmProvider = ({ children }) => {
     fetchCustomers,
     createCustomer,
     updateCustomer,
+    deleteCustomer,
     addFollowUp,
+    getFollowUps,
     addTask,
-    addNote
+    getTasks,
+    addNote,
+    getNotes
   };
 
   return (

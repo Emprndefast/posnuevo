@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../config/api';
 import {
   Box,
   Card,
@@ -19,13 +18,24 @@ import {
   DialogActions
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useCrm } from '../../context/CrmContext';
 
 const CustomerDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const {
+    customers,
+    loading,
+    error,
+    getFollowUps,
+    getTasks,
+    getNotes,
+    addFollowUp,
+    addTask,
+    addNote
+  } = useCrm();
+
   const [customer, setCustomer] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
   const [followUps, setFollowUps] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -35,33 +45,33 @@ const CustomerDetail = () => {
   const [newNote, setNewNote] = useState({ content: '' });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('');
+  const [localLoading, setLocalLoading] = useState(true);
+  const [localError, setLocalError] = useState(null);
 
   useEffect(() => {
-    const fetchCustomerData = async () => {
+    const fetchData = async () => {
+      setLocalLoading(true);
+      setLocalError(null);
       try {
-        setLoading(true);
-        const [customerRes, followUpsRes, tasksRes, notesRes] = await Promise.all([
-          api.get(`/api/crm/customers/${id}`),
-          api.get(`/api/crm/customers/${id}/followups`),
-          api.get(`/api/crm/customers/${id}/tasks`),
-          api.get(`/api/crm/customers/${id}/notes`)
+        const found = customers.find(c => c.id === id);
+        setCustomer(found);
+        const [f, t, n] = await Promise.all([
+          getFollowUps(id),
+          getTasks(id),
+          getNotes(id)
         ]);
-
-        setCustomer(customerRes.data);
-        setFollowUps(followUpsRes.data);
-        setTasks(tasksRes.data);
-        setNotes(notesRes.data);
-        setError(null);
+        setFollowUps(f);
+        setTasks(t);
+        setNotes(n);
       } catch (err) {
-        console.error('Error al cargar datos del cliente:', err);
-        setError('Error al cargar los datos del cliente');
+        setLocalError('Error al cargar los datos del cliente');
       } finally {
-        setLoading(false);
+        setLocalLoading(false);
       }
     };
-
-    fetchCustomerData();
-  }, [id]);
+    fetchData();
+    // eslint-disable-next-line
+  }, [id, customers]);
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -79,34 +89,26 @@ const CustomerDetail = () => {
 
   const handleSubmit = async () => {
     try {
-      switch (dialogType) {
-        case 'followup':
-          await api.post(`/api/crm/customers/${id}/followups`, newFollowUp);
-          const followUpsRes = await api.get(`/api/crm/customers/${id}/followups`);
-          setFollowUps(followUpsRes.data);
-          setNewFollowUp({ content: '' });
-          break;
-        case 'task':
-          await api.post(`/api/crm/customers/${id}/tasks`, newTask);
-          const tasksRes = await api.get(`/api/crm/customers/${id}/tasks`);
-          setTasks(tasksRes.data);
-          setNewTask({ title: '', description: '' });
-          break;
-        case 'note':
-          await api.post(`/api/crm/customers/${id}/notes`, newNote);
-          const notesRes = await api.get(`/api/crm/customers/${id}/notes`);
-          setNotes(notesRes.data);
-          setNewNote({ content: '' });
-          break;
+      if (dialogType === 'followup') {
+        await addFollowUp(id, newFollowUp);
+        setFollowUps(await getFollowUps(id));
+        setNewFollowUp({ content: '' });
+      } else if (dialogType === 'task') {
+        await addTask(id, newTask);
+        setTasks(await getTasks(id));
+        setNewTask({ title: '', description: '' });
+      } else if (dialogType === 'note') {
+        await addNote(id, newNote);
+        setNotes(await getNotes(id));
+        setNewNote({ content: '' });
       }
       handleDialogClose();
     } catch (err) {
-      console.error('Error al agregar elemento:', err);
-      setError('Error al agregar el elemento');
+      setLocalError('Error al agregar el elemento');
     }
   };
 
-  if (loading) {
+  if (loading || localLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
@@ -114,12 +116,16 @@ const CustomerDetail = () => {
     );
   }
 
-  if (error) {
+  if (error || localError) {
     return (
       <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
+        {error || localError}
       </Alert>
     );
+  }
+
+  if (!customer) {
+    return <Alert severity="warning">Cliente no encontrado</Alert>;
   }
 
   return (
@@ -177,7 +183,9 @@ const CustomerDetail = () => {
               <CardContent>
                 <Typography>{followUp.content}</Typography>
                 <Typography variant="caption" color="textSecondary">
-                  {new Date(followUp.createdAt.toDate()).toLocaleString()}
+                  {followUp.createdAt && followUp.createdAt.seconds
+                    ? new Date(followUp.createdAt.seconds * 1000).toLocaleString()
+                    : ''}
                 </Typography>
               </CardContent>
             </Card>
@@ -222,7 +230,9 @@ const CustomerDetail = () => {
               <CardContent>
                 <Typography>{note.content}</Typography>
                 <Typography variant="caption" color="textSecondary">
-                  {new Date(note.createdAt.toDate()).toLocaleString()}
+                  {note.createdAt && note.createdAt.seconds
+                    ? new Date(note.createdAt.seconds * 1000).toLocaleString()
+                    : ''}
                 </Typography>
               </CardContent>
             </Card>
