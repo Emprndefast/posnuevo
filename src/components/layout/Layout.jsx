@@ -17,7 +17,7 @@ import {
   Badge
 } from '@mui/material';
 import { Navigation } from './Navigation';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import StoreIcon from '@mui/icons-material/Store';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -30,6 +30,7 @@ import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import NotificacionesModal from '../common/NotificacionesModal';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase/config';
+import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
 
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -249,6 +250,12 @@ const Layout = ({ children }) => {
                   </ListItemIcon>
                   Soporte técnico
                 </MenuItem>
+                <MenuItem onClick={() => navigate('/canva-flyer')}>
+                  <ListItemIcon>
+                    <SupportAgentIcon fontSize="small" />
+                  </ListItemIcon>
+                  Generar Flyer Canva
+                </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                   <ListItemIcon>
@@ -288,6 +295,10 @@ const Layout = ({ children }) => {
           maxWidth: '100%'
         }}
       >
+        <Routes>
+          {/* ...otras rutas... */}
+          <Route path="/canva-flyer" element={<CanvaFlyerGenerator />} />
+        </Routes>
         {children}
       </Box>
       <SoporteTecnicoModal open={openSoporte} onClose={() => setOpenSoporte(false)} />
