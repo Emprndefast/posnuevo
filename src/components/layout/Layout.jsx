@@ -258,16 +258,22 @@ const Layout = ({ children }) => {
                     mt: 1.5,
                     minWidth: 200,
                     borderRadius: 2,
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
                     border: '1px solid',
-                    borderColor: 'gray.200',
+                    borderColor: 'gray.300',
+                    bgcolor: 'white',
                     '& .MuiMenuItem-root': {
                       py: 1.5,
                       px: 2,
                       borderRadius: 1,
+                      color: 'text.primary',
                       '&:hover': {
-                        bgcolor: 'purple.50'
+                        bgcolor: '#f3f4f6'
                       }
+                    },
+                    '& .MuiListItemIcon-root': {
+                      color: 'text.secondary',
+                      minWidth: 36,
                     }
                   }
                 }}
@@ -326,11 +332,11 @@ const Layout = ({ children }) => {
           p: { xs: 2, sm: 3, md: 4 },
           width: { 
             xs: '100%',
-            sm: `calc(100% - ${drawerWidth})` 
+            sm: '100%'
           },
           ml: { 
             xs: 0,
-            sm: drawerWidth 
+            sm: 0 
           },
           mt: { 
             xs: '56px',

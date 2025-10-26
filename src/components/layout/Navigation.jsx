@@ -125,23 +125,18 @@ export const Navigation = ({ mobileOpen, onClose }) => {
           borderBottom: '1px solid #e5e7eb'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
           <Box
+            component="img"
+            src="/Posent-logo.png"
+            alt="POSENT Logo"
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '12px',
-              bgcolor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(114, 9, 245, 0.3)'
+              height: 45,
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block'
             }}
-          >
-            <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '1.25rem' }}>
-              P
-            </Typography>
-          </Box>
+          />
           <Typography 
             variant="h6" 
             sx={{ 
@@ -150,12 +145,12 @@ export const Navigation = ({ mobileOpen, onClose }) => {
               fontSize: '1.25rem'
             }}
           >
-            POSENT
+            POSENT PRO
           </Typography>
         </Box>
       </Box>
 
-      <Box sx={{ overflow: 'auto', flex: 1, mt: '64px' }}>
+      <Box sx={{ overflow: 'auto', flex: 1 }}>
         {menuGroups.map((group, groupIndex) => (
           <Box key={group.group}>
             <Box

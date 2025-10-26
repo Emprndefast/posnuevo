@@ -341,8 +341,8 @@ const NavigationDrawer = ({ children }) => {
           p: { xs: 2, sm: 3 },
           pt: { xs: 9, sm: 10 },
           transition: 'margin 0.3s ease',
-          width: { sm: `calc(100% - ${drawerOpen ? drawerWidth : collapsedWidth}px)` },
-          ml: { sm: drawerOpen ? `${drawerWidth}px` : `${collapsedWidth}px` },
+          width: { sm: '100%' },
+          ml: { sm: 0 },
           overflow: 'auto',
         }}
       >

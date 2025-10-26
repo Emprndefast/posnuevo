@@ -13,8 +13,8 @@ const Layout = ({ children }) => {
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { sm: `calc(100% - ${240}px)` },
-          ml: { sm: `${240}px` },
+          width: { sm: '100%' },
+          ml: { sm: 0 },
           mt: 8,
         }}
       >

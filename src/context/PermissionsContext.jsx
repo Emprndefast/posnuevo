@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, startTransition } from 'react';
 import { useAuth } from './AuthContextMongo';
 // import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 // import { db } from '../firebase/config';
@@ -51,33 +51,49 @@ export const PermissionsProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      if (user) {
-        try {
-          console.log('Fetching user role for MongoDB user');
-          // TODO: Fetch from MongoDB API
-          const userRole = user.role || 'staff';
-          if (userRole) {
-            console.log('Setting user role to:', userRole);
-            setUserRole(userRole.toLowerCase());
-          } else {
-            setUserRole(null);
-          }
-        } catch (error) {
-          console.error('Error fetching user role:', error);
+      if (!user) {
+        startTransition(() => {
           setUserRole(null);
-        }
-      } else {
-        console.log('No user logged in');
-        setUserRole(null);
+          setLoading(false);
+        });
+        return;
       }
-      setLoading(false);
+
+      try {
+        console.log('Fetching user role for MongoDB user');
+        console.log('User object:', user);
+        console.log('user.rol:', user.rol);
+        
+        // Leer tanto 'rol' como 'role' para compatibilidad
+        const userRole = user.role || user.rol || null;
+        
+        if (userRole) {
+          console.log('Setting user role to:', userRole);
+          startTransition(() => {
+            setUserRole(userRole.toLowerCase());
+            setLoading(false);
+          });
+        } else {
+          console.warn('No role found for user, setting to null');
+          startTransition(() => {
+            setUserRole(null);
+            setLoading(false);
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        startTransition(() => {
+          setUserRole(null);
+          setLoading(false);
+        });
+      }
     };
 
     fetchUserRole();
   }, [user]);
 
   const hasPermission = (section, action) => {
-    console.log('Checking permission:', { section, action, userRole });
+    // Admin siempre tiene todos los permisos
     if (userRole?.toLowerCase() === 'admin') return true;
     
     if (!userRole || !permissions[section] || !permissions[section][action]) {
@@ -87,17 +103,14 @@ export const PermissionsProvider = ({ children }) => {
   };
 
   const isOwner = () => {
-    console.log('Checking isOwner:', userRole);
     return userRole?.toLowerCase() === 'owner';
   };
   
   const isAdmin = () => {
-    console.log('Checking isAdmin:', userRole);
     return userRole?.toLowerCase() === 'admin';
   };
   
   const isManager = () => {
-    console.log('Checking isManager:', userRole);
     return userRole?.toLowerCase() === 'manager';
   };
 

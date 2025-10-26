@@ -52,6 +52,7 @@ setup(createElement);
 
 // Importaciones directas para evitar errores de suspensión
 import ModernDashboard from './components/dashboard/ModernDashboard';
+import DashboardPro from './components/dashboard/DashboardPro';
 
 // Páginas principales - Lazy loading to avoid Firebase errors during initial load
 const Products = React.lazy(() => import('./components/products/Products'));
@@ -394,7 +395,7 @@ const AppContent = () => {
                   <Route path="/subscription" element={<SubscriptionPlans />} />
                   <Route path="/subscriptions" element={<SubscriptionPlans />} />
                   <Route path="/setup-wizard" element={<PrivateRoute><ConfigGuard><SetupWizard /></ConfigGuard></PrivateRoute>} />
-                  <Route path="/dashboard" element={<ModernDashboard />} />
+                  <Route path="/dashboard" element={<DashboardPro />} />
                   <Route path="/analytics" element={<AnalyticsDashboard />} />
                   <Route path="/financial" element={<FinancialAnalytics />} />
                   <Route path="/sales" element={<Sales />} />
