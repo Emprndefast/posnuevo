@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy, useEffect } from 'react';
+import React, { useState, Suspense, lazy, useEffect, startTransition } from 'react';
 import {
   Box,
   Card,
@@ -94,7 +94,7 @@ import {
   Loyalty,
   WhatsApp as WhatsAppIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { useLanguage } from '../../context/LanguageContext';
 import { usePermissions } from '../../context/PermissionsContext';
 import { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, addDoc, writeBatch, deleteDoc, orderBy, serverTimestamp } from 'firebase/firestore';
@@ -1815,7 +1815,9 @@ export const Settings = () => {
   };
 
   const handleOpenModal = (modalName) => {
-    setActiveModal(modalName);
+    startTransition(() => {
+      setActiveModal(modalName);
+    });
   };
 
   const handleCloseModal = () => {

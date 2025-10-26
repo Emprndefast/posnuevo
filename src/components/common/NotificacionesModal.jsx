@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText, Typography, Box, IconButton, Badge } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { collection, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 

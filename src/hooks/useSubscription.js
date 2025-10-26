@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { onSnapshot, query, collection, where } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { subscriptionService } from '../services/subscriptionService';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 
 // Utilidad para convertir a Date
 function toDateSafe(val) {

@@ -3,11 +3,9 @@ import {
   Container, TextField, Button, Typography, Box, MenuItem, Snackbar, Alert, Link, InputAdornment, IconButton,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../firebase/config';
-import { setDoc, doc } from 'firebase/firestore';
 import { subscriptionService } from '../services/subscriptionService';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import * as authApi from '../api/auth';
 
 const ROLES = [
   { value: 'admin', label: 'Administrador' },
@@ -44,43 +42,43 @@ function Register() {
         setSnackbar({ open: true, message: 'Este correo o teléfono ya ha utilizado la prueba gratuita. Debes adquirir un plan para continuar.', severity: 'error' });
         return;
       }
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
+      
+      const response = await authApi.register({
         email,
+        password,
         name: nombre,
         role,
-        phone: telefono,
-        online: false,
-        createdAt: new Date(),
+        phone: telefono
       });
-      // Activar automáticamente el plan gratuito al registrar el usuario
-      await subscriptionService.createSubscription(userCredential.user.uid, {
-        id: 'free',
-        name: 'Prueba Gratis',
-        price: 0,
-        period: 'mes',
-        features: [
-          'Facturación básica',
-          'Gestión limitada de productos',
-        ],
-        limitations: {
-          products: 20,
-          users: 1,
-          support: '48h',
-          backup: 'manual',
-          registers: 1
-        }
-      });
-      setSnackbar({ open: true, message: 'Usuario registrado correctamente', severity: 'success' });
-      setTimeout(() => navigate('/login'), 1200);
-    } catch (err) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Este correo ya está registrado. Si ya usaste la prueba gratuita, debes adquirir un plan para continuar.');
-        setSnackbar({ open: true, message: 'Este correo ya está registrado. Si ya usaste la prueba gratuita, debes adquirir un plan para continuar.', severity: 'error' });
+      
+      if (response.success) {
+        // Activar automáticamente el plan gratuito al registrar el usuario
+        await subscriptionService.createSubscription(response.data.id || response.data._id, {
+          id: 'free',
+          name: 'Prueba Gratis',
+          price: 0,
+          period: 'mes',
+          features: [
+            'Facturación básica',
+            'Gestión limitada de productos',
+          ],
+          limitations: {
+            products: 20,
+            users: 1,
+            support: '48h',
+            backup: 'manual',
+            registers: 1
+          }
+        });
+        setSnackbar({ open: true, message: 'Usuario registrado correctamente', severity: 'success' });
+        setTimeout(() => navigate('/login'), 1200);
       } else {
-        setError(err.message);
-        setSnackbar({ open: true, message: err.message, severity: 'error' });
+        setError(response.message || 'Error al registrar usuario');
+        setSnackbar({ open: true, message: response.message || 'Error al registrar usuario', severity: 'error' });
       }
+    } catch (err) {
+      setError(err.message || 'Error al registrar usuario');
+      setSnackbar({ open: true, message: err.message || 'Error al registrar usuario', severity: 'error' });
     }
   };
 

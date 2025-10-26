@@ -61,7 +61,7 @@ import {
 } from '@mui/icons-material';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import StatCard from '../StatCard';

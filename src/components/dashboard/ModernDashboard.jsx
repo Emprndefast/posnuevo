@@ -69,9 +69,9 @@ import {
   Tooltip as ChartTooltip,
   Legend,
 } from 'chart.js';
-import { db } from '../../firebase/config';
-import { collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+// Firebase imports - Mocked for backward compatibility
+import { db, collection, query, where, getDocs, orderBy, limit, Timestamp } from '../../firebase/config';
+import { useAuth } from '../../context/AuthContextMongo';
 import { usePermissions } from '../../context/PermissionsContext';
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -98,10 +98,10 @@ const initialSalesData = {
     {
       label: 'Ventas',
       data: [0, 0, 0, 0, 0, 0, 0],
-      borderColor: '#1976d2',
+      borderColor: '#7209f5', // Whabot Purple
       tension: 0.4,
       fill: true,
-      backgroundColor: 'rgba(25, 118, 210, 0.1)',
+      backgroundColor: 'rgba(114, 9, 245, 0.1)',
     },
   ],
 };
@@ -112,11 +112,11 @@ const initialCategoryData = {
     {
       data: [],
       backgroundColor: [
-        '#1976d2',
-        '#9c27b0',
-        '#2e7d32',
-        '#0288d1',
-        '#ed6c02',
+        '#7209f5', // Whabot Purple
+        '#8b5cf6', // Whabot Violet
+        '#a78bfa', // Light Purple
+        '#c4b5fd', // Lighter Purple
+        '#e9d5ff', // Lightest Purple
       ],
     },
   ],
@@ -473,7 +473,11 @@ const ModernDashboard = () => {
 
   // Función para cargar datos del dashboard
   const fetchDashboardData = async () => {
-    if (!user?.uid) {
+    // Obtener el ID del usuario (puede ser uid de Firebase o _id/id de MongoDB)
+    const userId = user?.uid || user?._id || user?.id;
+    
+    if (!userId) {
+      console.warn('Usuario no autenticado o sin ID:', user);
       setError('Usuario no autenticado');
       setLoading(false);
       return;
@@ -489,7 +493,7 @@ const ModernDashboard = () => {
       
       const salesQuery = query(
         collection(db, 'sales'),
-        where('userId', '==', user.uid),
+        where('userId', '==', userId),
         where('date', '>=', Timestamp.fromDate(today)),
         orderBy('date', 'desc')
       );
@@ -512,7 +516,7 @@ const ModernDashboard = () => {
       const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const monthlySalesQuery = query(
         collection(db, 'sales'),
-        where('userId', '==', user.uid),
+        where('userId', '==', userId),
         where('date', '>=', Timestamp.fromDate(firstDayOfMonth)),
         orderBy('date', 'desc')
       );
@@ -528,7 +532,7 @@ const ModernDashboard = () => {
       const firstDayOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const lastMonthSalesQuery = query(
         collection(db, 'sales'),
-        where('userId', '==', user.uid),
+        where('userId', '==', userId),
         where('date', '>=', Timestamp.fromDate(firstDayOfLastMonth)),
         where('date', '<', Timestamp.fromDate(firstDayOfMonth)),
         orderBy('date', 'desc')
@@ -548,7 +552,7 @@ const ModernDashboard = () => {
       // Obtener productos más vendidos
       const productsQuery = query(
         collection(db, 'products'),
-        where('userId', '==', user.uid),
+        where('userId', '==', userId),
         orderBy('salesCount', 'desc'),
         limit(5)
       );
@@ -562,7 +566,7 @@ const ModernDashboard = () => {
       // Obtener valor del inventario
       const inventoryQuery = query(
         collection(db, 'products'),
-        where('userId', '==', user.uid)
+        where('userId', '==', userId)
       );
 
       const inventorySnapshot = await getDocs(inventoryQuery);
@@ -575,7 +579,7 @@ const ModernDashboard = () => {
       // Obtener número de clientes
       const customersQuery = query(
         collection(db, 'customers'),
-        where('userId', '==', user.uid)
+        where('userId', '==', userId)
       );
 
       const customersSnapshot = await getDocs(customersQuery);
@@ -585,7 +589,7 @@ const ModernDashboard = () => {
       const firstDayOfLastMonthCustomers = new Date(today.getFullYear(), today.getMonth() - 1, 1);
       const lastMonthCustomersQuery = query(
         collection(db, 'customers'),
-        where('userId', '==', user.uid),
+        where('userId', '==', userId),
         where('createdAt', '>=', Timestamp.fromDate(firstDayOfLastMonthCustomers)),
         where('createdAt', '<', Timestamp.fromDate(firstDayOfMonth))
       );

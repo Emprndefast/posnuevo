@@ -1,29 +1,34 @@
-import { getAuth } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+// Firebase disabled - Using MongoDB backend now
+// import { getAuth } from 'firebase/auth';
+// import { doc, getDoc } from 'firebase/firestore';
+// import { db } from '../firebase/config';
 import { formatCurrency } from '../utils/format';
 import { printerService } from './printerService';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 class PrintService {
   constructor() {
-    this.auth = getAuth();
+    // this.auth = getAuth(); // Firebase disabled
+    this.auth = null; // Mock for now
     this.printServerUrl = process.env.REACT_APP_PRINT_SERVER_URL || 'http://localhost:3001/print';
   }
 
   async getPrinterConfig() {
-    try {
-      const user = this.auth.currentUser;
-      if (!user) throw new Error('Usuario no autenticado');
+    // TODO: Migrate to MongoDB backend
+    console.warn('getPrinterConfig not implemented yet - Firebase disabled');
+    return null;
+    // try {
+    //   const user = this.auth.currentUser;
+    //   if (!user) throw new Error('Usuario no autenticado');
 
-      const config = await printerService.getPrinterConfig(user.uid);
-      if (!config) throw new Error('Configuración de impresora no encontrada');
+    //   const config = await printerService.getPrinterConfig(user.uid);
+    //   if (!config) throw new Error('Configuración de impresora no encontrada');
 
-      return config;
-    } catch (error) {
-      console.error('Error al obtener configuración de impresora:', error);
-      throw error;
-    }
+    //   return config;
+    // } catch (error) {
+    //   console.error('Error al obtener configuración de impresora:', error);
+    //   throw error;
+    // }
   }
 
   async print(content, config) {
@@ -48,28 +53,31 @@ class PrintService {
   }
 
   async printSale(saleData) {
-    try {
-      const printerConfig = await this.getPrinterConfig();
+    // TODO: Migrate to MongoDB backend
+    console.warn('printSale not implemented yet - Firebase disabled');
+    return true;
+    // try {
+    //   const printerConfig = await this.getPrinterConfig();
       
-      // Obtener datos del negocio
-      const businessDoc = await getDoc(doc(db, 'business', saleData.businessId));
-      if (!businessDoc.exists()) {
-        throw new Error('No se encontró la información del negocio');
-      }
-      const businessData = businessDoc.data();
+    //   // Obtener datos del negocio
+    //   const businessDoc = await getDoc(doc(db, 'business', saleData.businessId));
+    //   if (!businessDoc.exists()) {
+    //     throw new Error('No se encontró la información del negocio');
+    //   }
+    //   const businessData = businessDoc.data();
 
-      // Imprimir el contenido
-      await this.print(saleData.content, {
-        ...printerConfig,
-        documentType: saleData.type,
-        businessInfo: businessData
-      });
+    //   // Imprimir el contenido
+    //   await this.print(saleData.content, {
+    //     ...printerConfig,
+    //     documentType: saleData.type,
+    //     businessInfo: businessData
+    //   });
 
-      return true;
-    } catch (error) {
-      console.error('Error al imprimir venta:', error);
-      throw error;
-    }
+    //   return true;
+    // } catch (error) {
+    //   console.error('Error al imprimir venta:', error);
+    //   throw error;
+    // }
   }
 
   async printInvoice(data) {
@@ -162,15 +170,18 @@ class PrintService {
   }
 
   async logPrintJob(data) {
-    try {
-      await addDoc(collection(db, 'print_logs'), {
-        ...data,
-        timestamp: serverTimestamp(),
-        status: 'sent'
-      });
-    } catch (error) {
-      console.error('Error al registrar impresión:', error);
-    }
+    // TODO: Migrate to MongoDB backend
+    console.warn('logPrintJob not implemented yet - Firebase disabled');
+    return true;
+    // try {
+    //   await addDoc(collection(db, 'print_logs'), {
+    //     ...data,
+    //     timestamp: serverTimestamp(),
+    //     status: 'sent'
+    //   });
+    // } catch (error) {
+    //   console.error('Error al registrar impresión:', error);
+    // }
   }
 }
 

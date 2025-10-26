@@ -96,7 +96,7 @@ import {
 } from '@mui/icons-material';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, limit, startAfter, Timestamp, serverTimestamp, writeBatch } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { useTheme as useCustomTheme } from '../../context/ThemeContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -1428,59 +1428,132 @@ const Products = () => {
     }
   };
 
-  // Modificar la función fetchProducts para incluir notificaciones de stock bajo
+  // Función para obtener productos desde la API de MongoDB
   const fetchProducts = async () => {
-    if (!user?.uid) return;
+    console.log('🔄 fetchProducts called, user:', user);
+    const userId = user?.id || user?._id;
+    if (!userId) {
+      console.log('⚠️ No user id, returning');
+      return;
+    }
 
     try {
       setLoading(true);
-      const productsRef = collection(db, 'products');
-      const q = query(
-        productsRef,
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      );
-
-      const querySnapshot = await getDocs(q);
-      const productsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        status: doc.data().status || 'inactive' // Asegurar que status siempre tenga un valor
-      }));
-
-      setProducts(productsData);
       
-      // Calcular estadísticas
-      const totalValue = productsData.reduce((sum, product) => 
-        sum + (product.price * (product.stock || 0)), 0);
-      const lowStock = productsData.filter(product => 
-        (product.stock || 0) <= (product.minStock || 5)).length;
-      
-      setStats({
-        totalProducts: productsData.length,
-        totalValue,
-        lowStock,
-        categories: productsData.filter(p => p.category).length
+      // Obtener token del localStorage
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token from localStorage:', token ? 'exists' : 'not found');
+      if (!token) {
+        console.error('❌ No hay token de autenticación');
+        setError('No hay sesión activa');
+        setLoading(false);
+        return;
+      }
+
+      // Llamar a la API de MongoDB
+      console.log('📡 Llamando a la API de productos...');
+      const response = await axios.get('http://localhost:3002/api/products', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
+      console.log('✅ Respuesta de la API:', response.data);
+      console.log('📊 Status de respuesta:', response.status);
+      console.log('📦 Datos recibidos:', response.data.data);
+
+      if (response.data.success && response.data.data) {
+        // Mapear los datos de MongoDB al formato esperado por el frontend
+        const productsData = response.data.data.map(product => ({
+          id: product._id,
+          name: product.nombre,
+          description: product.descripcion || '',
+          price: product.precio,
+          stock: product.stock_actual || 0,
+          minStock: product.stock_minimo || 0,
+          category: product.categoria || '',
+          code: product.codigo || '',
+          barcode: product.barcode || '',
+          imageUrl: product.imagen || '',
+          status: 'active',
+          ...product
+        }));
+
+        console.log('🛍️ Productos procesados:', productsData);
+        console.log('🔢 Total de productos:', productsData.length);
+
+        // Verificar que los productos tienen los campos necesarios
+        productsData.forEach((product, index) => {
+          console.log(`Producto ${index + 1}:`, {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            stock: product.stock
+          });
+        });
+
+        setProducts(productsData);
+        
+        // Calcular estadísticas
+        const totalValue = productsData.reduce((sum, product) => 
+          sum + (product.price * (product.stock || 0)), 0);
+        const lowStock = productsData.filter(product => 
+          (product.stock || 0) <= (product.minStock || 5)).length;
+        
+        setStats({
+          totalProducts: productsData.length,
+          totalValue,
+          lowStock,
+          categories: productsData.filter(p => p.category).length
+        });
+
+        console.log('✅ Productos establecidos en el estado correctamente');
+      } else {
+        console.error('❌ Formato de respuesta inesperado:', response.data);
+        setError('Error al cargar los productos');
+      }
+
     } catch (err) {
-      console.error('Error al cargar productos:', err);
-      setError('Error al cargar los productos');
+      console.error('❌ Error al cargar productos:', err);
+      console.error('❌ Detalles del error:', err.response?.data);
+      if (err.response?.status === 401) {
+        setError('Sesión expirada. Por favor, inicia sesión nuevamente');
+      } else {
+        setError('Error al cargar los productos');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    console.log('useEffect - user changed:', user);
+    const userId = user?.id || user?._id;
+    if (userId) {
+      console.log('Usuario autenticado, cargando productos...');
+      fetchProducts();
+      fetchCategories();
+    } else {
+      console.log('No hay usuario, esperando autenticación...');
+    }
   }, [user]);
 
+  // Debug: Log cuando cambia el estado de productos
+  useEffect(() => {
+    console.log('Estado de productos actualizado:', {
+      total: products.length,
+      loading,
+      products: products
+    });
+  }, [products, loading]);
+
   const fetchCategories = async () => {
-    if (!user?.uid) return;
+    const userId = user?.id || user?._id;
+    if (!userId) return;
     
     try {
-      const q = query(collection(db, 'categories'), where('userId', '==', user.uid));
+      const q = query(collection(db, 'categories'), where('userId', '==', userId));
       const querySnapshot = await getDocs(q);
       const categoriesData = querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -1532,7 +1605,8 @@ const Products = () => {
 
   // Modificar la función handleSaveProduct para notificar nuevos productos
   const handleSaveProduct = async (formData) => {
-    if (!user?.uid) {
+    const userId = user?.id || user?._id;
+    if (!userId) {
       setError('Debes estar autenticado para guardar productos');
       return;
     }
@@ -1548,7 +1622,7 @@ const Products = () => {
         imageUrl: formData.imageUrl,
         minStock: parseInt(formData.minStock) || 0,
         maxStock: parseInt(formData.maxStock) || 0,
-        userId: user.uid,
+        userId: userId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         status: parseInt(formData.currentStock) > 0 ? 'active' : 'inactive', // Cambiado para usar currentStock
@@ -2179,19 +2253,20 @@ const Products = () => {
 
   return (
     <Box sx={{ 
-      maxWidth: '100%',
-      margin: '0 auto',
-      padding: { xs: 2, sm: 3 },
+      width: '100%',
+      margin: 0,
+      padding: 0,
       background: theme => theme.palette.background.default,
       minHeight: '100vh'
     }}>
       <Paper 
         elevation={0}
         sx={{ 
-          p: { xs: 2, sm: 3 },
-          borderRadius: 2,
+          p: { xs: 3, sm: 4 },
+          borderRadius: 0,
           backgroundColor: theme => theme.palette.background.paper,
-          mb: 3
+          mb: 0,
+          minHeight: '100vh'
         }}
       >
         {/* Header */}
@@ -2415,8 +2490,9 @@ const Products = () => {
         {/* Resumen de productos recientes */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Productos Recientes
+            Productos Recientes (Total: {products.length}, Loading: {loading ? 'Sí' : 'No'})
           </Typography>
+          {console.log('Render - Total productos:', products.length, 'Loading:', loading)}
           <TableContainer 
             component={Paper} 
             sx={{ 
@@ -2445,9 +2521,15 @@ const Products = () => {
                       <TableCell><Skeleton width={90} /></TableCell>
                 </TableRow>
               ))
+                        ) : products.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <Typography color="text.secondary">No hay productos disponibles</Typography>
+                </TableCell>
+              </TableRow>
             ) : (
                   products.slice(0, 5).map((product) => (
-                    <TableRow key={product.id} hover>
+                     <TableRow key={product.id} hover>
                   <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           {product.imageUrl ? (
@@ -2493,8 +2575,8 @@ const Products = () => {
                     />
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+                  ))
+                )}
           </TableBody>
         </Table>
       </TableContainer>

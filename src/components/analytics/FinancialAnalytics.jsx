@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 
 const MetricCard = ({ title, value, icon, trend, color }) => (
   <Card sx={{ height: '100%' }}>

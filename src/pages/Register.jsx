@@ -11,7 +11,7 @@ import {
   Link,
   CircularProgress
 } from '@mui/material';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 import api from '../config/api';
 
 const Register = () => {

@@ -80,7 +80,7 @@ import {
   startAfter,
   Timestamp 
 } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { format, startOfDay, startOfWeek, startOfMonth, startOfYear, subDays, isValid, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import StatCard from '../StatCard';

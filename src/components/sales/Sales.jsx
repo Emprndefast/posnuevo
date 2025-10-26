@@ -64,9 +64,8 @@ import {
   CameraAlt as CameraAltIcon,
   QrCode as QrCodeIcon,
 } from '@mui/icons-material';
-import { db } from '../../firebase/config';
-import { collection, query, where, getDocs, orderBy, startAt, endAt, Timestamp } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
+import api from '../../api/api';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import StatCard from '../StatCard';
@@ -136,31 +135,27 @@ const Sales = () => {
   };
 
   const fetchSales = async () => {
-    if (!user?.uid) return;
+    if (!user) return;
     
     try {
       setLoading(true);
       const { start, end } = getDateRange();
       
-      let q = query(
-        collection(db, 'sales'),
-        where('userId', '==', user.uid),
-        where('date', '>=', Timestamp.fromDate(start)),
-        where('date', '<=', Timestamp.fromDate(end)),
-        orderBy('date', 'desc')
-      );
-
-      const querySnapshot = await getDocs(q);
-      const salesData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      // Usar la API de MongoDB backend
+      const response = await api.get('/sales', {
+        params: {
+          startDate: start.toISOString(),
+          endDate: end.toISOString()
+        }
+      });
+      
+      const salesData = response.data.data || response.data || [];
 
       setSales(salesData);
       
       // Calcular estadísticas
       const totalAmount = salesData.reduce((sum, sale) => sum + (sale.total || 0), 0);
-      const uniqueCustomers = new Set(salesData.map(sale => sale.customerId)).size;
+      const uniqueCustomers = new Set(salesData.map(sale => sale.customerId).filter(Boolean)).size;
       
       setStats({
         totalSales: salesData.length,
@@ -170,7 +165,8 @@ const Sales = () => {
       });
 
     } catch (err) {
-      setError('Error al cargar las ventas: ' + err.message);
+      console.error('Error loading sales:', err);
+      setError('Error al cargar las ventas: ' + (err.message || 'Error desconocido'));
     } finally {
       setLoading(false);
     }

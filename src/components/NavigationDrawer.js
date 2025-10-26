@@ -35,7 +35,7 @@ import {
 } from '@mui/icons-material';
 import { useTheme } from '../pages/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 
 const drawerWidth = 280;
 const collapsedWidth = 80;

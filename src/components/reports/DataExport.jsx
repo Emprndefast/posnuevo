@@ -31,7 +31,7 @@ import {
 } from '@mui/icons-material';
 import { db } from '../../firebase/config';
 import { collection, query, where, getDocs, orderBy, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { usePermissions } from '../../context/PermissionsContext';
 import { format, subDays, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';

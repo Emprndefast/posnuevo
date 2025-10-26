@@ -1,13 +1,31 @@
 import React, { useState } from 'react';
-import { Box, Typography, TextField, Button, Alert, CircularProgress, DialogActions, Switch, FormControlLabel } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  Alert, 
+  CircularProgress, 
+  DialogActions, 
+  Switch, 
+  FormControlLabel,
+  Tab,
+  Tabs,
+  Divider,
+  Chip,
+  Grid
+} from '@mui/material';
 import axios from 'axios';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextMongo';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
 
 const WhatsAppConfigModal = ({ onClose }) => {
+  const [tab, setTab] = useState(0);
   const [useGlobal, setUseGlobal] = useState(true);
   const [instanceId, setInstanceId] = useState('');
   const [token, setToken] = useState('');
@@ -15,6 +33,12 @@ const WhatsAppConfigModal = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const { user, reloadUser } = useAuth() || {};
+
+  // Whabot configuration
+  const [whabotEnabled, setWhabotEnabled] = useState(false);
+  const [whabotUrl, setWhabotUrl] = useState('');
+  const [whabotApiKey, setWhabotApiKey] = useState('');
+  const [whabotLoading, setWhabotLoading] = useState(false);
 
   const validatePhone = (number) => /^\+[1-9]\d{10,14}$/.test(number);
 
@@ -111,74 +135,217 @@ const WhatsAppConfigModal = ({ onClose }) => {
     }
   };
 
-  return (
-    <Box sx={{ p: 3, minWidth: 350 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Configuración de WhatsApp
-      </Typography>
-      <FormControlLabel
-        control={
-          <Switch
-            checked={useGlobal}
-            onChange={e => setUseGlobal(e.target.checked)}
-            color="primary"
-          />
+  const handleSaveWhabot = async () => {
+    if (!whabotUrl.trim()) {
+      setAlert({ type: 'error', message: 'La URL de Whabot es requerida' });
+      return;
+    }
+    if (!whabotApiKey.trim()) {
+      setAlert({ type: 'error', message: 'La API Key es requerida' });
+      return;
+    }
+
+    setWhabotLoading(true);
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        whabot: {
+          enabled: whabotEnabled,
+          url: whabotUrl,
+          apiKey: whabotApiKey
         }
-        label="Usar la instancia global de WhatsApp (recomendado)"
-        sx={{ mb: 2 }}
-      />
+      });
+      
+      setAlert({ type: 'success', message: 'Configuración de Whabot guardada correctamente' });
+      
+      if (typeof reloadUser === 'function') {
+        await reloadUser();
+      }
+    } catch (error) {
+      console.error('Error al guardar configuración de Whabot:', error);
+      setAlert({ type: 'error', message: 'Error al guardar configuración de Whabot' });
+    } finally {
+      setWhabotLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ minWidth: 500 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+        <Tabs value={tab} onChange={(e, newValue) => setTab(newValue)}>
+          <Tab 
+            icon={<WhatsAppIcon />} 
+            iconPosition="start" 
+            label="UltraMsg" 
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          />
+          <Tab 
+            icon={<SettingsIcon />} 
+            iconPosition="start" 
+            label="Whabot Pro" 
+            sx={{ textTransform: 'none', fontWeight: 600 }}
+          />
+        </Tabs>
+      </Box>
+
       {alert && (
-        <Alert severity={alert.type} sx={{ mb: 2 }}>
+        <Alert severity={alert.type} sx={{ mb: 2 }} onClose={() => setAlert(null)}>
           {alert.message}
         </Alert>
       )}
-      {!useGlobal && (
-        <>
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Si deseas usar tu propia cuenta de UltraMsg, ingresa los datos aquí:
+
+      {tab === 0 && (
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WhatsAppIcon color="success" />
+            Configuración UltraMsg
           </Typography>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={useGlobal}
+                onChange={e => setUseGlobal(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Usar la instancia global de WhatsApp (recomendado)"
+            sx={{ mb: 2 }}
+          />
+
+          {!useGlobal && (
+            <>
+              <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+                Si deseas usar tu propia cuenta de UltraMsg, ingresa los datos aquí:
+              </Typography>
+              <TextField
+                fullWidth
+                label="Instance ID"
+                value={instanceId}
+                onChange={e => setInstanceId(e.target.value)}
+                margin="normal"
+                placeholder="tu-instance-id"
+              />
+              <TextField
+                fullWidth
+                label="Token"
+                value={token}
+                onChange={e => setToken(e.target.value)}
+                margin="normal"
+                type="password"
+                placeholder="tu-token-secreto"
+              />
+            </>
+          )}
+
           <TextField
             fullWidth
-            label="Instance ID"
-            value={instanceId}
-            onChange={e => setInstanceId(e.target.value)}
+            label="Número de WhatsApp"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="+18091234567"
             margin="normal"
+            helperText="Formato internacional con código de país"
           />
-          <TextField
-            fullWidth
-            label="Token"
-            value={token}
-            onChange={e => setToken(e.target.value)}
-            margin="normal"
-            type="password"
-          />
-        </>
+
+          <DialogActions sx={{ mt: 3, px: 0 }}>
+            <Button onClick={onClose} color="inherit">Cerrar</Button>
+            <Button
+              variant="outlined"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={20} /> : 'Guardar'}
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleTest}
+              disabled={loading}
+              startIcon={<WhatsAppIcon />}
+            >
+              {loading ? <CircularProgress size={20} /> : 'Probar Mensaje'}
+            </Button>
+          </DialogActions>
+        </Box>
       )}
-      <TextField
-        fullWidth
-        label="Número de WhatsApp"
-        value={phone}
-        onChange={e => setPhone(e.target.value)}
-        placeholder="+18091234567"
-        margin="normal"
-      />
-      <DialogActions>
-        <Button onClick={onClose}>Cerrar</Button>
-        <Button
-          variant="outlined"
-          onClick={handleSave}
-          disabled={loading}
-        >
-          Guardar
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleTest}
-          disabled={loading}
-        >
-          {loading ? <CircularProgress size={20} /> : 'Enviar Mensaje de Prueba'}
-        </Button>
-      </DialogActions>
+
+      {tab === 1 && (
+        <Box sx={{ p: 3 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <SettingsIcon color="primary" />
+              Configuración Whabot Pro
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Conecta POSENT con tu instancia de Whabot Pro para enviar mensajes de WhatsApp
+            </Typography>
+          </Box>
+
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Información importante:</strong> Esta integración permite que POSENT se conecte 
+              con Whabot Pro para enviar mensajes de WhatsApp. Asegúrate de que Whabot Pro esté 
+              configurado correctamente.
+            </Typography>
+          </Alert>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={whabotEnabled}
+                onChange={e => setWhabotEnabled(e.target.checked)}
+                color="primary"
+              />
+            }
+            label="Habilitar integración con Whabot Pro"
+            sx={{ mb: 3 }}
+          />
+
+          {whabotEnabled && (
+            <>
+              <TextField
+                fullWidth
+                label="URL de Whabot Pro"
+                value={whabotUrl}
+                onChange={e => setWhabotUrl(e.target.value)}
+                margin="normal"
+                placeholder="https://tu-whabot-pro.com"
+                helperText="URL completa de tu instancia de Whabot Pro"
+              />
+
+              <TextField
+                fullWidth
+                label="API Key"
+                value={whabotApiKey}
+                onChange={e => setWhabotApiKey(e.target.value)}
+                margin="normal"
+                type="password"
+                placeholder="tu-api-key-secreta"
+                helperText="API Key para autenticar con Whabot Pro"
+              />
+
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  Para obtener tu API Key, ve a la configuración de Whabot Pro → 
+                  Integraciones → Generar API Key
+                </Typography>
+              </Alert>
+            </>
+          )}
+
+          <DialogActions sx={{ mt: 3, px: 0 }}>
+            <Button onClick={onClose} color="inherit">Cerrar</Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveWhabot}
+              disabled={whabotLoading || !whabotEnabled}
+              startIcon={<SettingsIcon />}
+            >
+              {whabotLoading ? <CircularProgress size={20} /> : 'Guardar Configuración'}
+            </Button>
+          </DialogActions>
+        </Box>
+      )}
     </Box>
   );
 };

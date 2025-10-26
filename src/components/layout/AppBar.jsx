@@ -21,7 +21,7 @@ import {
   Settings as SettingsIcon,
   SupportAgent as SupportAgentIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { useNavigate } from 'react-router-dom';
 import SoporteTecnicoModal from '../SoporteTecnicoModal';
 import NotificacionesModal from '../common/NotificacionesModal';

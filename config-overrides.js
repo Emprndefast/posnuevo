@@ -27,7 +27,21 @@ module.exports = function override(config) {
     })
   ];
 
-  config.ignoreWarnings = [/Failed to parse source map/];
+  config.ignoreWarnings = [
+    /Failed to parse source map/,
+    /Can't resolve 'firebase\/firestore'/,
+    /Can't resolve 'firebase\/auth'/,
+    /Can't resolve 'firebase\/storage'/
+  ];
+
+  // Ignore Firebase modules to prevent errors during load
+  config.resolve.alias = {
+    ...config.resolve.alias,
+    'firebase/firestore': path.resolve(__dirname, 'src/firebase/config.js'),
+    'firebase/auth': path.resolve(__dirname, 'src/firebase/config.js'),
+    'firebase/storage': path.resolve(__dirname, 'src/firebase/config.js'),
+    'firebase/app': path.resolve(__dirname, 'src/firebase/config.js')
+  };
   
   return config;
 }; 

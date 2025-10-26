@@ -26,9 +26,9 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { commonStyles } from '../styles/commonStyles';
-import { db } from '../firebase/config';
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext';
+// Firebase imports - Mocked for backward compatibility
+import { db, collection, query, where, getDocs, Timestamp } from '../firebase/config';
+import { useAuth } from '../context/AuthContextMongo';
 
 // Función auxiliar para formatear la fecha en español
 const formatDate = (date) => {

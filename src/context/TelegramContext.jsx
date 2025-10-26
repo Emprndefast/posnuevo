@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
+import { useAuth } from './AuthContextMongo';
 import { telegramService } from '../services/telegramService';
 import { enqueueSnackbar } from 'notistack';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+// Firebase imports - Mocked for backward compatibility
+import { doc, getDoc, db } from '../firebase/config';
 
 const TelegramContext = createContext();
 

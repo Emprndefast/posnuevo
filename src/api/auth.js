@@ -13,6 +13,21 @@ export const login = async (credentials) => {
   return response.data;
 };
 
+export const resetPassword = async (email) => {
+  const response = await api.post('/auth/reset-password', { email });
+  return response.data;
+};
+
+export const getProfile = async () => {
+  const response = await api.get('/auth/profile');
+  return response.data;
+};
+
+export const updateProfile = async (profileData) => {
+  const response = await api.patch('/auth/profile', profileData);
+  return response.data;
+};
+
 // Obtener todos los productos
 export const getProducts = async () => {
   const response = await api.get('/products');

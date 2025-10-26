@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
 import { CircularProgress, Box, Container, Paper, Typography, TextField, Button, Alert, Divider } from '@mui/material';
@@ -39,7 +39,6 @@ import { setup } from 'goober';
 import { createElement } from 'react';
 import { PrintProvider } from './context/PrintContext';
 import { testUtils } from './utils/testUtils';
-import { auth } from './firebase/config';
 import AIAssistant from './components/common/AIAssistant';
 import HuggingFaceTest from './components/HuggingFaceTest';
 import PantallaBloqueo from './components/settings/PantallaBloqueo';
@@ -51,31 +50,33 @@ import { CrmProvider } from './context/CrmContext';
 // Configurar goober
 setup(createElement);
 
-// Páginas principales
+// Importaciones directas para evitar errores de suspensión
 import ModernDashboard from './components/dashboard/ModernDashboard';
-import Products from './components/products/Products';
-import Sales from './components/sales/Sales';
-import { Customers } from './components/customers/Customers';
-import { AnalyticsDashboard } from './components/analytics/AnalyticsDashboard';
-import FinancialAnalytics from './components/analytics/FinancialAnalytics';
-import QuickSale from './components/sales/QuickSale';
-import Inventario from './components/inventory/Inventario';
-import ProductCostManager from './components/inventory/ProductCostManager';
-import { InvoiceGenerator } from './components/billing/InvoiceGenerator';
-import Reparaciones from './pages/Reparaciones';
-import Contabilidad from './pages/contabilidad/index';
-import RegistroMovimiento from './pages/contabilidad/registro';
-import { Settings } from './components/settings/Settings';
-import BranchManager from './components/settings/BranchManager';
-import Perfil from './pages/Perfil';
-import { SubscriptionPlans } from './components/subscriptions/SubscriptionPlans';
-import DataExport from './components/reports/DataExport';
+
+// Páginas principales - Lazy loading to avoid Firebase errors during initial load
+const Products = React.lazy(() => import('./components/products/Products'));
+const Sales = React.lazy(() => import('./components/sales/Sales'));
+const Customers = React.lazy(() => import('./components/customers/Customers').then(m => ({ default: m.Customers })));
+const AnalyticsDashboard = React.lazy(() => import('./components/analytics/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })));
+const FinancialAnalytics = React.lazy(() => import('./components/analytics/FinancialAnalytics'));
+const QuickSale = React.lazy(() => import('./components/sales/QuickSale'));
+const Inventario = React.lazy(() => import('./components/inventory/Inventario'));
+const ProductCostManager = React.lazy(() => import('./components/inventory/ProductCostManager'));
+const InvoiceGenerator = React.lazy(() => import('./components/billing/InvoiceGenerator').then(m => ({ default: m.InvoiceGenerator })));
+const Reparaciones = React.lazy(() => import('./pages/Reparaciones'));
+const Contabilidad = React.lazy(() => import('./pages/contabilidad/index'));
+const RegistroMovimiento = React.lazy(() => import('./pages/contabilidad/registro'));
+const Settings = React.lazy(() => import('./components/settings/Settings').then(m => ({ default: m.Settings })));
+const BranchManager = React.lazy(() => import('./components/settings/BranchManager'));
+const Perfil = React.lazy(() => import('./pages/Perfil'));
+const SubscriptionPlans = React.lazy(() => import('./components/subscriptions/SubscriptionPlans').then(m => ({ default: m.SubscriptionPlans })));
+const DataExport = React.lazy(() => import('./components/reports/DataExport'));
 
 // Páginas de autenticación
-import Login from './pages/Login';
-import Register from './pages/Register';
+const Login = React.lazy(() => import('./pages/Login'));
+const Register = React.lazy(() => import('./pages/Register'));
 
-// Landing Page
+// Landing Page - Load immediately (no Firebase)
 import LandingPage from './components/LandingPage';
 
 // Páginas adicionales
@@ -86,11 +87,11 @@ import Privacidad from './pages/Privacidad';
 // Estilos
 import './styles/globals.css';
 
-import PaymentGateways from './pages/PaymentGateways';
-import EInvoicing from './pages/EInvoicing';
-import Suppliers from './pages/Suppliers';
-import Promotions from './pages/Promotions';
-import CrmRoutes from './routes/CrmRoutes';
+const PaymentGateways = React.lazy(() => import('./pages/PaymentGateways'));
+const EInvoicing = React.lazy(() => import('./pages/EInvoicing'));
+const Suppliers = React.lazy(() => import('./pages/Suppliers'));
+const Promotions = React.lazy(() => import('./pages/Promotions'));
+const CrmRoutes = React.lazy(() => import('./routes/CrmRoutes'));
 
 function TestTrial() {
   const [userId, setUserId] = useState('');
@@ -265,6 +266,13 @@ function TestTrial() {
   );
 }
 
+// Wrapper component for lazy-loaded routes
+const LazyRoute = ({ component: Component, ...rest }) => (
+  <Suspense fallback={<CircularProgress />}>
+    <Component {...rest} />
+  </Suspense>
+);
+
 const AppContent = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -362,8 +370,16 @@ const AppContent = () => {
       <Routes>
         {/* Rutas públicas SIN layout */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={
+          <Suspense fallback={<CircularProgress />}>
+            <Login />
+          </Suspense>
+        } />
+        <Route path="/register" element={
+          <Suspense fallback={<CircularProgress />}>
+            <Register />
+          </Suspense>
+        } />
         <Route path="/manual" element={<Manual />} />
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/privacidad" element={<Privacidad />} />
@@ -432,12 +448,18 @@ function App() {
                       <TelegramProvider>
                         <PrinterProvider>
                           <PrintProvider>
-                            <CrmProvider>
-                              <SnackbarProvider maxSnack={3}>
-                                <CssBaseline />
-                                <AppContent />
-                              </SnackbarProvider>
-                            </CrmProvider>
+                            <ProductosProvider>
+                              <VentasProvider>
+                                <ClientesProvider>
+                                  <CrmProvider>
+                                    <SnackbarProvider maxSnack={3}>
+                                      <CssBaseline />
+                                      <AppContent />
+                                    </SnackbarProvider>
+                                  </CrmProvider>
+                                </ClientesProvider>
+                              </VentasProvider>
+                            </ProductosProvider>
                           </PrintProvider>
                         </PrinterProvider>
                       </TelegramProvider>

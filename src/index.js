@@ -20,5 +20,6 @@ root.render(
   </ThemeProvider>
 );
 
-// Esto hace tu app PWA
-serviceWorkerRegistration.register();
+// Esto hace tu app PWA - TEMPORARIAMENTE DESACTIVADO PARA DESARROLLO
+// serviceWorkerRegistration.register();
+serviceWorkerRegistration.unregister();

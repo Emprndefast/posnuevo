@@ -1,9 +1,8 @@
-import { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 import { ROLE_PERMISSIONS } from '../constants/roles';
 
 export const usePermissions = () => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   const hasPermission = (permission) => {
     if (!user || !user.role) return false;

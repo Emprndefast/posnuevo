@@ -4,7 +4,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { collection, setDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextMongo';
 // Hooks de contexto global (ajusta los imports si tus nombres son diferentes)
 import { useProductos } from '../../../context/ProductosContext';
 import { useClientes } from '../../../context/ClientesContext';

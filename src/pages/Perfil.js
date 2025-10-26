@@ -22,13 +22,9 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon
 } from '@mui/icons-material';
-import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { updateProfile } from 'firebase/auth';
-import { auth, storage } from '../firebase/config';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useAuth } from '../context/AuthContextMongo';
 import storageService from '../services/storageService';
+import * as authApi from '../api/auth';
 
 const DATOS_INICIALES = {
   // Datos principales (algunos no editables)
@@ -65,15 +61,12 @@ const Perfil = () => {
       if (!currentUser) return;
       
       try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        if (userDoc.exists()) {
+        const response = await authApi.getProfile();
+        if (response.success && response.data) {
           setProfileData(prev => ({
             ...prev,
-            ...userDoc.data()
+            ...response.data
           }));
-        } else {
-          // Si no existe, usar los datos iniciales
-          await setDoc(doc(db, 'users', currentUser.uid), DATOS_INICIALES);
         }
       } catch (error) {
         console.error('Error al cargar el perfil:', error);
@@ -103,19 +96,16 @@ const Perfil = () => {
 
     try {
       setSaving(true);
-      await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
-      // Solo actualizar photoURL si la URL es válida (no base64)
-      if (profileData.fotoUrl && typeof profileData.fotoUrl === 'string' && profileData.fotoUrl.startsWith('http')) {
-        await updateProfile(currentUser, { photoURL: profileData.fotoUrl });
-        await auth.currentUser.reload();
-        setUser(auth.currentUser); // Actualiza el contexto con el usuario recargado
+      const response = await authApi.updateProfile(profileData);
+      
+      if (response.success) {
+        setSnackbar({
+          open: true,
+          message: 'Perfil actualizado correctamente',
+          severity: 'success'
+        });
+        setEditing(false);
       }
-      setSnackbar({
-        open: true,
-        message: 'Perfil actualizado correctamente',
-        severity: 'success'
-      });
-      setEditing(false);
     } catch (error) {
       console.error('Error al guardar el perfil:', error);
       setSnackbar({

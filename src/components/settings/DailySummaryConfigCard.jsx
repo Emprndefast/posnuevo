@@ -19,7 +19,7 @@ import WhatsAppConfigModal from './modals/WhatsAppConfigModal';
 import TelegramConfigModal from './modals/TelegramConfigModal';
 import { db } from '../../firebase/config';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 
 // Consulta real de configuración y canales disponibles
 const fetchUserNotificationConfig = async (userId) => {

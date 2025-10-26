@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, Button, Stack, TextField, Switch, FormControlLabel, Snackbar, Alert, CircularProgress, IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useTelegram } from '../../../context/TelegramContext';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContextMongo';
 import { db } from '../../../firebase/config';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 

@@ -32,7 +32,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { db } from '../../firebase/config';
 import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 
 export const InvoiceGenerator = () => {
   const [invoiceData, setInvoiceData] = useState({

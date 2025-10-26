@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, setDoc, query, where } from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { getAuth } from 'firebase/auth';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/api';
+import { useAuth } from './AuthContextMongo';
 
 const CrmContext = createContext();
 
@@ -14,104 +13,120 @@ export const useCrm = () => {
 };
 
 export const CrmProvider = ({ children }) => {
+  const { user } = useAuth() || {};
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const auth = getAuth();
-  const user = auth.currentUser;
 
-  // Escuchar cambios en clientes del usuario actual
-  useEffect(() => {
-    if (!user) {
+  // Cargar clientes del backend MongoDB
+  const fetchCustomers = useCallback(async () => {
+    if (!user?.id && !user?._id) {
       setCustomers([]);
       setLoading(false);
-      return;
+      return [];
     }
-    setLoading(true);
-    const q = query(collection(db, 'crm_customers'), where('userId', '==', user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setCustomers(data);
-      setLoading(false);
-    }, (err) => {
-      setError('Error al cargar los clientes');
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [user]);
-
-  // CRUD de clientes
-  const fetchCustomers = async () => {
-    if (!user) return [];
+    
     setLoading(true);
     try {
-      const q = query(collection(db, 'crm_customers'), where('userId', '==', user.uid));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setCustomers(data);
+      const response = await api.get('/customers');
+      const customersData = response.data.data || response.data || [];
+      setCustomers(customersData);
       setError(null);
-      return data;
+      return customersData;
     } catch (err) {
+      console.error('Error loading customers:', err);
       setError('Error al cargar los clientes');
+      setCustomers([]);
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Cargar clientes al montar el componente
+  useEffect(() => {
+    fetchCustomers();
+  }, [fetchCustomers]);
 
   const createCustomer = async (customerData) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    const data = { ...customerData, userId: user.uid, createdAt: new Date(), updatedAt: new Date() };
-    const docRef = await addDoc(collection(db, 'crm_customers'), data);
-    return { id: docRef.id, ...data };
+    if (!user?.id && !user?._id) throw new Error('Usuario no autenticado');
+    
+    try {
+      const userId = user.id || user._id;
+      const data = { 
+        ...customerData, 
+        userId, 
+        createdAt: new Date(), 
+        updatedAt: new Date() 
+      };
+      const response = await api.post('/customers', data);
+      const newCustomer = response.data.data || response.data;
+      setCustomers(prev => [...prev, newCustomer]);
+      return newCustomer;
+    } catch (err) {
+      console.error('Error creating customer:', err);
+      throw err;
+    }
   };
 
   const updateCustomer = async (id, customerData) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    const ref = doc(db, 'crm_customers', id);
-    await updateDoc(ref, { ...customerData, updatedAt: new Date() });
+    if (!user?.id && !user?._id) throw new Error('Usuario no autenticado');
+    
+    try {
+      await api.patch(`/customers/${id}`, { 
+        ...customerData, 
+        updatedAt: new Date() 
+      });
+      setCustomers(prev => prev.map(c => 
+        (c._id || c.id) === id ? { ...c, ...customerData } : c
+      ));
+    } catch (err) {
+      console.error('Error updating customer:', err);
+      throw err;
+    }
   };
 
   const deleteCustomer = async (id) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    await deleteDoc(doc(db, 'crm_customers', id));
+    if (!user?.id && !user?._id) throw new Error('Usuario no autenticado');
+    
+    try {
+      await api.delete(`/customers/${id}`);
+      setCustomers(prev => prev.filter(c => (c._id || c.id) !== id));
+    } catch (err) {
+      console.error('Error deleting customer:', err);
+      throw err;
+    }
   };
 
-  // Subcolecciones: Seguimientos, Tareas, Notas
+  // Subcolecciones - Implementaciones simplificadas
   const addFollowUp = async (customerId, followUpData) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    const ref = collection(db, 'crm_customers', customerId, 'followups');
-    await addDoc(ref, { ...followUpData, createdAt: new Date(), userId: user.uid });
+    // TODO: Implementar en backend si es necesario
+    console.warn('addFollowUp not fully implemented yet');
   };
 
   const getFollowUps = async (customerId) => {
-    const ref = collection(db, 'crm_customers', customerId, 'followups');
-    const snapshot = await getDocs(ref);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // TODO: Implementar en backend si es necesario
+    return [];
   };
 
   const addTask = async (customerId, taskData) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    const ref = collection(db, 'crm_customers', customerId, 'tasks');
-    await addDoc(ref, { ...taskData, createdAt: new Date(), userId: user.uid });
+    // TODO: Implementar en backend si es necesario
+    console.warn('addTask not fully implemented yet');
   };
 
   const getTasks = async (customerId) => {
-    const ref = collection(db, 'crm_customers', customerId, 'tasks');
-    const snapshot = await getDocs(ref);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // TODO: Implementar en backend si es necesario
+    return [];
   };
 
   const addNote = async (customerId, noteData) => {
-    if (!user) throw new Error('Usuario no autenticado');
-    const ref = collection(db, 'crm_customers', customerId, 'notes');
-    await addDoc(ref, { ...noteData, createdAt: new Date(), userId: user.uid });
+    // TODO: Implementar en backend si es necesario
+    console.warn('addNote not fully implemented yet');
   };
 
   const getNotes = async (customerId) => {
-    const ref = collection(db, 'crm_customers', customerId, 'notes');
-    const snapshot = await getDocs(ref);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // TODO: Implementar en backend si es necesario
+    return [];
   };
 
   const value = {
@@ -135,4 +150,4 @@ export const CrmProvider = ({ children }) => {
       {children}
     </CrmContext.Provider>
   );
-}; 
+};

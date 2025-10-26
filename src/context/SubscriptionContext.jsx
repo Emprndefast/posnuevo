@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { subscriptionService } from '../services/subscriptionService';
-import { useAuth } from './AuthContext';
+import { useAuth } from './AuthContextMongo';
 
 const SubscriptionContext = createContext();
 

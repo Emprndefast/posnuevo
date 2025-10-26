@@ -21,7 +21,7 @@ import {
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 import ResponsiveLayout from '../components/layout/ResponsiveLayout';
 import ContentCard from '../components/layout/ContentCard';
 import ContentSection from '../components/layout/ContentSection';

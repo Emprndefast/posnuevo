@@ -4,12 +4,10 @@ import {
   Paper, useTheme, useMediaQuery, CircularProgress, Dialog, DialogTitle,
   DialogContent, DialogActions
 } from '@mui/material';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase/config';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { useTheme as useCustomTheme } from './ThemeContext';
 import { subscriptionService } from '../services/subscriptionService';
+import { useAuth } from '../context/AuthContextMongo';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -25,6 +23,7 @@ function Login() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { darkMode } = useCustomTheme();
+  const { login: authLogin } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,53 +31,50 @@ function Login() {
     setLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
-      const userDoc = await getDoc(doc(db, 'users', uid));
+      const result = await authLogin(email, password);
+      
+      if (result.success) {
+        // Obtener datos del usuario del contexto después del login
+        const token = localStorage.getItem('token');
+        if (token) {
+          // Importar dinámicamente el método para obtener el perfil
+          const { default: api } = await import('../api/api');
+          try {
+            const profileResponse = await api.get('/auth/profile');
+            if (profileResponse.data.success) {
+              const userData = profileResponse.data.user;
+              
+              // Verificar si el usuario está en período de prueba
+              if (userData._id || userData.id) {
+                const trialStatus = await subscriptionService.checkTrialExpiration(userData._id || userData.id);
+                
+                if (trialStatus.isExpired) {
+                  setTrialExpiredDialog(true);
+                  setLoading(false);
+                  return;
+                }
+              }
 
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+              // Mostrar mensaje de bienvenida con nombre del usuario
+              const userName = userData?.nombre || userData?.name || userData?.email?.split('@')[0] || 'Usuario';
+              setSnackbar({ open: true, message: `Bienvenido ${userName}`, severity: 'success' });
 
-        // Verificar si el usuario está en período de prueba
-        const trialStatus = await subscriptionService.checkTrialExpiration(uid);
-        
-        if (trialStatus.isExpired) {
-          setTrialExpiredDialog(true);
-          setLoading(false);
-          return;
-        }
-
-        await updateDoc(doc(db, 'users', uid), { 
-          online: true,
-          lastLogin: new Date()
-        });
-
-        setSnackbar({ open: true, message: 'Bienvenido', severity: 'success' });
-
-        setTimeout(() => {
-          // Solo verificar role
-          const userRole = userData.role;
-          if (userRole?.toLowerCase() === 'admin') {
-            navigate('/');
-          } else if (userRole?.toLowerCase() === 'staff') {
-            navigate('/reparaciones');
-          } else {
-            navigate('/perfil');
+              setTimeout(() => {
+                // Navegar al dashboard por defecto
+                navigate('/dashboard', { replace: true });
+              }, 1000);
+            }
+          } catch (profileErr) {
+            console.error('Error obteniendo perfil:', profileErr);
+            // De todos modos navegar al dashboard
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1000);
           }
-        }, 1000);
+        }
       } else {
-        // Si el usuario no existe en Firestore, crearlo con rol admin
-        await setDoc(doc(db, 'users', uid), {
-          email: email,
-          role: 'admin',
-          createdAt: new Date(),
-          lastLogin: new Date(),
-          online: true
-        });
-        setSnackbar({ open: true, message: 'Bienvenido', severity: 'success' });
-        setTimeout(() => {
-          navigate('/');
-        }, 1000);
+        setError(result.error || 'Correo o contraseña incorrectos');
+        setSnackbar({ open: true, message: result.error || 'Correo o contraseña incorrectos', severity: 'error' });
       }
     } catch (err) {
       setError('Correo o contraseña incorrectos');
@@ -106,8 +102,9 @@ function Login() {
   const handleSendResetEmail = async () => {
     setResetLoading(true);
     try {
-      auth.languageCode = 'es'; // Forzar idioma español
-      await sendPasswordResetEmail(auth, resetEmail);
+      // TODO: Implementar endpoint en backend para reset de contraseña
+      const { default: authApi } = await import('../api/auth');
+      await authApi.resetPassword(resetEmail);
       setSnackbar({ open: true, message: 'Correo de recuperación enviado. Revisa tu bandeja de entrada.', severity: 'success' });
       setResetDialog(false);
     } catch (err) {

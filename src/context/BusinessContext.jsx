@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase/config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useAuth } from './AuthContext';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import api from '../api/api';
+import { useAuth } from './AuthContextMongo';
 
 const BusinessContext = createContext();
 
@@ -38,22 +37,22 @@ export const BusinessProvider = ({ children }) => {
   });
 
   // Cargar datos del negocio
-  const loadBusinessData = async () => {
-    if (!user?.uid) {
+  const loadBusinessData = useCallback(async () => {
+    if (!user?.id && !user?._id) {
       console.log('No hay usuario autenticado para cargar datos');
+      setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      console.log('Intentando cargar datos del negocio para el usuario:', user.uid);
+      console.log('Intentando cargar datos del negocio');
 
-      const businessDocRef = doc(db, 'business_data', user.uid);
-      const businessDoc = await getDoc(businessDocRef);
+      const response = await api.get('/settings/business');
+      const data = response.data.data || response.data;
 
-      if (businessDoc.exists()) {
-        const data = businessDoc.data();
+      if (data) {
         console.log('Datos del negocio cargados:', data);
         const isConfigured = Boolean(
           data.name &&
@@ -71,16 +70,16 @@ export const BusinessProvider = ({ children }) => {
         console.log('No existen datos del negocio para este usuario');
       }
     } catch (err) {
-      setError('Error al cargar los datos del negocio: ' + err.message);
-      console.error('Error al cargar los datos del negocio:', err);
+      console.warn('No business data found, using defaults');
+      setError(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Guardar datos del negocio
   const saveBusinessData = async (data) => {
-    if (!user?.uid) {
+    if (!user?.id && !user?._id) {
       console.log('No hay usuario autenticado para guardar datos');
       return false;
     }
@@ -89,7 +88,6 @@ export const BusinessProvider = ({ children }) => {
       setError(null);
       console.log('Intentando guardar datos del negocio:', data);
       
-      const businessDocRef = doc(db, 'business_data', user.uid);
       const isConfigured = Boolean(
         data.name &&
         data.address &&
@@ -104,7 +102,7 @@ export const BusinessProvider = ({ children }) => {
       };
 
       console.log('Guardando datos actualizados:', updatedData);
-      await setDoc(businessDocRef, updatedData, { merge: true });
+      await api.post('/settings/business', updatedData);
       console.log('Datos guardados exitosamente');
       
       setBusinessData(updatedData);
@@ -127,13 +125,9 @@ export const BusinessProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log('BusinessProvider: useEffect - Usuario actual:', user?.uid);
-    if (user?.uid) {
-      loadBusinessData();
-    } else {
-      setLoading(false);
-    }
-  }, [user?.uid]);
+    console.log('BusinessProvider: useEffect - Usuario actual:', user?.id || user?._id);
+    loadBusinessData();
+  }, [loadBusinessData]);
 
   const value = {
     loading,
@@ -151,4 +145,4 @@ export const BusinessProvider = ({ children }) => {
   );
 };
 
-export default BusinessProvider; 
+export default BusinessProvider;

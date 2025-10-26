@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { useAuth } from './AuthContextMongo';
+// import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+// import { db } from '../firebase/config';
 
 const PermissionsContext = createContext();
 
@@ -53,29 +53,13 @@ export const PermissionsProvider = ({ children }) => {
     const fetchUserRole = async () => {
       if (user) {
         try {
-          console.log('Fetching user role for:', user.uid);
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log('User data:', userData);
-            // Solo verificar role
-            const userRole = userData.role;
-            if (userRole) {
-              console.log('Setting user role to:', userRole);
-              setUserRole(userRole.toLowerCase());
-            } else {
-              console.log('No role found in user data');
-              setUserRole(null);
-            }
-            
-            // Solo actualizamos el estado online
-            await updateDoc(doc(db, 'users', user.uid), {
-              online: true,
-              lastSeen: new Date()
-            });
+          console.log('Fetching user role for MongoDB user');
+          // TODO: Fetch from MongoDB API
+          const userRole = user.role || 'staff';
+          if (userRole) {
+            console.log('Setting user role to:', userRole);
+            setUserRole(userRole.toLowerCase());
           } else {
-            console.log('User document does not exist');
             setUserRole(null);
           }
         } catch (error) {
@@ -90,16 +74,6 @@ export const PermissionsProvider = ({ children }) => {
     };
 
     fetchUserRole();
-
-    // Actualizar estado offline cuando el usuario se desconecta
-    return () => {
-      if (user) {
-        updateDoc(doc(db, 'users', user.uid), {
-          online: false,
-          lastSeen: new Date()
-        }).catch(console.error);
-      }
-    };
   }, [user]);
 
   const hasPermission = (section, action) => {

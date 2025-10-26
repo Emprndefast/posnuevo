@@ -1,20 +1,21 @@
 // src/components/PrivateRoute.js
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContextMongo';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return null; // opcional: muestra un loader si lo deseas
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Cargando...</div>
+      </div>
+    );
+  }
 
-  if (!user) return <Navigate to="/login" state={{ from: location }} />;
-
-  // Si quieres redirigir por rol:
-  if (location.pathname === '/') {
-    if (user.rol === 'admin') return children;
-    if (user.rol === 'staff') return <Navigate to="/reparaciones" />;
-    if (user.rol === 'empleado') return <Navigate to="/perfil" />;
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} />;
   }
 
   return children;

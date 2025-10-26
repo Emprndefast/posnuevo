@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import { db } from '../../firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 
 const steps = [
   'Configuración Inicial',

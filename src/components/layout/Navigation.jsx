@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { startTransition } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Drawer,
@@ -11,7 +11,8 @@ import {
   Box,
   useTheme,
   useMediaQuery,
-  Typography
+  Typography,
+  Collapse
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -24,26 +25,52 @@ import {
   Payment as PaymentIcon,
   Receipt as InvoiceIcon,
   LocalShipping as SupplierIcon,
-  LocalOffer as PromotionIcon
+  LocalOffer as PromotionIcon,
+  ExpandLess,
+  ExpandMore
 } from '@mui/icons-material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Link } from 'react-router-dom';
 
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-  { text: 'Productos', icon: <InventoryIcon />, path: '/products' },
-  { text: 'Ventas', icon: <SalesIcon />, path: '/sales' },
-  { text: 'Clientes', icon: <CustomersIcon />, path: '/customers' },
-  { text: 'Análisis', icon: <AnalyticsIcon />, path: '/analytics' },
-  { text: 'Suscripciones', icon: <SubscriptionIcon />, path: '/subscriptions' },
-  { text: 'Configuración', icon: <SettingsIcon />, path: '/settings' }
-];
-
-const commerceItems = [
-  { text: 'Pasarelas de Pago', icon: <PaymentIcon />, path: '/payment-gateways' },
-  { text: 'Facturación Electrónica', icon: <InvoiceIcon />, path: '/e-invoicing' },
-  { text: 'Proveedores', icon: <SupplierIcon />, path: '/suppliers' },
-  { text: 'Promociones', icon: <PromotionIcon />, path: '/promotions' }
+// Grouped menu items similar to Whabot
+const menuGroups = [
+  {
+    group: 'Inicio',
+    items: [
+      { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    ],
+  },
+  {
+    group: 'Ventas y Productos',
+    items: [
+      { text: 'Productos', icon: <InventoryIcon />, path: '/products' },
+      { text: 'Ventas', icon: <SalesIcon />, path: '/sales' },
+    ],
+  },
+  {
+    group: 'Clientes y Análisis',
+    items: [
+      { text: 'Clientes', icon: <CustomersIcon />, path: '/customers' },
+      { text: 'Análisis', icon: <AnalyticsIcon />, path: '/analytics' },
+    ],
+  },
+  {
+    group: 'Comercio',
+    items: [
+      { text: 'Pasarelas de Pago', icon: <PaymentIcon />, path: '/payment-gateways' },
+      { text: 'Facturación', icon: <InvoiceIcon />, path: '/billing' },
+      { text: 'Proveedores', icon: <SupplierIcon />, path: '/suppliers' },
+      { text: 'Promociones', icon: <PromotionIcon />, path: '/promotions' },
+    ],
+  },
+  {
+    group: 'Sistema',
+    items: [
+      { text: 'Suscripciones', icon: <SubscriptionIcon />, path: '/subscriptions' },
+      { text: 'Configuración', icon: <SettingsIcon />, path: '/settings' },
+      { text: 'Ayuda', icon: <HelpOutlineIcon />, path: '/help' },
+    ],
+  },
 ];
 
 export const Navigation = ({ mobileOpen, onClose }) => {
@@ -51,14 +78,24 @@ export const Navigation = ({ mobileOpen, onClose }) => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [expandedGroups, setExpandedGroups] = React.useState({});
 
   const handleNavigation = (path) => {
     if (location.pathname !== path) {
-      navigate(path);
+      startTransition(() => {
+        navigate(path);
+      });
     }
     if (isMobile && onClose) {
       onClose();
     }
+  };
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
   };
 
   return (
@@ -67,114 +104,172 @@ export const Navigation = ({ mobileOpen, onClose }) => {
       open={isMobile ? mobileOpen : true}
       onClose={onClose}
       sx={{
-        width: isMobile ? '100%' : 240,
+        width: 280,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: isMobile ? '100%' : 240,
+          width: 280,
           boxSizing: 'border-box',
+          bgcolor: 'white',
+          borderRight: '1px solid #e5e7eb',
           ...(isMobile && {
-            maxWidth: '80%',
-            margin: '0 auto',
+            maxWidth: '85vw',
           }),
         },
       }}
     >
-      <Box sx={{ overflow: 'auto', mt: 8 }}>
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
-                sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: theme.palette.primary.main + '20',
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.main + '30',
-                    },
-                  },
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                  },
-                }}
-              >
-                <ListItemIcon sx={{ 
-                  color: location.pathname === item.path ? theme.palette.primary.main : 'inherit'
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  sx={{
-                    color: location.pathname === item.path ? theme.palette.primary.main : 'inherit',
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <Divider />
-        <Box sx={{ p: 2 }}>
-          <Typography variant="subtitle1" color="primary">
-            Comercio
+      {/* Logo/Brand Section */}
+      <Box 
+        sx={{ 
+          p: 3, 
+          textAlign: 'center',
+          borderBottom: '1px solid #e5e7eb'
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '12px',
+              bgcolor: 'primary.main',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(114, 9, 245, 0.3)'
+            }}
+          >
+            <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '1.25rem' }}>
+              P
+            </Typography>
+          </Box>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 700,
+              color: 'primary.main',
+              fontSize: '1.25rem'
+            }}
+          >
+            POSENT
           </Typography>
         </Box>
-        <List>
-          {commerceItems.map((item) => (
-            <ListItem key={item.text} disablePadding>
-              <ListItemButton
-                selected={location.pathname === item.path}
-                onClick={() => handleNavigation(item.path)}
+      </Box>
+
+      <Box sx={{ overflow: 'auto', flex: 1, mt: '64px' }}>
+        {menuGroups.map((group, groupIndex) => (
+          <Box key={group.group}>
+            <Box
+              onClick={() => toggleGroup(group.group)}
+              sx={{
+                px: 2,
+                py: 1,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                '&:hover': {
+                  bgcolor: 'gray.50'
+                }
+              }}
+            >
+              <Typography
+                variant="caption"
                 sx={{
-                  '&.Mui-selected': {
-                    backgroundColor: theme.palette.primary.main + '20',
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.main + '30',
-                    },
-                  },
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                  },
+                  fontWeight: 700,
+                  color: 'primary.main',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  fontSize: '0.65rem'
                 }}
               >
-                <ListItemIcon sx={{ 
-                  color: location.pathname === item.path ? theme.palette.primary.main : 'inherit'
-                }}>
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  sx={{
-                    color: location.pathname === item.path ? theme.palette.primary.main : 'inherit',
-                    fontWeight: location.pathname === item.path ? 600 : 400,
-                  }}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-        <List>
-          <ListItem 
-            button 
-            component={Link} 
-            to="/manual"
+                {group.group}
+              </Typography>
+            </Box>
+            
+            <List sx={{ py: 0 }}>
+              {group.items.map((item) => (
+                <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    selected={location.pathname === item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    sx={{
+                      mx: 1,
+                      borderRadius: '12px',
+                      minHeight: 48,
+                      '&.Mui-selected': {
+                        backgroundColor: 'purple.50',
+                        color: 'purple.600',
+                        fontWeight: 600,
+                        '&:hover': {
+                          backgroundColor: 'purple.100',
+                        },
+                        '& .MuiListItemIcon-root': {
+                          color: 'purple.600',
+                        },
+                      },
+                      '&:hover': {
+                        backgroundColor: 'gray.50',
+                      },
+                    }}
+                  >
+                    <ListItemIcon 
+                      sx={{ 
+                        color: location.pathname === item.path ? 'primary.main' : 'gray.600',
+                        minWidth: 40
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.text} 
+                      primaryTypographyProps={{
+                        fontSize: '0.875rem',
+                        fontWeight: location.pathname === item.path ? 600 : 400,
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+            
+            {groupIndex < menuGroups.length - 1 && (
+              <Divider sx={{ my: 1 }} />
+            )}
+          </Box>
+        ))}
+      </Box>
+
+      {/* Footer Section */}
+      <Box sx={{ p: 2, borderTop: '1px solid #e5e7eb' }}>
+        <Link to="/manual" style={{ textDecoration: 'none' }}>
+          <Box
             sx={{
-              mb: 1,
+              p: 1.5,
+              borderRadius: '12px',
+              bgcolor: 'gray.50',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
               '&:hover': {
-                backgroundColor: 'primary.light',
+                bgcolor: 'gray.100',
+                transform: 'translateY(-1px)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
               }
             }}
           >
-            <ListItemIcon>
-              <HelpOutlineIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Manual de Usuario" 
-              secondary="Ayuda y guía del sistema"
-            />
-          </ListItem>
-        </List>
+            <HelpOutlineIcon sx={{ color: 'primary.main' }} />
+            <Box>
+              <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
+                Manual de Usuario
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                Ayuda y guía
+              </Typography>
+            </Box>
+          </Box>
+        </Link>
       </Box>
     </Drawer>
   );

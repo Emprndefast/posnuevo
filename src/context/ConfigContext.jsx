@@ -1,9 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase/config';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useAuth } from './AuthContext';
-import { useBusiness } from './BusinessContext';
+import api from '../api/api';
+import { useAuth } from './AuthContextMongo';
 
 const ConfigContext = createContext();
 
@@ -17,8 +15,6 @@ export const useConfig = () => {
 
 export const ConfigProvider = ({ children }) => {
   const { user } = useAuth();
-  const { isBusinessConfigured } = useBusiness();
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -36,25 +32,23 @@ export const ConfigProvider = ({ children }) => {
   // Verificar si la configuración está completa
   const isConfigComplete = () => {
     console.log('ConfigContext - Verificando configuración completa:', {
-      printerComplete: printerConfig.isComplete,
-      businessConfigured: isBusinessConfigured()
+      printerComplete: printerConfig.isComplete
     });
     return printerConfig.isComplete;
   };
 
-  // Cargar configuración desde Firestore
+  // Cargar configuración desde MongoDB backend
   const loadConfig = async () => {
-    if (!user?.uid) return;
+    if (!user?.id && !user?._id) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const printerDocRef = doc(db, 'printer_config', user.uid);
-      const printerDoc = await getDoc(printerDocRef);
+      const response = await api.get('/settings/printer');
+      const printerData = response.data.data || response.data;
 
-      if (printerDoc.exists()) {
-        const printerData = printerDoc.data();
+      if (printerData) {
         console.log('ConfigContext - Datos de impresora cargados:', printerData);
         setPrinterConfig({
           ...printerData,
@@ -66,8 +60,8 @@ export const ConfigProvider = ({ children }) => {
         });
       }
     } catch (err) {
-      setError(err.message);
-      console.error('Error al cargar la configuración:', err);
+      console.warn('No printer config found, using defaults');
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -75,11 +69,10 @@ export const ConfigProvider = ({ children }) => {
 
   // Guardar configuración de la impresora
   const savePrinterConfig = async (data) => {
-    if (!user?.uid) return;
+    if (!user?.id && !user?._id) return;
 
     try {
       setError(null);
-      const printerDocRef = doc(db, 'printer_config', user.uid);
       const newConfig = {
         ...data,
         updatedAt: new Date(),
@@ -91,7 +84,7 @@ export const ConfigProvider = ({ children }) => {
       };
 
       console.log('ConfigContext - Guardando configuración de impresora:', newConfig);
-      await setDoc(printerDocRef, newConfig, { merge: true });
+      await api.post('/settings/printer', newConfig);
       setPrinterConfig(newConfig);
       return true;
     } catch (err) {
@@ -102,10 +95,10 @@ export const ConfigProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (user?.uid) {
+    if (user?.id || user?._id) {
       loadConfig();
     }
-  }, [user?.uid]);
+  }, [user?.id, user?._id]);
 
   const value = {
     loading,

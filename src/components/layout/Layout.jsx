@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import { 
   Box, 
   IconButton, 
@@ -14,7 +14,9 @@ import {
   MenuItem,
   ListItemIcon,
   Divider,
-  Badge
+  Badge,
+  Input,
+  InputAdornment
 } from '@mui/material';
 import { Navigation } from './Navigation';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
@@ -23,14 +25,15 @@ import StoreIcon from '@mui/icons-material/Store';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useAuth } from '../../context/AuthContext';
+import SearchIcon from '@mui/icons-material/Search';
+import { useAuth } from '../../context/AuthContextMongo';
 import SoporteTecnicoModal from '../SoporteTecnicoModal';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import NotificacionesModal from '../common/NotificacionesModal';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '../../firebase/config';
 import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
+// Firebase imports - Mocked for backward compatibility
+import { db, collection, query, where, onSnapshot } from '../../firebase/config';
 
 const Layout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -38,6 +41,7 @@ const Layout = ({ children }) => {
   const [openSoporte, setOpenSoporte] = useState(false);
   const [openNotificaciones, setOpenNotificaciones] = useState(false);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -70,7 +74,9 @@ const Layout = ({ children }) => {
   };
 
   const handleProfile = () => {
-    navigate('/perfil');
+    startTransition(() => {
+      navigate('/perfil');
+    });
     handleMenuClose();
   };
 
@@ -84,13 +90,19 @@ const Layout = ({ children }) => {
     handleMenuClose();
   };
 
-  const drawerWidth = isMobile ? '100%' : isTablet ? '280px' : '240px';
+  const handleSearch = () => {
+    // TODO: Implement search functionality
+    console.log('Searching for:', searchQuery);
+  };
+
+  const drawerWidth = isMobile ? '100%' : '280px';
 
   return (
     <Box sx={{ 
       display: 'flex', 
       minHeight: '100vh',
-      flexDirection: isMobile ? 'column' : 'row'
+      flexDirection: isMobile ? 'column' : 'row',
+      bgcolor: '#f5f5f5'
     }}>
       <AppBar
         position="fixed"
@@ -98,15 +110,13 @@ const Layout = ({ children }) => {
           width: { xs: '100%', sm: `calc(100% - ${drawerWidth})` },
           ml: { xs: 0, sm: drawerWidth },
           zIndex: theme.zIndex.drawer + 1,
-          background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-          color: 'white',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-          backdropFilter: 'blur(8px)',
-          borderBottom: '1px solid',
-          borderColor: 'rgba(255,255,255,0.1)'
+          background: 'white',
+          color: 'gray.900',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          borderBottom: '1px solid #e5e7eb'
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: '56px', sm: '64px' } }}>
+        <Toolbar sx={{ minHeight: { xs: '56px', sm: '56px' }, px: 2 }}>
           {isMobile && (
             <IconButton
               color="inherit"
@@ -115,9 +125,9 @@ const Layout = ({ children }) => {
               onClick={handleDrawerToggle}
               sx={{ 
                 mr: 1,
-                color: 'white',
+                color: 'gray.700',
                 '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.1)'
+                  bgcolor: 'gray.100'
                 }
               }}
             >
@@ -125,26 +135,60 @@ const Layout = ({ children }) => {
             </IconButton>
           )}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <StoreIcon sx={{ color: 'white' }} />
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 600,
-                background: 'linear-gradient(to right, #fff, rgba(255,255,255,0.8))',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
+          {/* Search Bar - Similar to Whabot */}
+          <Box 
+            sx={{ 
+              flex: 1, 
+              mx: { xs: 1, md: 4 },
+              display: { xs: 'none', md: 'block' }
+            }}
+          >
+            <Input
+              placeholder="Buscar productos, clientes, ventas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              startAdornment={
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'gray.400' }} />
+                </InputAdornment>
+              }
+              sx={{
+                bgcolor: 'white',
+                borderRadius: '12px',
+                px: 2,
+                py: 0.5,
+                border: '1px solid #e5e7eb',
+                '&:hover': {
+                  borderColor: '#805AD5'
+                },
+                '&:focus-within': {
+                  borderColor: '#805AD5',
+                  boxShadow: '0 0 0 2px rgba(128, 90, 213, 0.2)'
+                },
+                '& .MuiInput-input': {
+                  fontSize: '0.875rem',
+                  py: 1
+                }
               }}
-            >
-              POSENT
-            </Typography>
+            />
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
           {user && (
             <>
-              <IconButton color="inherit" onClick={() => setOpenNotificaciones(true)}>
+              <IconButton 
+                color="inherit" 
+                onClick={() => setOpenNotificaciones(true)}
+                sx={{
+                  color: 'gray.600',
+                  mr: 1,
+                  '&:hover': {
+                    bgcolor: 'gray.100'
+                  }
+                }}
+              >
                 <Badge badgeContent={notificacionesNoLeidas} color="error">
                   <NotificationsIcon />
                 </Badge>
@@ -157,26 +201,36 @@ const Layout = ({ children }) => {
                   sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2,
+                    gap: 1,
                     cursor: 'pointer',
                     py: 0.5,
-                    px: 1,
-                    borderRadius: 1,
+                    px: 1.5,
+                    borderRadius: 2,
                     '&:hover': {
-                      bgcolor: 'rgba(255,255,255,0.1)'
+                      bgcolor: 'gray.100'
                     }
                   }}
                 >
-                  <Box sx={{ 
-                    textAlign: 'right', 
-                    display: { xs: 'none', sm: 'block' }
-                  }}>
+                  <Avatar 
+                    src={user.photoURL}
+                    alt={user.displayName}
+                    sx={{ 
+                      width: 32, 
+                      height: 32,
+                      border: '1px solid',
+                      borderColor: 'gray.200',
+                      bgcolor: 'primary.main'
+                    }}
+                  >
+                    {user.displayName?.[0] || user.email?.[0]}
+                  </Avatar>
+                  <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                     <Typography 
                       variant="body2" 
                       sx={{ 
                         fontWeight: 600,
-                        textShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                        color: 'white'
+                        color: 'gray.700',
+                        fontSize: '0.875rem'
                       }}
                     >
                       {user.displayName || user.email?.split('@')[0]}
@@ -184,31 +238,13 @@ const Layout = ({ children }) => {
                     <Typography 
                       variant="caption" 
                       sx={{ 
-                        color: 'rgba(255,255,255,0.8)',
+                        color: 'gray.500',
                         display: 'block'
                       }}
                     >
                       Administrador
                     </Typography>
                   </Box>
-                  <Avatar 
-                    src={user.photoURL}
-                    alt={user.displayName}
-                    sx={{ 
-                      width: 35, 
-                      height: 35,
-                      border: '2px solid',
-                      borderColor: 'rgba(255,255,255,0.8)',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                      bgcolor: 'primary.dark',
-                      transition: 'transform 0.2s',
-                      '&:hover': {
-                        transform: 'scale(1.05)'
-                      }
-                    }}
-                  >
-                    {user.displayName?.[0] || user.email?.[0]}
-                  </Avatar>
                 </Box>
               </Tooltip>
 
@@ -221,11 +257,17 @@ const Layout = ({ children }) => {
                   sx: {
                     mt: 1.5,
                     minWidth: 200,
-                    borderRadius: 1,
+                    borderRadius: 2,
                     boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    border: '1px solid',
+                    borderColor: 'gray.200',
                     '& .MuiMenuItem-root': {
                       py: 1.5,
                       px: 2,
+                      borderRadius: 1,
+                      '&:hover': {
+                        bgcolor: 'purple.50'
+                      }
                     }
                   }
                 }}
@@ -238,7 +280,7 @@ const Layout = ({ children }) => {
                   </ListItemIcon>
                   Mi Perfil
                 </MenuItem>
-                <MenuItem onClick={() => navigate('/settings')}>
+                <MenuItem onClick={() => startTransition(() => navigate('/settings'))}>
                   <ListItemIcon>
                     <SettingsIcon fontSize="small" />
                   </ListItemIcon>
@@ -250,14 +292,17 @@ const Layout = ({ children }) => {
                   </ListItemIcon>
                   Soporte técnico
                 </MenuItem>
-                <MenuItem onClick={() => navigate('/canva-flyer')}>
-                  <ListItemIcon>
-                    <SupportAgentIcon fontSize="small" />
-                  </ListItemIcon>
-                  Generar Flyer Canva
-                </MenuItem>
                 <Divider />
-                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                <MenuItem 
+                  onClick={handleLogout} 
+                  sx={{ 
+                    color: 'error.main',
+                    '&:hover': {
+                      bgcolor: 'error.50',
+                      color: 'error.dark'
+                    }
+                  }}
+                >
                   <ListItemIcon>
                     <LogoutIcon fontSize="small" color="error" />
                   </ListItemIcon>
@@ -278,7 +323,7 @@ const Layout = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 1, sm: 2, md: 3 },
+          p: { xs: 2, sm: 3, md: 4 },
           width: { 
             xs: '100%',
             sm: `calc(100% - ${drawerWidth})` 
@@ -289,10 +334,11 @@ const Layout = ({ children }) => {
           },
           mt: { 
             xs: '56px',
-            sm: '64px' 
+            sm: '56px' 
           },
           overflow: 'auto',
-          maxWidth: '100%'
+          maxWidth: '100%',
+          bgcolor: '#f5f5f5'
         }}
       >
         <Routes>

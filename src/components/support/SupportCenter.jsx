@@ -37,7 +37,7 @@ import {
 } from '@mui/icons-material';
 import { db } from '../../firebase';
 import { collection, addDoc, query, where, getDocs, orderBy, onSnapshot } from 'firebase/firestore';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 
 const SupportCenter = () => {
   const [activeTab, setActiveTab] = useState(0);
