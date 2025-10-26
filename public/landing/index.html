@@ -1,0 +1,1757 @@
+<!--
+  Copyright (c) 2024 Jose I. Torres - ID: ***47155*
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POSENT - Sistema de Punto de Venta Moderno para tu Negocio</title>
+    <!-- Meta Tags SEO -->
+    <meta name="description" content="Sistema POS moderno para gestionar ventas, inventario y operaciones. Prueba gratis por 14 días. Facturación electrónica, reportes en tiempo real y más.">
+    <meta name="keywords" content="sistema POS, punto de venta, facturación electrónica, gestión de inventario, reportes de ventas, POS dominicano">
+    <meta name="author" content="POSENT">
+    <meta name="robots" content="index, follow">
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://posnt.com/" />
+    <!-- Alternate Language Tags -->
+    <link rel="alternate" hreflang="es" href="https://posnt.com/" />
+    <link rel="alternate" hreflang="en" href="https://posnt.com/en/" />
+    <!-- Additional Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="POSENT">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://posnt.com/">
+    <meta property="og:title" content="POSENT - Sistema de Punto de Venta Moderno">
+    <meta property="og:description" content="Transforma tu negocio con nuestro sistema POS. Gestiona ventas, inventario y operaciones de manera eficiente.">
+    <meta property="og:image" content="https://posnt.com/img/pos-mockup.png">
+    <meta property="og:site_name" content="POSENT">
+    <meta property="og:locale" content="es_DO">
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://posnt.com/">
+    <meta property="twitter:title" content="POSENT - Sistema de Punto de Venta Moderno">
+    <meta property="twitter:description" content="Transforma tu negocio con nuestro sistema POS. Gestiona ventas, inventario y operaciones de manera eficiente.">
+    <meta property="twitter:image" content="https://posnt.com/img/pos-mockup.png">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <!-- Schema.org markup -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "POSENT",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "DOP"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "150"
+        }
+    }
+    </script>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    <!-- AOS CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" crossorigin="anonymous">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" crossorigin="anonymous">
+    <!-- Agregar el script de PayPal en el head si no existe -->
+    <script src="https://www.paypal.com/sdk/js?client-id=BAA3zpEv3CRtJ-4mmbdJzPmFa2zr-gnJyTDSqQhL5eAlp08l21b3HqgVV1sJLYCj6YLf4rLsFDyg7oSAz0&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+    <!-- End Google Tag Manager -->
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17038996670">
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'AW-17038996670');
+    </script>
+</head>
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <!-- Urgency Banner Unificado -->
+    <div class="urgency-banner">
+        <div class="container">
+            <div class="urgency-content">
+                <span class="urgency-icon">🔥</span>
+                <span class="urgency-text">
+                    <strong>OFERTA LANZAMIENTO:</strong> Solo $1 USD primer mes + Setup GRATIS 
+                    <span class="countdown-timer" id="countdown"></span>
+                </span>
+            </div>
+            <div class="urgency-button-container">
+                <a href="#precios" class="btn btn-urgency btn-lg">
+                    ¡APROVECHAR AHORA!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar Profesional -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#inicio">
+                <img src="img/Logo.png" alt="POSENT Logo" height="50" class="me-2">
+                <span class="brand-text">POSENT</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#inicio">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#caracteristicas">Características</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#precios">Precios</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="productosDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Más Productos
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="productosDropdown">
+                            <li><a class="dropdown-item" href="https://whabotpro.com" target="_blank">
+                                <i class="fab fa-whatsapp me-2"></i>Whabot Pro
+                            </a></li>
+                            <li><a class="dropdown-item" href="https://ntia.com" target="_blank">
+                                <i class="fas fa-brain me-2"></i>NTIA
+                            </a></li>
+                            <li><a class="dropdown-item" href="https://nttechstore.com" target="_blank">
+                                <i class="fas fa-store me-2"></i>NT Tech Store
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="https://ntdesweb2-0.vercel.app/" target="_blank">
+                                <i class="fas fa-globe me-2"></i>Ver Todos los Productos
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-primary me-2" href="https://posntrd.online/login">Iniciar Sesión</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-gradient" href="https://posntrd.online/register">
+                            <i class="fas fa-rocket me-1"></i>Probar Gratis
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumbs -->
+    <nav aria-label="breadcrumb" class="container mt-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="https://posnt.com">Inicio</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Sistema POS</li>
+        </ol>
+    </nav>
+
+    <!-- Hero Section Profesional -->
+    <section id="inicio" class="hero-section">
+        <div class="hero-background"></div>
+        <div class="container">
+            <div class="hero-content text-center">
+                <!-- Badges Profesionales -->
+                <div class="hero-badges mb-4">
+                    <span class="badge badge-urgency">
+                        🔥 OFERTA LANZAMIENTO: Solo $1 USD primer mes
+                    </span>
+                    <span class="badge badge-unique">
+                        ⚡ Tecnología Única en el Mercado
+                    </span>
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="title-main">¡AUMENTA TUS VENTAS</span>
+                    <span class="title-highlight" id="changing-text">35% EN 30 DÍAS!</span>
+                </h1>
+                <p class="hero-subtitle">
+                    El sistema POS que está revolucionando el mundo. 
+                    <strong class="highlight-text">1,000+ negocios en 15 países ya aumentaron sus ventas</strong> 
+                    con nuestra tecnología de punta.
+                </p>
+                
+                <!-- Botones Profesionales -->
+                <div class="hero-buttons mt-4 mb-4">
+                    <a href="#precios" class="btn btn-primary btn-gradient btn-lg me-3 pulse-btn">
+                        <i class="fas fa-rocket me-2"></i>¡QUIERO AUMENTAR MIS VENTAS!
+                    </a>
+                        <a href="https://wa.me/18093408435" target="_blank" class="btn btn-success btn-lg">
+                        <i class="fab fa-whatsapp me-2"></i>¡CHATEA CONMIGO!
+                        </a>
+                    </div>
+                
+                <!-- Imagen del POS -->
+                <div class="hero-image-container mb-4">
+                    <img src="img/pos-mockup.png" alt="POS System Interface" class="img-fluid hero-image">
+                </div>
+                
+                <!-- Estadísticas Impactantes -->
+                <div class="hero-stats mb-4">
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">1,000+</h3>
+                                <p class="stat-label">Negocios</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">$2.5M+</h3>
+                                <p class="stat-label">Ventas</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">35%</h3>
+                                <p class="stat-label">Más Ventas</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">4.9/5</h3>
+                                <p class="stat-label">Satisfacción</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">24/7</h3>
+                                <p class="stat-label">Soporte</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3 class="stat-number">99.9%</h3>
+                                <p class="stat-label">Uptime</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Garantía Profesional -->
+                <div class="guarantee-section mt-4">
+                    <div class="guarantee-card">
+                        <div class="guarantee-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="guarantee-content">
+                            <h4>GARANTÍA 30 DÍAS</h4>
+                            <p>Si no aumentas tus ventas, te devolvemos tu dinero</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Características Profesionales -->
+    <section id="caracteristicas" class="features-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">⚡ CARACTERÍSTICAS ÚNICAS</span>
+                <h2 class="section-title">Lo que nos hace únicos en el mercado</h2>
+                <p class="section-subtitle">Tecnología de punta que revoluciona la gestión de tu negocio</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-cash-register"></i>
+                        </div>
+                        <h3>Ventas Rápidas</h3>
+                        <p>Interfaz intuitiva, múltiples métodos de pago, tickets y facturas electrónicas.</p>
+                        <div class="feature-badge">ESENCIAL</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Reportes en Tiempo Real</h3>
+                        <p>Reportes detallados de ventas, inventario y clientes. Exportación en múltiples formatos.</p>
+                        <div class="feature-badge">AVANZADO</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>Acceso Móvil</h3>
+                        <p>Gestión desde cualquier dispositivo. Monitoreo en tiempo real de operaciones.</p>
+                        <div class="feature-badge">MÓVIL</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <h3>Control de Inventario</h3>
+                        <p>Alertas de stock, seguimiento de productos y gestión de proveedores.</p>
+                        <div class="feature-badge">OPTIMIZADO</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <h3>Gestión de Clientes</h3>
+                        <p>Registro de clientes, historial de compras y programa de fidelización.</p>
+                        <div class="feature-badge">CRM BÁSICO</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <h3>Facturación Electrónica</h3>
+                        <p>Integración DGII, generación automática de NCF y cumplimiento fiscal.</p>
+                        <div class="feature-badge">INTEGRADO</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="700">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <h3>Seguridad Avanzada</h3>
+                        <p>Encriptación de datos, respaldos automáticos y control de acceso por usuarios.</p>
+                        <div class="feature-badge">SEGURO</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="800">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3>Personalización</h3>
+                        <p>Adapta el sistema a las necesidades específicas de tu negocio y sector.</p>
+                        <div class="feature-badge">FLEXIBLE</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="900">
+                    <div class="feature-card professional">
+                        <div class="feature-icon">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3>Soporte 24/7</h3>
+                        <p>Asistencia técnica especializada y capacitación para tu equipo.</p>
+                        <div class="feature-badge">DEDICADO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonios Profesionales -->
+    <section class="testimonials-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">💬 TESTIMONIOS</span>
+                <h2 class="section-title">Lo que dicen nuestros clientes</h2>
+                <p class="section-subtitle">Más de 1,000 negocios confían en POSENT para aumentar sus ventas</p>
+            </div>
+            
+            <div class="testimonials-carousel">
+                <div class="testimonials-track" id="testimonials-track">
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"POSENT revolucionó mi negocio. En solo 30 días aumenté mis ventas un 40%. La interfaz es súper fácil de usar y el soporte es excelente."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                </div>
+                            <div class="author-info">
+                                <h4>María González</h4>
+                                <p>Restaurante El Sabor</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"El mejor sistema POS que he usado. Los reportes son increíbles y me ayudan a tomar mejores decisiones. Recomendado 100%."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                </div>
+                            <div class="author-info">
+                                <h4>Carlos Rodríguez</h4>
+                                <p>Farmacia San José</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"Increíble cómo POSENT simplificó mi negocio. Ahora gestiono todo desde mi móvil y mis ventas han crecido un 35%."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                </div>
+                            <div class="author-info">
+                                <h4>Ana Martínez</h4>
+                                <p>Tienda de Ropa Fashion</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"La gestión de inventario es perfecta. Ya no perdemos productos y siempre sabemos qué tenemos en stock. Excelente sistema."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                </div>
+                            <div class="author-info">
+                                <h4>Roberto Sánchez</h4>
+                                <p>Supermercado El Ahorro</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"El sistema de facturación electrónica nos ha ahorrado mucho tiempo y problemas con la DGII. Muy recomendado."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                </div>
+                            <div class="author-info">
+                                <h4>Laura González</h4>
+                                <p>Cadena de Tiendas</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial-card">
+                        <div class="testimonial-rating">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                    </div>
+                        <p class="testimonial-text">"El soporte técnico es excelente. Siempre nos ayudan cuando lo necesitamos y responden muy rápido."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="author-info">
+                                <h4>Miguel Torres</h4>
+                                <p>Cafetería Express</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cómo Funciona - Sección Profesional -->
+    <section class="how-it-works-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">🚀 CÓMO FUNCIONA</span>
+                <h2 class="section-title">Configura tu sistema POS en 4 pasos simples</h2>
+                <p class="section-subtitle">Desde la configuración hasta las primeras ventas en minutos</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="step-number">1</div>
+                        <h3>Regístrate Gratis</h3>
+                        <p>Crea tu cuenta en segundos. Sin tarjeta de crédito, sin compromisos.</p>
+                        <div class="step-badge">EN SEGUNDOS</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="step-number">2</div>
+                        <h3>Configura tu Negocio</h3>
+                        <p>Agrega tus productos, configura precios y personaliza tu tienda.</p>
+                        <div class="step-badge">CONFIGURACIÓN FÁCIL</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="step-number">3</div>
+                        <h3>Comienza a Vender</h3>
+                        <p>Procesa ventas, emite facturas y gestiona tu inventario en tiempo real.</p>
+                        <div class="step-badge">VENTAS INMEDIATAS</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="step-card">
+                        <div class="step-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="step-number">4</div>
+                        <h3>Analiza y Crece</h3>
+                        <p>Revisa reportes detallados y optimiza tu negocio para maximizar ganancias.</p>
+                        <div class="step-badge">CRECIMIENTO GARANTIZADO</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <a href="https://posntrd.online/register" class="btn btn-primary btn-gradient btn-lg">
+                    <i class="fas fa-rocket me-2"></i>Empezar Gratis Ahora
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ventajas Competitivas -->
+    <section class="advantages-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">🏆 VENTAJAS COMPETITIVAS</span>
+                <h2 class="section-title">¿Por qué elegir POSENT?</h2>
+                <p class="section-subtitle">La diferencia está en los detalles que marcan la diferencia</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="advantage-card">
+                        <div class="advantage-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h3>Configuración Rápida</h3>
+                        <p>Tu sistema POS funcionando en menos de 10 minutos. Sin complicaciones técnicas.</p>
+                        <div class="advantage-metric">10 MIN</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="advantage-card">
+                        <div class="advantage-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h3>Acceso Móvil Total</h3>
+                        <p>Gestiona tu negocio desde cualquier dispositivo, en cualquier lugar, en cualquier momento.</p>
+                        <div class="advantage-metric">24/7</div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="advantage-card">
+                        <div class="advantage-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3>Seguridad Empresarial</h3>
+                        <p>Datos encriptados, respaldos automáticos y cumplimiento con estándares internacionales.</p>
+                        <div class="advantage-metric">99.9%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Integraciones y Métodos de Pago -->
+    <section class="integrations-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">🔗 INTEGRACIONES</span>
+                <h2 class="section-title">Integraciones y Métodos de Pago</h2>
+                <p class="section-subtitle">Conecta POSENT con las mejores herramientas para tu negocio y acepta pagos de forma fácil y segura</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="integration-card">
+                        <div class="integration-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h3>Métodos de Pago</h3>
+                        <p>Acepta pagos de forma segura con múltiples opciones</p>
+                        <div class="integration-logos">
+                            <img src="img/stripe-logo.png" alt="Stripe" class="integration-logo">
+                            <img src="img/paypal-logo.png" alt="PayPal" class="integration-logo">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="integration-card">
+                        <div class="integration-icon">
+                            <i class="fas fa-store"></i>
+                        </div>
+                        <h3>E-commerce</h3>
+                        <p>Conecta tu tienda online con el sistema POS</p>
+                        <div class="integration-logos">
+                            <img src="img/shopify-logo.png" alt="Shopify" class="integration-logo">
+                            <img src="img/woocommerce-logo.png" alt="WooCommerce" class="integration-logo">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="integration-card">
+                        <div class="integration-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <h3>CRM</h3>
+                        <p>Gestiona tus clientes con herramientas profesionales</p>
+                        <div class="integration-logos">
+                            <img src="img/salesforce-logo.png" alt="Salesforce" class="integration-logo">
+                            <img src="img/hubspot-logo.png" alt="HubSpot" class="integration-logo">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="integration-card">
+                        <div class="integration-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>Automatización</h3>
+                        <p>Automatiza procesos con herramientas avanzadas</p>
+                        <div class="integration-logos">
+                            <img src="img/zapier-logo.png" alt="Zapier" class="integration-logo">
+                            <img src="img/make-logo.png" alt="Make" class="integration-logo">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Precios Profesionales -->
+    <section id="precios" class="pricing-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">💰 PRECIOS</span>
+                <h2 class="section-title">Elige tu plan perfecto</h2>
+                <p class="section-subtitle">Todos los planes incluyen garantía de 30 días y soporte prioritario</p>
+            </div>
+            
+            <!-- Garantías y Compromisos -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="guarantee-card">
+                        <div class="guarantee-icon">
+                            <i class="fas fa-shield-check"></i>
+                        </div>
+                        <div class="guarantee-content">
+                            <h4>Garantía de 30 días</h4>
+                            <p>Si no estás satisfecho, te devolvemos tu dinero</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="guarantee-card">
+                        <div class="guarantee-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="guarantee-content">
+                            <h4>Sin compromisos</h4>
+                            <p>Cancela cuando quieras, sin penalizaciones</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="guarantee-card">
+                        <div class="guarantee-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="guarantee-content">
+                            <h4>Soporte prioritario</h4>
+                            <p>Asistencia 24/7 para todos nuestros usuarios</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botón de cambio mensual/anual -->
+            <div class="billing-toggle-wrapper text-center mb-5">
+                <div class="btn-group billing-toggle" role="group" aria-label="Toggle pago mensual/anual">
+                    <button type="button" class="btn btn-outline-primary active" id="monthlyBtn">Pago mensual</button>
+                    <button type="button" class="btn btn-outline-primary" id="annualBtn">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center g-4">
+                <!-- Plan Prueba Gratis -->
+                <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-stretch">
+                    <div class="pricing-card professional">
+                        <div class="pricing-badge">
+                            <span class="badge-text">14 DÍAS DE PRUEBA</span>
+                        </div>
+                        <div class="pricing-header">
+                            <h3>Starter</h3>
+                            <p class="pricing-description">PRUEBA GRATUITA con TODAS las funciones premium por 14 días</p>
+                            <div class="pricing-price">
+                                <span class="price-main">FREE</span>
+                                <span class="price-period">14 días</span>
+                        </div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i>Facturación básica disponible</li>
+                            <li><i class="fas fa-check"></i>Hasta 20 productos en inventario</li>
+                            <li><i class="fas fa-check"></i>Todas las funciones premium</li>
+                            <li><i class="fas fa-check"></i>Soporte por email</li>
+                            <li><i class="fas fa-check"></i>Catálogo completo</li>
+                            <li><i class="fas fa-check"></i>Sin compromisos</li>
+                        </ul>
+                        <a href="https://posnt.vercel.app/login" class="btn btn-primary btn-gradient w-100">Probar ahora</a>
+                    </div>
+                </div>
+                
+                <!-- Plan Básico -->
+                <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-stretch">
+                    <div class="pricing-card professional">
+                        <div class="pricing-badge offer">
+                            <span class="badge-text">$1 PRIMER MES</span>
+                        </div>
+                        <div class="pricing-header">
+                            <h3>Esencial</h3>
+                            <p class="pricing-description">Para startups y pequeñas empresas que buscan automatización básica</p>
+                            <div class="pricing-price">
+                                <div class="price-original" data-base-price="1000">
+                                    <span class="currency-symbol">RD$</span><span class="price-value">1,000</span><span class="price-period">/mes</span>
+                        </div>
+                                <div class="price-current" data-base-price="1000" data-special-price="1">
+                                    <span class="currency-symbol">$</span><span class="price-value">1</span><span class="price-period">/mes</span>
+                                </div>
+                                <div class="discount-badge">
+                                    <span>AHORRA 99% EL PRIMER MES</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i>Todo de Starter</li>
+                            <li><i class="fas fa-check"></i>Facturación ilimitada básica</li>
+                            <li><i class="fas fa-check"></i>Máximo 200 productos</li>
+                            <li><i class="fas fa-check"></i>Hasta 2 usuarios</li>
+                            <li><i class="fas fa-check"></i>Soporte básico por email</li>
+                            <li><i class="fas fa-check"></i>Reportes básicos</li>
+                        </ul>
+                        <div class="billing-toggle-wrapper text-center mb-3">
+                            <div class="btn-group billing-toggle" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="mostrarSoloModoPlan('basico','mensual', this)">Pago mensual</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('basico','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
+                            </div>
+                        </div>
+                        <div class="paypal-botones">
+                            <div class="paypal-mensual" id="paypal-container-R9AUWJE3LPB4J"></div>
+                            <div class="paypal-anual d-none" id="paypal-container-SWWLZ8E3U7QWC"></div>
+                        </div>
+                        <script>paypal.HostedButtons({hostedButtonId: "R9AUWJE3LPB4J"}).render("#paypal-container-R9AUWJE3LPB4J")</script>
+                        <script>paypal.HostedButtons({hostedButtonId: "SWWLZ8E3U7QWC"}).render("#paypal-container-SWWLZ8E3U7QWC")</script>
+                    </div>
+                </div>
+                
+                <!-- Plan Profesional (popular) -->
+                <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-stretch">
+                    <div class="pricing-card professional popular">
+                        <div class="pricing-badge offer">
+                            <span class="badge-text">$1 PRIMER MES</span>
+                        </div>
+                        <div class="pricing-header">
+                            <h3>Profesional</h3>
+                            <p class="pricing-description">Para PYMES en crecimiento que necesitan herramientas avanzadas</p>
+                            <div class="pricing-price">
+                                <div class="price-original" data-base-price="2000">
+                                    <span class="currency-symbol">RD$</span><span class="price-value">2,000</span><span class="price-period">/mes</span>
+                        </div>
+                                <div class="price-current" data-base-price="2000" data-special-price="1">
+                                    <span class="currency-symbol">$</span><span class="price-value">1</span><span class="price-period">/mes</span>
+                                </div>
+                                <div class="discount-badge">
+                                    <span>AHORRA 99% EL PRIMER MES</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i>Todo de Esencial</li>
+                            <li><i class="fas fa-check"></i>Hasta 750 productos</li>
+                            <li><i class="fas fa-check"></i>Hasta 10 usuarios</li>
+                            <li><i class="fas fa-check"></i>Facturación electrónica avanzada</li>
+                            <li><i class="fas fa-check"></i>Backup automático en la nube</li>
+                            <li><i class="fas fa-check"></i>Soporte 24/7</li>
+                        </ul>
+                        <div class="billing-toggle-wrapper text-center mb-3">
+                            <div class="btn-group billing-toggle" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="mostrarSoloModoPlan('profesional','mensual', this)">Pago mensual</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('profesional','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
+                            </div>
+                        </div>
+                        <div class="paypal-botones">
+                            <div class="paypal-mensual" id="paypal-container-4YT6DN8ENNZEG"></div>
+                            <div class="paypal-anual d-none" id="paypal-container-QQ57DZS3HXGA2"></div>
+                        </div>
+                        <script>paypal.HostedButtons({hostedButtonId: "4YT6DN8ENNZEG"}).render("#paypal-container-4YT6DN8ENNZEG")</script>
+                        <script>paypal.HostedButtons({hostedButtonId: "QQ57DZS3HXGA2"}).render("#paypal-container-QQ57DZS3HXGA2")</script>
+                    </div>
+                </div>
+                
+                <!-- Plan Empresarial -->
+                <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-stretch">
+                    <div class="pricing-card professional">
+                        <div class="pricing-badge premium">
+                            <span class="badge-text">PREMIUM</span>
+                        </div>
+                        <div class="pricing-header">
+                            <h3>Empresarial</h3>
+                            <p class="pricing-description">Para grandes empresas y corporaciones con necesidades avanzadas</p>
+                            <div class="pricing-price">
+                                <div class="price-original" data-base-price="3250">
+                                    <span class="currency-symbol">RD$</span><span class="price-value">3,250</span><span class="price-period">/mes</span>
+                        </div>
+                                <div class="price-current" data-base-price="3250">
+                                    <span class="currency-symbol">RD$</span><span class="price-value">3,250</span><span class="price-period">/mes</span>
+                                </div>
+                            </div>
+                        </div>
+                        <ul class="pricing-features">
+                            <li><i class="fas fa-check"></i>Todo de Profesional</li>
+                            <li><i class="fas fa-check"></i>Productos y usuarios ilimitados</li>
+                            <li><i class="fas fa-check"></i>Backup en tiempo real</li>
+                            <li><i class="fas fa-check"></i>Soporte dedicado 24/7</li>
+                            <li><i class="fas fa-check"></i>Integraciones API avanzadas</li>
+                            <li><i class="fas fa-check"></i>Consultoría incluida</li>
+                        </ul>
+                        <div class="billing-toggle-wrapper text-center mb-3">
+                            <div class="btn-group billing-toggle" role="group">
+                                <button type="button" class="btn btn-outline-primary active" onclick="mostrarSoloModoPlan('empresarial','mensual', this)">Pago mensual</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('empresarial','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
+                            </div>
+                        </div>
+                        <div class="paypal-botones">
+                            <div class="paypal-mensual" id="paypal-container-M3BQWFCN9ELSQ"></div>
+                            <div class="paypal-anual d-none" id="paypal-container-KEBPY8STHKJUY"></div>
+                        </div>
+                        <script>paypal.HostedButtons({hostedButtonId: "M3BQWFCN9ELSQ"}).render("#paypal-container-M3BQWFCN9ELSQ")</script>
+                        <script>paypal.HostedButtons({hostedButtonId: "KEBPY8STHKJUY"}).render("#paypal-container-KEBPY8STHKJUY")</script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-5" data-aos="fade-up">Preguntas Frecuentes</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item" data-aos="fade-up">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    ¿Qué es POSENT?
+                                </button>
+                            </h3>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    POSENT es un sistema de punto de venta moderno y eficiente diseñado para ayudar a los negocios a gestionar sus ventas, inventario y operaciones diarias de manera más efectiva.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item" data-aos="fade-up">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    ¿Necesito conexión a internet para usar el sistema?
+                                </button>
+                            </h3>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sí, se requiere conexión a internet para la mayoría de las funciones. Sin embargo, estamos trabajando en una versión offline que permitirá operaciones básicas sin conexión.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item" data-aos="fade-up">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    ¿Puedo probar el sistema antes de comprar?
+                                </button>
+                            </h3>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Sí, ofrecemos una prueba gratuita de 14 días sin necesidad de tarjeta de crédito. Puedes acceder a todas las funciones durante este período.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="contact-section py-5">
+        <div class="container">
+            <h2 class="text-center mb-5" data-aos="fade-up">Contáctanos</h2>
+            <p class="text-center text-muted mb-5" data-aos="fade-up" data-aos-delay="100">Estamos aquí para ayudarte a transformar tu negocio</p>
+            
+            <div class="row g-4">
+                <!-- Información de contacto -->
+                <div class="col-lg-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="contact-info">
+                        <h4 class="mb-4">Información de Contacto</h4>
+                        
+                        <div class="contact-item mb-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h6>Teléfono</h6>
+                                <p><a href="tel:+18093408435">+1 (809) 340-8435</a></p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item mb-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h6>Email</h6>
+                                <p><a href="mailto:info@posnt.com">info@posnt.com</a></p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item mb-3">
+                            <div class="contact-icon">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h6>WhatsApp</h6>
+                                <p><a href="https://wa.me/18093408435" target="_blank">+1 (809) 340-8435</a></p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item mb-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h6>Ubicación</h6>
+                                <p>Santo Domingo, República Dominicana</p>
+                            </div>
+                        </div>
+                        
+                        <div class="contact-item mb-3">
+                            <div class="contact-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="contact-details">
+                                <h6>Horario de Atención</h6>
+                                <p>Lunes a Viernes: 8:00 AM - 6:00 PM<br>Sábados: 9:00 AM - 2:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Formulario de contacto -->
+                <div class="col-lg-8" data-aos="fade-up" data-aos-delay="200">
+                    <form id="contactForm" class="contact-form" action="https://formspree.io/f/xdkgkwew" method="POST">
+                        <input type="hidden" name="_subject" value="Nuevo mensaje desde la landing page POSENT">
+                        <input type="hidden" name="_next" value="https://pos-nt-landing.vercel.app">
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Nombre Completo *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Correo Electrónico *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                            <div class="col-md-6">
+                            <label for="phone" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="phone" name="phone">
+                        </div>
+                            <div class="col-md-6">
+                                <label for="company" class="form-label">Empresa</label>
+                                <input type="text" class="form-control" id="company" name="company">
+                        </div>
+                            <div class="col-12">
+                                <label for="subject" class="form-label">Asunto</label>
+                                <select class="form-select" id="subject" name="subject">
+                                    <option value="">Selecciona un asunto</option>
+                                    <option value="demo">Solicitar demostración</option>
+                                    <option value="pricing">Consulta sobre precios</option>
+                                    <option value="support">Soporte técnico</option>
+                                    <option value="integration">Integraciones</option>
+                                    <option value="other">Otro</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="message" class="form-label">Mensaje *</label>
+                                <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Cuéntanos cómo podemos ayudarte..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <span class="button-text">Enviar Mensaje</span>
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Profesional -->
+    <section class="faq-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="section-badge">❓ PREGUNTAS FRECUENTES</span>
+                <h2 class="section-title">Resolvemos tus dudas</h2>
+                <p class="section-subtitle">Las preguntas más comunes sobre POSENT</p>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item" data-aos="fade-up" data-aos-delay="100">
+                            <h2 class="accordion-header" id="faq1">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="true" aria-controls="collapse1">
+                                    <i class="fas fa-question-circle me-2"></i>
+                                    ¿Cuánto tiempo toma configurar POSENT?
+                                </button>
+                            </h2>
+                            <div id="collapse1" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>¡Solo 10 minutos!</strong> Nuestro sistema está diseñado para ser súper fácil de configurar. Te guiamos paso a paso y en menos de 10 minutos tendrás tu sistema POS funcionando perfectamente.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item" data-aos="fade-up" data-aos-delay="200">
+                            <h2 class="accordion-header" id="faq2">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    ¿Realmente es solo $1 USD el primer mes?
+                                </button>
+                            </h2>
+                            <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>¡Sí, completamente real!</strong> Es nuestra oferta de lanzamiento. Pagas solo $1 USD el primer mes, y después el precio normal del plan que elijas. Sin letra pequeña, sin trampas.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item" data-aos="fade-up" data-aos-delay="300">
+                            <h2 class="accordion-header" id="faq3">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                                    <i class="fas fa-mobile-alt me-2"></i>
+                                    ¿Funciona en dispositivos móviles?
+                                </button>
+                            </h2>
+                            <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>¡Por supuesto!</strong> POSENT es completamente responsive y funciona perfectamente en tablets, smartphones y computadoras. Puedes gestionar tu negocio desde cualquier lugar, en cualquier momento.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item" data-aos="fade-up" data-aos-delay="400">
+                            <h2 class="accordion-header" id="faq4">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    ¿Mis datos están seguros?
+                                </button>
+                            </h2>
+                            <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>¡Absolutamente!</strong> Utilizamos encriptación de nivel bancario, respaldos automáticos diarios y cumplimos con los más altos estándares de seguridad. Tu información está 100% protegida.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item" data-aos="fade-up" data-aos-delay="500">
+                            <h2 class="accordion-header" id="faq5">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                                    <i class="fas fa-headset me-2"></i>
+                                    ¿Qué tipo de soporte ofrecen?
+                                </button>
+                            </h2>
+                            <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <strong>Soporte 24/7</strong> por WhatsApp, email y chat en vivo. Además, ofrecemos capacitación gratuita para tu equipo y documentación completa. Estamos aquí para ayudarte siempre.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Call to Action Final -->
+    <section class="cta-final-section py-5">
+        <div class="container">
+            <div class="cta-final-content text-center">
+                <div class="cta-badge mb-4">
+                    <span class="badge badge-urgency">
+                        🔥 OFERTA LIMITADA: Solo $1 USD primer mes
+                    </span>
+                </div>
+                
+                <h2 class="cta-title mb-4">
+                    ¿Listo para <span class="highlight-text">AUMENTAR TUS VENTAS</span>?
+                </h2>
+                
+                <p class="cta-subtitle mb-4">
+                    Únete a más de 1,000 negocios que ya están aumentando sus ventas con POSENT.<br>
+                    <strong>Garantía de 30 días o te devolvemos tu dinero.</strong>
+                </p>
+                
+                <div class="cta-stats mb-5">
+                    <div class="row justify-content-center">
+                        <div class="col-6 col-md-3">
+                            <div class="cta-stat">
+                                <h3>1,000+</h3>
+                                <p>Negocios</p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="cta-stat">
+                                <h3>35%</h3>
+                                <p>Más Ventas</p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="cta-stat">
+                                <h3>4.9/5</h3>
+                                <p>Calificación</p>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="cta-stat">
+                                <h3>24/7</h3>
+                                <p>Soporte</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="cta-buttons">
+                    <a href="https://posntrd.online/register" class="btn btn-primary btn-gradient btn-lg me-3 pulse-btn">
+                        <i class="fas fa-rocket me-2"></i>¡EMPEZAR GRATIS AHORA!
+                    </a>
+                    <a href="https://wa.me/18093408435" target="_blank" class="btn btn-success btn-lg">
+                        <i class="fab fa-whatsapp me-2"></i>¡CHATEA CONMIGO!
+                    </a>
+                </div>
+                
+                <div class="cta-guarantee mt-4">
+                    <div class="guarantee-badge">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        <span>Garantía de 30 días - Sin riesgo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-3">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Logo y descripción -->
+                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
+                    <div class="footer-brand">
+                        <img src="img/Logo.png" alt="POSENT Logo" height="35" class="mb-2">
+                        <p class="footer-description mb-0">Transformando negocios con tecnología de punta</p>
+                </div>
+                </div>
+                
+                <!-- Enlaces rápidos compactos -->
+                <div class="col-lg-4 col-md-6 mb-3 mb-md-0">
+                    <div class="footer-links">
+                        <a href="#inicio" class="footer-link">Inicio</a>
+                        <span class="footer-separator">•</span>
+                        <a href="#caracteristicas" class="footer-link">Características</a>
+                        <span class="footer-separator">•</span>
+                        <a href="#precios" class="footer-link">Precios</a>
+                        <span class="footer-separator">•</span>
+                        <a href="#contacto" class="footer-link">Contacto</a>
+                    </div>
+                </div>
+                
+                <!-- Redes sociales mejoradas -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="footer-social">
+                        <span class="social-label">Síguenos:</span>
+                        <div class="social-icons">
+                            <a href="https://www.facebook.com/profile.php?id=61575624155670" target="_blank" class="social-icon facebook" title="Facebook">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                            <a href="https://www.instagram.com/posntrd" target="_blank" class="social-icon instagram" title="Instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://www.youtube.com/channel/UC_s1sjvS_hvAOwIqi6vBrOA" target="_blank" class="social-icon youtube" title="YouTube">
+                                <i class="fab fa-youtube"></i>
+                            </a>
+                            <a href="https://t.me/Posent_bot" target="_blank" class="social-icon telegram" title="Telegram">
+                                <i class="fab fa-telegram-plane"></i>
+    </a>
+</div>
+                </div>
+            </div>
+                </div>
+            
+            <!-- Línea divisoria -->
+            <hr class="footer-divider my-3">
+            
+            <!-- Copyright y Powered by mejorado -->
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="footer-copyright mb-0">&copy; 2025 POSENT. Todos los derechos reservados.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="powered-by">
+                        <span class="powered-text">🚀 Powered by</span>
+                        <a href="https://ntdesweb2-0.vercel.app/" target="_blank" class="powered-brand">NTDESWEB</a>
+                        <span class="powered-emoji">💻</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/18093408534" target="_blank" class="floating-whatsapp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Facebook Pixel Code -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', 'XXXXXXXXXXXXXXX');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none" 
+        src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXX&ev=PageView&noscript=1"/>
+    </noscript>
+    <!-- Scripts personalizados -->
+    <script>
+        AOS.init();
+        
+        // Configuración de monedas y tasas de cambio
+        const currencies = {
+            DOP: { symbol: 'RD$', rate: 1, name: 'Peso Dominicano' },
+            USD: { symbol: '$', rate: 0.017, name: 'Dólar Americano' },
+            EUR: { symbol: '€', rate: 0.016, name: 'Euro' }
+        };
+
+        let isAnnual = false;
+        const discountRate = 0.20; // 20% de descuento
+
+        function updateBillingLabels() {
+            document.querySelectorAll('.price-period').forEach(el => {
+                el.textContent = isAnnual ? '/ Año' : '/ Mes';
+            });
+        }
+
+        function updatePlanPricesUnified(currency = 'DOP') {
+            const currencyInfo = currencies[currency];
+            
+            // Buscar elementos de precios actuales y originales
+            document.querySelectorAll('.price-current, .price-original').forEach(el => {
+                const basePrice = parseFloat(el.getAttribute('data-base-price'));
+                const specialPrice = parseFloat(el.getAttribute('data-special-price'));
+                let price = basePrice;
+                let period = '/mes';
+                
+                // Verificar si es plan Empresarial (sin oferta especial)
+                const isEmpresarial = basePrice === 3250;
+                
+                if (isAnnual && basePrice > 0) {
+                    if (el.classList.contains('price-original')) {
+                        // Primer precio: precio anual total
+                    price = basePrice * 12 * (1 - discountRate);
+                        period = '/año';
+                    } else {
+                        // Segundo precio: equivalente mensual
+                        price = basePrice * (1 - discountRate);
+                        period = '/mes';
+                    }
+                } else if (!isAnnual && basePrice > 0) {
+                    if (isEmpresarial) {
+                        // Plan Empresarial: solo mostrar precio normal
+                    price = basePrice;
+                        period = '/mes';
+                        // Ocultar el segundo precio en modo mensual
+                        if (el.classList.contains('price-current')) {
+                            el.style.display = 'none';
+                        } else {
+                            el.style.display = 'block';
+                        }
+                    } else {
+                        // Otros planes: usar precio especial si existe
+                        price = specialPrice && specialPrice > 0 ? specialPrice : basePrice;
+                        period = '/mes';
+                        el.style.display = 'block';
+                    }
+                }
+                
+                if (basePrice === 0) price = 0;
+                
+                const priceValue = el.querySelector('.price-value');
+                if (priceValue) {
+                priceValue.textContent = (price * currencyInfo.rate).toLocaleString('es-DO', { minimumFractionDigits: 0 });
+                }
+                const currencySymbol = el.querySelector('.currency-symbol');
+                if (currencySymbol) {
+                    currencySymbol.textContent = currencyInfo.symbol;
+                }
+                const pricePeriod = el.querySelector('.price-period');
+                if (pricePeriod) {
+                    pricePeriod.textContent = period;
+                }
+            });
+            
+            updateBillingLabels();
+        }
+
+        // Detectar la moneda del usuario
+        async function detectUserCurrency() {
+            try {
+                const savedCurrency = localStorage.getItem('preferredCurrency');
+                if (savedCurrency && currencies[savedCurrency]) {
+                    updatePlanPricesUnified(savedCurrency);
+                    return savedCurrency;
+                }
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                const countryCurrencyMap = {
+                    'DO': 'DOP', 'US': 'USD', 'CA': 'USD', 'ES': 'EUR', 'FR': 'EUR', 'DE': 'EUR', 'IT': 'EUR', 'PT': 'EUR'
+                };
+                const detectedCurrency = countryCurrencyMap[data.country] || 'DOP';
+                updatePlanPricesUnified(detectedCurrency);
+                localStorage.setItem('preferredCurrency', detectedCurrency);
+                return detectedCurrency;
+            } catch (error) {
+                updatePlanPricesUnified('DOP');
+                return 'DOP';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            let currentCurrency = await detectUserCurrency();
+            // Si tienes un selector de moneda, actívalo aquí
+            const currencySelector = document.getElementById('currencySelector');
+            if (currencySelector) {
+                currencySelector.value = currentCurrency;
+                currencySelector.addEventListener('change', (e) => {
+                    currentCurrency = e.target.value;
+                    localStorage.setItem('preferredCurrency', currentCurrency);
+                    updatePlanPricesUnified(currentCurrency);
+                });
+            }
+            // Botones mensual/anual
+            const monthlyBtn = document.getElementById('monthlyBtn');
+            const annualBtn = document.getElementById('annualBtn');
+            if (monthlyBtn && annualBtn) {
+                monthlyBtn.addEventListener('click', function() {
+                    isAnnual = false;
+                    monthlyBtn.classList.add('active');
+                    annualBtn.classList.remove('active');
+                    updatePlanPricesUnified(currentCurrency);
+                });
+                annualBtn.addEventListener('click', function() {
+                    isAnnual = true;
+                    annualBtn.classList.add('active');
+                    monthlyBtn.classList.remove('active');
+                    updatePlanPricesUnified(currentCurrency);
+                });
+            }
+            updatePlanPricesUnified(currentCurrency);
+        });
+
+        // Configuración de montos para cada plan (en USD)
+        const planPayPal = {
+            gratis: { id: null, amount: '0' },
+            basico: { id: 'R9AUWJE3LPB4J', amount: '17' },
+            profesional: { id: '4YT6DN8ENNZEG', amount: '34' },
+            empresarial: { id: 'M3BQWFCN9ELSQ', amount: '55' }
+        };
+
+        // Función para mostrar el botón de PayPal solo en el plan seleccionado
+        function mostrarPayPal(plan) {
+            // Ocultar todos los contenedores
+            document.querySelectorAll('.paypal-buttons-group').forEach(div => div.classList.add('d-none'));
+            if (!planPayPal[plan].id) return;
+            // Renderizar el botón de PayPal en el contenedor correspondiente
+            paypal.HostedButtons({
+                hostedButtonId: planPayPal[plan].id
+            }).render(`#paypal-buttons-${plan}`);
+        }
+
+        // Asignar evento a los botones 'Ver más'
+        document.querySelectorAll('.ver-mas-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const plan = this.getAttribute('data-plan');
+                if (plan === 'gratis') {
+                    // Permitir el comportamiento normal del enlace
+                    return;
+                }
+                e.preventDefault();
+                const group = document.getElementById(`paypal-buttons-${plan}`);
+                // Si ya está visible, ocultar (toggle)
+                if (!group.classList.contains('d-none')) {
+                    group.classList.add('d-none');
+                    return;
+                }
+                // Ocultar todos los grupos
+                document.querySelectorAll('.paypal-buttons-group').forEach(div => div.classList.add('d-none'));
+                group.classList.remove('d-none');
+            });
+        });
+
+        function renderPayPalButton(plan, modo) {
+            const containerId = {
+                basico: {
+                    mensual: "paypal-container-R9AUWJE3LPB4J",
+                    anual: "paypal-container-SWWLZ8E3U7QWC"
+                },
+                profesional: {
+                    mensual: "paypal-container-4YT6DN8ENNZEG",
+                    anual: "paypal-container-QQ57DZS3HXGA2"
+                },
+                empresarial: {
+                    mensual: "paypal-container-M3BQWFCN9ELSQ",
+                    anual: "paypal-container-KEBPY8STHKJUY"
+                }
+            };
+            const id = paypalIds[plan][modo];
+            const divId = containerId[plan][modo];
+            const div = document.getElementById(divId);
+            // Solo renderizar si el contenedor está vacío
+            if (div && div.childElementCount === 0 && window.paypal && id) {
+                window.paypal.HostedButtons({
+                    hostedButtonId: id
+                }).render(`#${divId}`);
+            }
+        }
+
+        function mostrarBotonPayPalModo() {
+            const isAnnual = document.getElementById('annualBtn')?.classList.contains('active');
+            document.querySelectorAll('.paypal-buttons-group').forEach(group => {
+                const mensual = group.querySelector('.paypal-paypal-mensual');
+                const anual = group.querySelector('.paypal-paypal-anual');
+                if (isAnnual) {
+                    mensual.classList.add('d-none');
+                    anual.classList.remove('d-none');
+                } else {
+                    mensual.classList.remove('d-none');
+                    anual.classList.add('d-none');
+                }
+            });
+            // Renderizar el botón visible si hay algún grupo abierto
+            document.querySelectorAll('.paypal-buttons-group').forEach(group => {
+                if (!group.classList.contains('d-none')) {
+                    const plan = group.id.replace('paypal-buttons-', '');
+                    renderPayPalButton(plan, isAnnual ? 'anual' : 'mensual');
+                }
+            });
+        }
+        document.getElementById('monthlyBtn')?.addEventListener('click', mostrarBotonPayPalModo);
+        document.getElementById('annualBtn')?.addEventListener('click', mostrarBotonPayPalModo);
+
+        function mostrarSoloModo(modo) {
+            document.querySelectorAll('.paypal-botones').forEach(grupo => {
+                const mensual = grupo.querySelector('.paypal-mensual');
+                const anual = grupo.querySelector('.paypal-anual');
+                if (modo === 'anual') {
+                    mensual.classList.add('d-none');
+                    anual.classList.remove('d-none');
+                } else {
+                    mensual.classList.remove('d-none');
+                    anual.classList.add('d-none');
+                }
+            });
+        }
+        document.getElementById('monthlyBtn')?.addEventListener('click', () => mostrarSoloModo('mensual'));
+        document.getElementById('annualBtn')?.addEventListener('click', () => mostrarSoloModo('anual'));
+        // Mostrar mensual por defecto al cargar
+        mostrarSoloModo('mensual');
+
+        // Sincronización de selectores global e individuales
+        function setModoGlobal(modo) {
+            // Cambia el estado de todos los selectores individuales
+            document.querySelectorAll('.billing-toggle').forEach(grupo => {
+                const btns = grupo.querySelectorAll('button');
+                btns.forEach(b => b.classList.remove('active'));
+                if (modo === 'anual') {
+                    btns[1].classList.add('active');
+                } else {
+                    btns[0].classList.add('active');
+                }
+            });
+            // Cambia la visibilidad de todos los botones PayPal
+            document.querySelectorAll('.paypal-botones').forEach(grupo => {
+                const mensual = grupo.querySelector('.paypal-mensual');
+                const anual = grupo.querySelector('.paypal-anual');
+                if (modo === 'anual') {
+                    mensual.classList.add('d-none');
+                    anual.classList.remove('d-none');
+                } else {
+                    mensual.classList.remove('d-none');
+                    anual.classList.add('d-none');
+                }
+            });
+        }
+
+        // Eventos para el selector global
+        const monthlyBtnGlobal = document.getElementById('monthlyBtn');
+        const annualBtnGlobal = document.getElementById('annualBtn');
+        if (monthlyBtnGlobal && annualBtnGlobal) {
+            monthlyBtnGlobal.addEventListener('click', function() {
+                setModoGlobal('mensual');
+                monthlyBtnGlobal.classList.add('active');
+                annualBtnGlobal.classList.remove('active');
+            });
+            annualBtnGlobal.addEventListener('click', function() {
+                setModoGlobal('anual');
+                annualBtnGlobal.classList.add('active');
+                monthlyBtnGlobal.classList.remove('active');
+            });
+        }
+
+        // Eventos para los selectores individuales
+        function mostrarSoloModoPlan(plan, modo, btn) {
+            setModoGlobal(modo); // Sincroniza todos los selectores
+        }
+
+        // Al cargar, mostrar mensual por defecto en todos
+        setModoGlobal('mensual');
+
+        // Contador de tiempo para urgencia
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (!countdownElement) return;
+
+            // Establecer fecha límite (7 días desde ahora)
+            const deadline = new Date();
+            deadline.setDate(deadline.getDate() + 7);
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const timeLeft = deadline.getTime() - now;
+
+                if (timeLeft > 0) {
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                    countdownElement.innerHTML = `- Solo quedan ${days}d ${hours}h ${minutes}m ${seconds}s`;
+                } else {
+                    countdownElement.innerHTML = '- ¡Oferta expirada!';
+                }
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+
+        // Iniciar contador cuando se carga la página
+        document.addEventListener('DOMContentLoaded', startCountdown);
+
+        // Efecto de pulso en botones principales
+        function addPulseEffect() {
+            const pulseButtons = document.querySelectorAll('.pulse-btn');
+            pulseButtons.forEach(btn => {
+                btn.style.animation = 'pulse 2s infinite';
+            });
+        }
+
+        // Función para cambio de frases cada 3 segundos
+        function startChangingText() {
+            const phrases = [
+                "35% EN 30 DÍAS!",
+                "50% MÁS RÁPIDO!",
+                "100% AUTOMÁTICO!",
+                "24/7 DISPONIBLE!",
+                "SIN COMPLICACIONES!",
+                "FÁCIL DE USAR!",
+                "RESULTADOS GARANTIZADOS!",
+                "TECNOLOGÍA ÚNICA!"
+            ];
+            
+            const changingTextElement = document.getElementById('changing-text');
+            if (!changingTextElement) return;
+            
+            let currentIndex = 0;
+            
+            function changeText() {
+                changingTextElement.style.opacity = '0';
+                changingTextElement.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    changingTextElement.textContent = phrases[currentIndex];
+                    changingTextElement.style.opacity = '1';
+                    changingTextElement.style.transform = 'translateY(0)';
+                    currentIndex = (currentIndex + 1) % phrases.length;
+                }, 300);
+            }
+            
+            // Cambiar texto cada 3 segundos
+            setInterval(changeText, 3000);
+        }
+
+        // Función para carrusel de testimonios
+        function startTestimonialsCarousel() {
+            const track = document.getElementById('testimonials-track');
+            if (!track) return;
+            
+            let currentPosition = 0;
+            const cardWidth = 350; // Ancho de cada tarjeta + margen
+            const totalCards = track.children.length;
+            const visibleCards = 3; // Número de tarjetas visibles
+            
+            function moveCarousel() {
+                currentPosition -= cardWidth;
+                
+                // Si llegamos al final, volver al inicio
+                if (Math.abs(currentPosition) >= cardWidth * (totalCards - visibleCards)) {
+                    currentPosition = 0;
+                }
+                
+                track.style.transform = `translateX(${currentPosition}px)`;
+            }
+            
+            // Mover cada 4 segundos
+            setInterval(moveCarousel, 4000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            addPulseEffect();
+            startChangingText();
+            startTestimonialsCarousel(); // Iniciar el carrusel de testimonios
+        });
+    </script>
+</body>
+</html> 

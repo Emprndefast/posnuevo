@@ -1,0 +1,4 @@
+Plan Gratuito: 0 DOP
+Plan Básico: 1000 DOP
+Plan Profesional: 2000 DOP
+Plan Empresarial: 3250 DOP 
