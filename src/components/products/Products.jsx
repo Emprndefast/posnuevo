@@ -1450,9 +1450,10 @@ const Products = () => {
         return;
       }
 
-      // Llamar a la API de MongoDB
-      console.log('📡 Llamando a la API de productos...');
-      const response = await axios.get('http://localhost:3002/api/products', {
+      // Llamar a la API de MongoDB usando la instancia configurada
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      console.log('📡 Llamando a la API de productos...', API_BASE_URL);
+      const response = await axios.get(`${API_BASE_URL}/products`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
