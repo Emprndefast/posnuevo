@@ -75,6 +75,9 @@ import DataExport from './components/reports/DataExport';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
+// Landing Page
+import LandingPage from './components/LandingPage';
+
 // Páginas adicionales
 import Manual from './pages/Manual';
 import Terminos from './pages/Terminos';
@@ -358,6 +361,7 @@ const AppContent = () => {
       )}
       <Routes>
         {/* Rutas públicas SIN layout */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/manual" element={<Manual />} />
@@ -374,7 +378,7 @@ const AppContent = () => {
                   <Route path="/subscription" element={<SubscriptionPlans />} />
                   <Route path="/subscriptions" element={<SubscriptionPlans />} />
                   <Route path="/setup-wizard" element={<PrivateRoute><ConfigGuard><SetupWizard /></ConfigGuard></PrivateRoute>} />
-                  <Route path="/" element={<ModernDashboard />} />
+                  <Route path="/dashboard" element={<ModernDashboard />} />
                   <Route path="/analytics" element={<AnalyticsDashboard />} />
                   <Route path="/financial" element={<FinancialAnalytics />} />
                   <Route path="/sales" element={<Sales />} />
@@ -401,7 +405,7 @@ const AppContent = () => {
                   {/* Rutas CRM */}
                   <Route path="/crm/*" element={<CrmRoutes />} />
                   {/* Redirigir cualquier otra ruta a la página principal */}
-                  <Route path="*" element={<Navigate to="/" replace />} />
+                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </Layout>
             </PrivateRoute>
