@@ -5,7 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContext';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
 
 const WhatsAppConfigModal = ({ onClose }) => {
   const [useGlobal, setUseGlobal] = useState(true);

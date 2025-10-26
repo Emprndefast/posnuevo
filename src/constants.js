@@ -1,5 +1,5 @@
 // API URL
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
 
 // Otras constantes de la aplicación
 export const APP_NAME = 'POS NT';

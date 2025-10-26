@@ -4,7 +4,7 @@ import { API_URL } from '../constants';
 // Para debug
 console.log('API URL:', API_URL);
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
 
 // Crear instancia de axios con configuración base
 const api = axios.create({
