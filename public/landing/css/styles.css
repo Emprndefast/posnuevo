@@ -57,19 +57,35 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    padding: 0rem 0;
+    padding: 0.1rem 0;
+    padding-top: 0;
+    margin: 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
     z-index: 9998;
-    position: fixed;
-    top: 0;
+    position: relative;
     left: 0;
     right: 0;
+    min-height: 50px;
+}
+
+.navbar .container {
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.navbar.navbar-fixed-custom {
+    position: fixed;
+    top: 35px;
+    z-index: 9998;
 }
 
 .navbar-brand {
+    margin: 0 !important;
     font-weight: 700;
     color: var(--primary-color);
     text-decoration: none;
+    padding: 0;
 }
 
 .brand-text {
@@ -106,12 +122,15 @@ body {
     background: var(--gradient-urgency);
     border: none;
     color: white;
-    font-weight: 800;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
     transition: all 0.3s ease;
-    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     animation: pulse-urgency 2s infinite;
+    white-space: nowrap;
 }
 
 .btn-urgency:hover {
@@ -134,11 +153,6 @@ body {
 
 .navbar-brand:hover img {
     transform: scale(1.05);
-}
-
-.navbar-brand {
-    font-weight: 700;
-    color: var(--primary-color);
 }
 
 .nav-link {
@@ -1414,113 +1428,81 @@ nav {
 }
 
 @media (max-width: 576px) {
-    /* Banner de Urgencia Ultra Delgado */
+    /* Banner de Urgencia Ultra Delgado para Móvil */
     .urgency-banner {
-        padding: 0.6rem 0;
-        min-height: 70px;
-    }
-    
-    .urgency-content {
-        margin-bottom: 0.4rem;
-    }
-    
-    .urgency-button-container {
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .urgency-content {
-        gap: 0.2rem;
-        padding: 0 0.3rem;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        width: 100%;
-        max-width: 100%;
-        overflow: hidden;
-    }
-    
-    .urgency-banner .row {
-        justify-content: center;
-        text-align: center;
-        align-items: center;
+        padding: 0.25rem 0;
+        padding-bottom: 0;
         margin: 0;
-        width: 100%;
-        flex-direction: column;
+        border: none;
+        min-height: auto;
     }
     
-    .urgency-banner .col-md-8 {
-        flex: 0 0 100%;
-        max-width: 100%;
-        text-align: center;
-        padding: 0 0.3rem;
-        margin-bottom: 0.2rem;
-    }
-    
-    .urgency-banner .col-md-4 {
-        flex: 0 0 100%;
-        max-width: 100%;
-        text-align: center;
-        padding: 0 0.3rem;
-        display: block !important;
+    .urgency-content {
+        gap: 0.25rem;
+        padding: 0 0.4rem;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
     }
     
     .urgency-text {
         font-size: 0.5rem;
-        line-height: 1.1;
-        margin: 0;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        max-width: 100%;
-        text-align: center;
+        line-height: 1;
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
+        overflow: hidden;
+        white-space: nowrap;
     }
     
     .urgency-icon {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
+        flex-shrink: 0;
+    }
+    
+    .urgency-button-container {
+        flex-shrink: 0;
+    }
+    
+    .btn-urgency {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.35rem;
+        white-space: nowrap;
     }
     
     .countdown-timer {
-        font-size: 0.55rem;
-    }
-    
-    .urgency-btn {
-        font-size: 0.5rem;
-        padding: 0.2rem 0.6rem;
-        margin: 0 auto;
-        display: block !important;
-        text-align: center;
-        max-width: 95%;
-        word-wrap: break-word;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    
-    /* Forzar centrado del botón en móvil pequeño */
-    .urgency-banner .col-md-4.text-end {
-        text-align: center !important;
-        display: block !important;
-        visibility: visible !important;
-    }
-    
-    .urgency-banner .btn {
-        margin: 0 auto;
-        display: block !important;
-        width: auto;
-        max-width: 100%;
-        visibility: visible !important;
-        opacity: 1 !important;
+        display: none;
     }
     
     /* Ajustes de Espaciado Ultra Delgado */
-    .navbar {
-        padding: 0.2rem 0;
-        top: 70px; /* Ajustado para banner unificado ultra delgado */
+    .urgency-banner {
+        position: fixed;
+        top: 0;
+        z-index: 10000;
+    }
+    
+    .navbar.navbar-fixed-custom {
+        padding: 0.05rem 0;
+        position: fixed;
+        top: 40px;
+        width: 100%;
+        z-index: 9999;
+        margin-top: 0;
+        min-height: auto;
+    }
+    
+    .navbar .container {
+        padding: 0;
+    }
+    
+    .navbar-brand {
+        margin: 0 !important;
     }
     
     .hero-section {
         padding: 20px 0 30px;
-        padding-top: 120px; /* Ajustado para banner unificado + navbar */
+        padding-top: 180px !important; /* Ajustado para banner unificado + navbar en móvil */
+        margin-top: 0;
     }
     
     .hero-badges {
@@ -1797,7 +1779,10 @@ nav {
 .urgency-banner {
     background: linear-gradient(135deg, #ff4444, #cc0000);
     color: white;
-    padding: 1rem 0;
+    padding: 0.2rem 0;
+    padding-bottom: 0;
+    margin: 0;
+    border: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -1810,7 +1795,7 @@ nav {
     width: 100%;
     max-width: 100vw;
     overflow-x: hidden;
-    min-height: 100px;
+    min-height: 35px;
 }
 
 .urgency-content {
@@ -1818,8 +1803,13 @@ nav {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-bottom: 0.8rem;
+    margin: 0 auto;
+    padding: 0 1rem;
     text-align: center;
+    line-height: 1;
+    flex-wrap: nowrap;
+    max-width: 1200px;
+    width: 100%;
 }
 
 .urgency-button-container {
@@ -1830,14 +1820,15 @@ nav {
 }
 
 .urgency-icon {
-    font-size: 1.2rem;
+    font-size: 0.75rem;
     animation: bounce 1s infinite;
+    flex-shrink: 0;
 }
 
 .urgency-text {
-    font-size: 1rem;
+    font-size: 0.7rem;
     font-weight: 500;
-    line-height: 1.3;
+    line-height: 1;
 }
 
 .countdown-timer {
@@ -2012,13 +2003,9 @@ nav {
     to { text-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 30px rgba(245, 158, 11, 0.6); }
 }
 
-/* Ajustar navbar para banner unificado */
-.navbar {
-    top: 100px; /* Espacio para banner unificado */
-}
-
+/* Ajustar hero section para banner unificado + navbar */
 .hero-section {
-    padding-top: 180px; /* Ajustar para banner unificado + navbar */
+    padding-top: 170px; /* Ajustar para banner + navbar */
 }
 
 /* Footer Mejorado */
@@ -2218,32 +2205,32 @@ nav {
 /* Responsive Design Mejorado */
 @media (max-width: 768px) {
     .urgency-banner {
-        padding: 0.8rem 0;
+        padding: 2px 0;
+        padding-bottom: 0;
+        margin: 0;
+        border: none;
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1050;
-        min-height: 80px;
+        min-height: auto;
     }
     
     .urgency-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.3rem;
-        text-align: center;
-        margin-bottom: 0.6rem;
         padding: 0 0.5rem;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+        flex-wrap: nowrap;
     }
     
     .urgency-button-container {
-        justify-content: center;
-        align-items: center;
-        text-align: center;
+        flex-shrink: 0;
     }
     
     .urgency-banner .row {
@@ -2272,35 +2259,30 @@ nav {
     }
     
     .urgency-text {
-        font-size: 0.6rem;
-        line-height: 1.2;
+        font-size: 0.55rem;
+        line-height: 1;
         margin: 0;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        hyphens: auto;
-        max-width: 100%;
-        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: left;
     }
     
     .urgency-icon {
-        font-size: 0.8rem;
+        font-size: 0.65rem;
     }
     
     .countdown-timer {
-        font-size: 0.65rem;
-        font-weight: 800;
+        display: none;
     }
     
-    .urgency-btn {
-        font-size: 0.6rem;
-        padding: 0.3rem 0.8rem;
-        margin: 0 auto;
-        display: block !important;
-        text-align: center;
-        max-width: 90%;
-        word-wrap: break-word;
-        visibility: visible !important;
-        opacity: 1 !important;
+    .btn-urgency {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+        white-space: nowrap;
+        margin: 0;
     }
     
     /* Forzar centrado del botón en móvil */
@@ -2320,14 +2302,26 @@ nav {
     }
     
     /* Ajustes de Espaciado para Banner Unificado */
-    .navbar {
-        padding: 0.3rem 0;
-        top: 80px; /* Ajustado para banner unificado */
+    .navbar.navbar-fixed-custom {
+        padding: 0.05rem 0;
+        position: fixed;
+        top: 24px;
+        width: 100%;
+        min-height: auto;
+    }
+    
+    .navbar .container {
+        padding: 0;
+    }
+    
+    .navbar-brand {
+        margin: 0 !important;
     }
     
     .hero-section {
         padding: 30px 0 40px;
-        padding-top: 140px; /* Ajustado para banner unificado + navbar */
+        padding-top: 50px !important; /* Ajustado para banner unificado + navbar en móvil */
+        margin-top: 0;
     }
     
     .proof-number {
