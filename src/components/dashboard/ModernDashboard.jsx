@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, startTransition } from 'react';
 import {
   Box,
   Grid,
@@ -684,7 +684,9 @@ const ModernDashboard = () => {
 
   const handleNavigate = (path) => {
     console.log('Navegando a:', path);
-    navigate(path);
+    startTransition(() => {
+      navigate(path);
+    });
   };
 
   const handleLogout = async () => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import {
   Box,
   Grid,
@@ -291,7 +291,9 @@ const DashboardPro = () => {
   }, [productos.length]);
 
   const handleNavigate = (path) => {
-    navigate(path);
+    startTransition(() => {
+      navigate(path);
+    });
   };
 
   // Mostrar mensaje si no hay datos pero mantener diseño

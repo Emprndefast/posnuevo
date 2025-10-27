@@ -270,8 +270,8 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
                   <span style="font-size: 8pt; color: #666;">Cod: ${item.code || 'N/A'}</span>
                 </td>
                 <td style="padding: 5px; font-size: 9pt; text-align: center;">${item.quantity}</td>
-                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${item.price.toFixed(2)}</td>
-                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${(item.quantity * item.price).toFixed(2)}</td>
+                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${(item.price || 0).toFixed(2)}</td>
+                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
               </tr>
             `).join('')}
           </tbody>
@@ -571,7 +571,7 @@ const QuickSale = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [discount, setDiscount] = useState(0);
   const [paymentDialog, setPaymentDialog] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState('efectivo');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [preInvoiceDialog, setPreInvoiceDialog] = useState(false);
@@ -787,102 +787,59 @@ const QuickSale = () => {
         throw new Error('El carrito está vacío');
       }
 
-      // Verificar stock actual antes de procesar
-      const batch = writeBatch(db);
-      const stockUpdates = [];
-      const productsToUpdate = [];
-
+      // Verificar stock actual antes de procesar usando API de MongoDB
+      const stockChecks = [];
+      
       // Verificar el stock actual de cada producto
       for (const item of cart) {
-        const productRef = doc(db, 'products', item.id);
-        const productDoc = await getDoc(productRef);
+        // Buscar el producto en la lista de productos cargados
+        const product = products.find(p => p.id === item.id);
         
-        if (!productDoc.exists()) {
+        if (!product) {
           throw new Error(`El producto ${item.name} ya no existe`);
         }
 
-        const currentStock = productDoc.data().stock;
+        const currentStock = product.stock;
         if (currentStock < item.quantity) {
           throw new Error(`Stock insuficiente para ${item.name}. Stock actual: ${currentStock}`);
         }
 
-        stockUpdates.push({
-          ref: productRef,
+        stockChecks.push({
+          productId: product.id,
           currentStock,
-          newStock: currentStock - item.quantity
+          newStock: currentStock - item.quantity,
+          productData: product
         });
-        productsToUpdate.push(productDoc.data());
       }
       
-      // Obtener el número de WhatsApp del usuario (quien hace la venta)
-      const userWhatsApp = user?.whatsapp?.number;
-      if (!userWhatsApp) {
-        setError('Debes configurar tu número de WhatsApp en tu perfil para recibir notificaciones.');
-        setProcessingPayment(false);
-        enqueueSnackbar('Debes configurar tu número de WhatsApp en tu perfil para recibir notificaciones.', { variant: 'error' });
-        return;
-      }
-      // Obtener el número del cliente si existe
-      const customerPhone = selectedCustomer?.phone;
+      // Las notificaciones de WhatsApp son opcionales, no bloquean la venta
+      // Preparar datos de la venta para el backend MongoDB
       const saleData = {
-        userId: user.uid,
         items: cart.map(item => ({
-          productId: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
+          producto_id: item.id,
+          cantidad: item.quantity,
+          precio_unitario: item.price,
           subtotal: item.price * item.quantity
         })),
         subtotal: calculateSubtotal(),
         total: calculateTotal(),
-        customer: selectedCustomer ? {
-          ...selectedCustomer,
-          phone: customerPhone
-        } : null,
-        paymentMethod: paymentMethod,
-        status: 'completed',
-        whatsappNumbers: [userWhatsApp, customerPhone].filter(Boolean) // Prioridad: usuario, luego cliente si existe
+        cliente_id: selectedCustomer?.id || null,
+        metodo_pago: paymentMethod,
+        estado: 'completada'
       };
 
-      // Guardar la venta en el backend en vez de Firestore
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-      const response = await axios.post(`${API_URL}/api/sales`, saleData);
-      const saleId = response.data.sale?.id || response.data.sale?._id || response.data.sale?.ticketNumber || 'N/A';
+      console.log('📦 Preparando venta para backend:', saleData);
 
-      // Crear notificación en Firestore
-      if (user && user.uid) {
-        await addDoc(collection(db, 'notificaciones'), {
-          uid: user.uid,
-          mensaje: `Venta realizada: $${saleData.total} | Cliente: ${saleData.customer?.name || 'General'} | Productos: ${saleData.items.length} | Fecha: ${new Date().toLocaleString()}`,
-          leida: false,
-          fecha: new Date().toISOString()
-        });
-      }
+      // Guardar la venta en el backend MongoDB
+      const response = await api.post('/sales', saleData);
+      const saleId = response.data.data?._id || response.data.data?.numero_venta || 'N/A';
 
-      // Agregar logs detallados
-      console.log('📦 Datos de la venta:', {
-        ticketNumber: saleId,
-        total: saleData.total,
-        customer: saleData.customer?.name || 'Cliente General',
-        date: new Date().toISOString(),
-        items: saleData.items
-      });
+      console.log('✅ Venta creada exitosamente:', response.data);
 
-      // Actualizar el stock de los productos
-      stockUpdates.forEach(update => {
-        batch.update(update.ref, {
-          stock: update.newStock,
-          lastUpdated: new Date().toISOString()
-        });
-      });
-
-      // Ejecutar todas las actualizaciones en lote
-      await batch.commit();
-
-      // Actualizar el estado local de productos
+      // Actualizar el estado local de productos con el nuevo stock
       setProducts(prevProducts => 
         prevProducts.map(product => {
-          const update = stockUpdates.find(u => u.ref.id === product.id);
+          const update = stockChecks.find(u => u.productId === product.id);
           if (update) {
             return {
               ...product,
@@ -894,16 +851,15 @@ const QuickSale = () => {
       );
 
       // Enviar notificaciones de stock bajo/agotado
-      for (let i = 0; i < stockUpdates.length; i++) {
-        const update = stockUpdates[i];
-        const productData = productsToUpdate[i];
+      for (const check of stockChecks) {
+        const productData = check.productData;
 
-        if (update.newStock <= productData.minStock) {
+        if (check.newStock <= productData.minStock) {
           if (notifyLowStock) {
             try {
               await notifyLowStock({
                 name: productData.name,
-                currentStock: update.newStock,
+                currentStock: check.newStock,
                 minStock: productData.minStock
               });
             } catch (error) {
@@ -912,7 +868,7 @@ const QuickSale = () => {
           }
         }
 
-        if (update.newStock <= 0) {
+        if (check.newStock <= 0) {
           if (notifyOutOfStock && typeof notifyOutOfStock === 'function') {
             try {
               await notifyOutOfStock({
@@ -932,9 +888,13 @@ const QuickSale = () => {
         await notifySale({
           ticketNumber: saleId,
           total: saleData.total,
-          customer: saleData.customer?.name || 'Cliente General',
+          customer: selectedCustomer?.name || 'Cliente General',
           date: new Date().toISOString(),
-          items: saleData.items
+          items: cart.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price
+          }))
         });
         console.log('✅ Notificación de venta enviada');
       } catch (error) {
@@ -943,8 +903,25 @@ const QuickSale = () => {
 
       // Limpiar el carrito y mostrar mensaje de éxito
       setPaymentDialog(false);
+      
+      // Preparar datos del recibo con formato correcto
+      const receiptSale = {
+        items: cart.map(item => ({
+          name: item.name,
+          code: item.code,
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.price * item.quantity
+        })),
+        subtotal: calculateSubtotal(),
+        discount: discount,
+        total: calculateTotal(),
+        date: new Date().toISOString(),
+        customer: selectedCustomer?.name || 'Cliente General'
+      };
+      
       setCart([]);
-      setLastSale(saleData);
+      setLastSale(receiptSale);
       setPreInvoiceDialog(true);
       
       enqueueSnackbar('Venta completada correctamente', {
@@ -1319,8 +1296,8 @@ const QuickSale = () => {
           <Box sx={{ mt: 2 }}>
             <Button
               fullWidth
-              variant={paymentMethod === 'cash' ? 'contained' : 'outlined'}
-              onClick={() => setPaymentMethod('cash')}
+              variant={paymentMethod === 'efectivo' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('efectivo')}
               sx={{ mb: 1 }}
               disabled={processingPayment}
             >
@@ -1328,8 +1305,8 @@ const QuickSale = () => {
             </Button>
             <Button
               fullWidth
-              variant={paymentMethod === 'card' ? 'contained' : 'outlined'}
-              onClick={() => setPaymentMethod('card')}
+              variant={paymentMethod === 'tarjeta' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('tarjeta')}
               sx={{ mb: 1 }}
               disabled={processingPayment}
             >
@@ -1337,8 +1314,8 @@ const QuickSale = () => {
             </Button>
             <Button
               fullWidth
-              variant={paymentMethod === 'transfer' ? 'contained' : 'outlined'}
-              onClick={() => setPaymentMethod('transfer')}
+              variant={paymentMethod === 'transferencia' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('transferencia')}
               disabled={processingPayment}
             >
               Transferencia
