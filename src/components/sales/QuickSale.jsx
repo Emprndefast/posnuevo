@@ -86,7 +86,7 @@ import promotionService from '../../services/promotionService';
 import { useTelegram } from '../../context/TelegramContext';
 import { telegramService } from '../../services/telegramService';
 import BarcodeScanner from '../products/BarcodeScanner';
-import axios from 'axios';
+import api from '../../api/api';
 
 const PreInvoiceDialog = ({ open, onClose, sale }) => {
   const { isConnected } = usePrinter();
@@ -596,14 +596,15 @@ const QuickSale = () => {
   }
 
   useEffect(() => {
-    if (user?.uid) {
+    const userId = user?.uid || user?._id || user?.id;
+    if (userId) {
       loadData();
       loadPromotions();
     } else {
       setLoading(false);
       setError('Usuario no autenticado');
     }
-  }, [user?.uid]);
+  }, [user]);
 
   useEffect(() => {
     // Agregar log para verificar la configuración de Telegram
@@ -635,31 +636,51 @@ const QuickSale = () => {
 
   const fetchProducts = async () => {
     try {
-      if (!user?.uid) {
+      const userId = user?.uid || user?._id || user?.id;
+      if (!userId) {
         throw new Error('Usuario no autenticado');
       }
 
-      const productsRef = collection(db, 'products');
-      const q = query(
-        productsRef,
-        where('userId', '==', user.uid),
-        where('stock', '>', 0)
-      );
-
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
-        setProducts([]);
-        return;
+      // Usar MongoDB API en lugar de Firebase
+      const response = await api.get('/products');
+      console.log('Response de productos:', response.data);
+      
+      if (!response.data.success) {
+        throw new Error('Error al cargar productos');
       }
 
-      const productsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        stock: parseInt(doc.data().stock) || 0,
-        price: parseFloat(doc.data().price) || 0,
-        name: doc.data().name || 'Producto sin nombre',
-        code: doc.data().code || ''
-      }));
+      // Log para ver el primer producto
+      if (response.data.data && response.data.data.length > 0) {
+        console.log('Primer producto raw completo:', JSON.stringify(response.data.data[0], null, 2));
+      }
+
+      // El backend devuelve productos con estructura: { _id, nombre, precio, stock, ... }
+      const productsData = response.data.data
+        .map(product => {
+          // Calcular stock - el campo correcto es stock_actual
+          const stockValue = parseInt(product.stock_actual || product.stock || 0);
+          
+          const mappedProduct = {
+            ...product, // Mantener todos los campos originales primero
+            id: product._id || product.id,
+            name: product.nombre || product.name || 'Producto sin nombre',
+            price: parseFloat(product.precio) || parseFloat(product.price) || 0,
+            stock: stockValue,
+            code: product.codigo || product.code || product.barcode || product.codigo_barras || '',
+            description: product.descripcion || product.description || '',
+            brand: product.brand || '',
+            images: product.images || product.imagenes || [],
+            imageUrl: product.imagen || product.imageUrl || '',
+            category: product.categoria || product.category || {}
+          };
+          console.log('Producto raw stock_actual:', product.stock_actual, 'stock field:', product.stock, 'Mapped stock:', stockValue);
+          console.log('Producto raw imagen:', product.imagen, 'imagenes:', product.imagenes, 'images:', product.images);
+          console.log('Producto mapeado completo:', mappedProduct);
+          return mappedProduct;
+        })
+        .filter(p => p.stock >= 0); // Productos con stock >= 0
+
+      console.log('Productos procesados:', productsData);
 
       // Ordenar productos por nombre
       productsData.sort((a, b) => a.name.localeCompare(b.name));
@@ -673,27 +694,27 @@ const QuickSale = () => {
 
   const fetchCustomers = async () => {
     try {
-      if (!user?.uid) {
+      const userId = user?.uid || user?._id || user?.id;
+      if (!userId) {
         throw new Error('Usuario no autenticado');
       }
 
-      const customersRef = collection(db, 'customers');
-      const q = query(
-        customersRef,
-        where('userId', '==', user.uid),
-        orderBy('name', 'asc')
-      );
-
-      const querySnapshot = await getDocs(q);
-      if (querySnapshot.empty) {
+      // Usar MongoDB API en lugar de Firebase
+      const response = await api.get('/customers');
+      
+      if (!response.data.success) {
         setCustomers([]);
         return;
       }
 
-      const customersData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
+      const customersData = response.data.data.map(customer => ({
+        id: customer._id || customer.id,
+        ...customer,
+        name: customer.nombre || customer.name || ''
       }));
+
+      // Ordenar por nombre
+      customersData.sort((a, b) => a.name.localeCompare(b.name));
 
       setCustomers(customersData);
     } catch (error) {
@@ -1078,16 +1099,77 @@ const QuickSale = () => {
                       onClick={() => handleAddToCart(product)}
                     >
                       <CardContent>
-                        <Typography variant="subtitle1" noWrap>
+                        {/* Imagen del producto */}
+                        {product.imageUrl ? (
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: 120,
+                              mb: 1,
+                              borderRadius: 1,
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              bgcolor: darkMode ? '#333' : '#f5f5f5',
+                            }}
+                          >
+                            <img
+                              src={product.imageUrl}
+                              alt={product.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                e.target.nextSibling.style.display = 'flex';
+                              }}
+                            />
+                            <Box
+                              sx={{
+                                display: 'none',
+                                width: '100%',
+                                height: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: darkMode ? '#fff' : '#666',
+                                fontSize: '2rem',
+                              }}
+                            >
+                              📦
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              width: '100%',
+                              height: 120,
+                              mb: 1,
+                              borderRadius: 1,
+                              bgcolor: darkMode ? '#333' : '#f5f5f5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: darkMode ? '#fff' : '#666',
+                              fontSize: '2rem',
+                            }}
+                          >
+                            📦
+                          </Box>
+                        )}
+                        <Typography variant="subtitle2" noWrap sx={{ fontWeight: 600 }}>
                           {product.name}
                         </Typography>
-                        <Typography variant="h6" color={darkMode ? 'textSecondary' : 'primary'}>
-                          ${product.price}
+                        <Typography variant="h6" color={darkMode ? 'textSecondary' : 'primary'} sx={{ fontWeight: 700 }}>
+                          ${product.price.toLocaleString()}
                         </Typography>
                         <Chip
                           size="small"
                           label={`Stock: ${product.stock}`}
                           color={product.stock > 10 ? 'success' : product.stock > 0 ? 'warning' : 'error'}
+                          sx={{ mt: 0.5 }}
                         />
                       </CardContent>
                     </Card>

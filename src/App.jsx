@@ -54,7 +54,10 @@ setup(createElement);
 import ModernDashboard from './components/dashboard/ModernDashboard';
 import DashboardPro from './components/dashboard/DashboardPro';
 
-// Páginas principales - Lazy loading to avoid Firebase errors during initial load
+// Importar startTransition de React
+import { startTransition } from 'react';
+
+// Páginas principales - Lazy loading con startTransition
 const Products = React.lazy(() => import('./components/products/Products'));
 const Sales = React.lazy(() => import('./components/sales/Sales'));
 const Customers = React.lazy(() => import('./components/customers/Customers').then(m => ({ default: m.Customers })));
