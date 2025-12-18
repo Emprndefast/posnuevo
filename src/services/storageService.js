@@ -1,32 +1,27 @@
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../firebase/config';
-import { getAuth } from 'firebase/auth';
+import api from '../config/api';
 
 class StorageService {
   async uploadProductImage(file) {
     try {
-      const auth = getAuth();
-      if (!auth.currentUser) {
-        throw new Error('Usuario no autenticado');
+      const form = new FormData();
+      form.append('image', file);
+
+      const response = await api.post('/upload/file', form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (!response.data || !response.data.data) {
+        throw new Error('Respuesta inválida al subir imagen');
       }
 
-      // Crear referencia en Storage
-      const storageRef = ref(storage, `productos/${file.name}`);
-      
-      // Subir archivo
-      const snapshot = await uploadBytes(storageRef, file);
-      
-      // Obtener URL pública
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
       return {
-        url: downloadURL,
-        path: `productos/${file.name}`,
+        url: response.data.data.url,
+        publicId: response.data.data.publicId,
         filename: file.name
       };
     } catch (error) {
       console.error('Error al subir imagen:', error);
-      throw this.handleError(error);
+      throw new Error(error.response?.data?.message || 'Error al subir la imagen.');
     }
   }
 
