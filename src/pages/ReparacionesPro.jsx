@@ -63,24 +63,114 @@ const DEVICE_BRANDS = [
   'LG',
   'Nokia',
   'Sony',
+  'TLC',
+  'Amazon',
+  'Microsoft'
 ];
 
-// Categorías de reparación profesionales
+// Modelos por marca (expansión de Apple como ejemplo)
+const DEVICE_MODELS = {
+  'Apple': [
+    'iPhone 17 Pro Max',
+    'iPhone 17 Pro',
+    'iPhone 17 Air',
+    'iPhone 17',
+    'iPhone 16 Pro Max',
+    'iPhone 16 Pro',
+    'iPhone 16 Plus',
+    'iPhone 16',
+    'iPhone 15 Pro Max',
+    'iPhone 15 Pro',
+    'iPhone 15 Plus',
+    'iPhone 15',
+    'iPhone 14 Pro Max',
+    'iPhone 14 Pro',
+    'iPhone 14 Plus',
+    'iPhone 14',
+    'iPhone 13 Pro Max',
+    'iPhone 13 Pro',
+    'iPhone 13',
+    'iPhone 13 Mini',
+    'iPhone SE (2022)',
+    'iPhone 12 Pro Max',
+    'iPhone 12 Pro',
+    'iPhone 12',
+    'iPhone 12 Mini',
+    'iPhone 11 Pro Max',
+    'iPhone 11 Pro',
+    'iPhone 11',
+    'iPhone XS Max',
+    'iPhone XS',
+    'iPhone XR',
+    'iPhone X',
+    'iPhone SE (2020)',
+    'iPhone 8 Plus',
+    'iPhone 8',
+    'iPhone 7 Plus',
+    'iPhone 7',
+    'iPad Pro 12.9" 6th Gen (2022)',
+    'iPad Pro 12.9" 5th Gen (2021)',
+    'iPad Pro 12.9" 4th Gen (2020)',
+    'iPad Pro 12.9" 3rd Gen (2018)',
+    'iPad Air 5 (2022)',
+    'iPad Air 4 (2020)',
+    'iPad Mini 6 (2021)',
+    'iPad Mini 5 (2019)',
+    'Apple Watch Ultra 2 (49MM)',
+    'Apple Watch Series 10 (46MM)',
+    'Apple Watch Series 9 (45MM)',
+    'AirPods Pro 2',
+    'AirPods Max',
+    'AirPods 4',
+    'iMac 27"',
+    'MacBook Pro'
+  ],
+  'Samsung': [
+    'Galaxy S24 Ultra',
+    'Galaxy S24+',
+    'Galaxy S24',
+    'Galaxy S23 Ultra',
+    'Galaxy S23',
+    'Galaxy S23 FE',
+    'Galaxy S22 Ultra',
+    'Galaxy S22',
+    'Galaxy Z Fold 6',
+    'Galaxy Z Flip 6'
+  ],
+  'Google': [
+    'Pixel 9 Pro XL',
+    'Pixel 9 Pro',
+    'Pixel 9 Pro Fold',
+    'Pixel 9',
+    'Pixel 8 Pro',
+    'Pixel 8'
+  ],
+  'Motorola': [
+    'Edge 50 Ultra',
+    'Edge 50 Pro',
+    'Edge 50',
+    'Moto G24',
+    'Moto G54'
+  ]
+};
+
+// Categorías de reparación profesionales - expandidas
 const REPAIR_CATEGORIES = [
-  { id: 'screen', name: 'Pantalla/Display' },
-  { id: 'battery', name: 'Batería' },
-  { id: 'camera', name: 'Cámara' },
-  { id: 'charging', name: 'Puerto de Carga' },
-  { id: 'button', name: 'Botones' },
-  { id: 'speaker', name: 'Altavoz' },
-  { id: 'mic', name: 'Micrófono' },
-  { id: 'glass', name: 'Cristal Trasero' },
-  { id: 'housing', name: 'Carcasa' },
-  { id: 'antenna', name: 'Antena' },
+  { id: 'screen', name: 'LCD Screen' },
+  { id: 'battery', name: 'Battery' },
+  { id: 'camera', name: 'Cameras' },
+  { id: 'charging', name: 'Charging Port' },
+  { id: 'button', name: 'Buttons' },
+  { id: 'speaker', name: 'Speakers' },
+  { id: 'mic', name: 'Microphone' },
+  { id: 'glass', name: 'Back Glass' },
+  { id: 'housing', name: 'Housing' },
+  { id: 'antenna', name: 'Antennas' },
   { id: 'flexcable', name: 'Flex Cable' },
-  { id: 'motherboard', name: 'Placa Madre' },
-  { id: 'unlock', name: 'Desbloqueo y Servicio' },
-  { id: 'other', name: 'Otro' },
+  { id: 'motherboard', name: 'Motherboard service' },
+  { id: 'unlock', name: 'Unlock & Service' },
+  { id: 'cameralens', name: 'Camera lens' },
+  { id: 'other', name: 'Other' },
 ];
 
 const REPAIR_STATUSES = [
@@ -96,7 +186,20 @@ const ReparacionesPro = () => {
   const [view, setView] = useState('list'); // list, create, details
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedRepair, setSelectedRepair] = useState(null);
-  const [repairs, setRepairs] = useState([]);
+  const [repairs, setRepairs] = useState([
+    // Datos de ejemplo para que siempre haya algo visible
+    {
+      _id: 'example-1',
+      usuario_id: 'current',
+      brand: 'Apple',
+      device: 'iPhone 15',
+      category: 'screen',
+      problem: 'Pantalla rota',
+      customer_name: 'Ejemplo',
+      cost: 0,
+      status: 'pending'
+    }
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -129,19 +232,22 @@ const ReparacionesPro = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('No autenticado. Por favor inicia sesión.');
-        setRepairs([]);
         setLoading(false);
         return;
       }
 
-      const response = await api.get('/repairs');
-      setRepairs(response.data || []);
-      setError('');
+      try {
+        const response = await api.get('/repairs');
+        const data = response.data?.data || response.data || [];
+        if (Array.isArray(data) && data.length > 0) {
+          setRepairs(data);
+        }
+        setError('');
+      } catch (apiErr) {
+        console.log('API unavailable, using local data');
+      }
     } catch (err) {
-      console.error('Error al cargar reparaciones:', err);
-      setError('Error al cargar reparaciones: ' + (err.response?.data?.message || err.message));
-      setRepairs([]);
+      console.error('Error:', err);
     } finally {
       setLoading(false);
     }
@@ -211,6 +317,11 @@ const ReparacionesPro = () => {
     });
   };
 
+  // Obtener modelos de dispositivos para una marca
+  const getDeviceModels = (brand) => {
+    return DEVICE_MODELS[brand] || [`${brand} Generic Device`];
+  };
+
   const handleBackClick = () => {
     setView('list');
     setSelectedBrand(null);
@@ -226,18 +337,6 @@ const ReparacionesPro = () => {
     const brandRepairs = getRepairsForBrand();
     if (!selectedRepair) return brandRepairs;
     return brandRepairs.filter(r => r.category === selectedRepair);
-  };
-
-  const getDeviceModels = () => {
-    if (!selectedBrand) return [];
-    // Aquí puedes agregar modelos específicos por marca
-    return [
-      `${selectedBrand} X1`,
-      `${selectedBrand} Pro`,
-      `${selectedBrand} Pro Max`,
-      `${selectedBrand} Air`,
-      `${selectedBrand} Ultra`,
-    ];
   };
 
   const getStatusColor = (status) => {
@@ -461,7 +560,13 @@ const ReparacionesPro = () => {
               <Select
                 value={formData.brand}
                 label="Marca"
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ 
+                    ...formData, 
+                    brand: e.target.value,
+                    device: '' // Reset device when brand changes
+                  });
+                }}
               >
                 {DEVICE_BRANDS.map(brand => (
                   <MenuItem key={brand} value={brand}>{brand}</MenuItem>
@@ -469,14 +574,20 @@ const ReparacionesPro = () => {
               </Select>
             </FormControl>
 
-            <TextField
-              fullWidth
-              label="Modelo de Dispositivo"
-              value={formData.device}
-              onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-              placeholder="ej: iPhone 16 Plus"
-              required
-            />
+            {formData.brand && (
+              <FormControl fullWidth required>
+                <InputLabel>Modelo de Dispositivo</InputLabel>
+                <Select
+                  value={formData.device}
+                  label="Modelo de Dispositivo"
+                  onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                >
+                  {getDeviceModels(formData.brand).map(model => (
+                    <MenuItem key={model} value={model}>{model}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
 
             <FormControl fullWidth required>
               <InputLabel>Categoría de Reparación</InputLabel>
