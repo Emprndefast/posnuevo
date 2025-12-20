@@ -289,12 +289,20 @@ export const Customers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validaciones locales
+    if (!customerForm.nombre || !customerForm.nombre.trim()) {
+      setSnackbar({ open: true, message: 'El nombre del cliente es requerido', severity: 'error' });
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const customerData = { ...customerForm, updatedAt: new Date() };
 
       if (token) {
         // Backend flow
+        console.log('Enviando cliente al backend con token:', token.substring(0, 20) + '...');
+        
         if (editingCustomer) {
           await api.put(`/customers/${editingCustomer.id}`, customerData);
           setSnackbar({ open: true, message: 'Cliente actualizado exitosamente', severity: 'success' });
@@ -302,10 +310,14 @@ export const Customers = () => {
           const res = await api.post('/customers', customerData);
           if (res.data && res.data.success) {
             setSnackbar({ open: true, message: 'Cliente agregado exitosamente', severity: 'success' });
+          } else {
+            setSnackbar({ open: true, message: res.data?.message || 'Error al agregar cliente', severity: 'error' });
+            return;
           }
         }
       } else {
         // Fallback a Firestore
+        console.warn('No hay token, usando Firestore');
         if (!user?.uid) {
           setSnackbar({ open: true, message: 'Debes iniciar sesión para agregar clientes', severity: 'error' });
           return;
@@ -325,8 +337,9 @@ export const Customers = () => {
       handleCloseDialog();
       fetchCustomers();
     } catch (err) {
-      console.error('Error al guardar cliente:', err);
-      setSnackbar({ open: true, message: 'Error al guardar cliente: ' + (err.response?.data?.message || err.message), severity: 'error' });
+      console.error('Error detallado al guardar cliente:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Error desconocido';
+      setSnackbar({ open: true, message: 'Error: ' + errorMsg, severity: 'error' });
     }
   };
 
