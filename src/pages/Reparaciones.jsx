@@ -21,9 +21,11 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import api from '../config/api';
 
 const Reparaciones = () => {
+  const navigate = useNavigate();
   const [repairs, setRepairs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -142,7 +144,7 @@ const Reparaciones = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => handleOpenDialog()}
+            onClick={() => navigate('/reparaciones/nuevo')}
           >
             Nueva Reparación
           </Button>

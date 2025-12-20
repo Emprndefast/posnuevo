@@ -1,4 +1,4 @@
-import api from '../config/api';
+import api from '../api/api';
 
 class StorageService {
   async uploadProductImage(file) {
