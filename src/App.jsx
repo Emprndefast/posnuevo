@@ -410,6 +410,12 @@ const AppContent = () => {
                   <Route path="/inventory/costs" element={<ProductCostManager />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/billing" element={<InvoiceGenerator />} />
+                  <Route path="/repairs" element={<ReparacionesPro />} />
+                  <Route path="/repairs/nuevo" element={
+                    <Suspense fallback={<CircularProgress />}>
+                      <ReparacionesNuevo />
+                    </Suspense>
+                  } />
                   <Route path="/reparaciones" element={<ReparacionesPro />} />
                   <Route path="/reparaciones/nuevo" element={
                     <Suspense fallback={<CircularProgress />}>
