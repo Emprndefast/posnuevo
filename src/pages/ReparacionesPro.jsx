@@ -206,6 +206,7 @@ const ReparacionesPro = () => {
   const [openDeviceModal, setOpenDeviceModal] = useState(false);
   const [openRepairModal, setOpenRepairModal] = useState(false);
   const [editingRepair, setEditingRepair] = useState(null);
+  const [searchBrand, setSearchBrand] = useState('');
 
   const [formData, setFormData] = useState({
     cost: '',
@@ -371,7 +372,7 @@ const ReparacionesPro = () => {
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-          Reparaciones Profesionales
+          🔧 Reparaciones Profesionales
         </Typography>
       </Box>
 
@@ -381,38 +382,61 @@ const ReparacionesPro = () => {
         Selecciona una marca de dispositivo para comenzar
       </Typography>
 
-      <Grid container spacing={2}>
-        {DEVICE_BRANDS.map((brand) => {
-          const brandRepairsCount = repairs.filter(r => r.brand?.toLowerCase() === brand.toLowerCase()).length;
-          return (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={brand}>
-              <Card
-                onClick={() => handleSelectBrand(brand)}
-                sx={{
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 4,
-                  },
-                }}
-              >
-                <CardContent sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    {brand}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {brandRepairsCount} reparaciones
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!loading && (
+        <>
+          {/* Búsqueda de marca */}
+          <Box sx={{ mb: 3 }}>
+            <TextField
+              fullWidth
+              placeholder="Buscar marca..."
+              value={searchBrand}
+              onChange={(e) => setSearchBrand(e.target.value.toLowerCase())}
+              InputProps={{
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+              }}
+            />
+          </Box>
+
+          <Grid container spacing={2}>
+            {DEVICE_BRANDS.filter(brand => brand.toLowerCase().includes(searchBrand)).map((brand) => {
+              const brandRepairsCount = repairs.filter(r => r.brand?.toLowerCase() === brand.toLowerCase()).length;
+              return (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={brand}>
+                  <Card
+                    onClick={() => handleSelectBrand(brand)}
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      '&:hover': {
+                        transform: 'translateY(-8px)',
+                        boxShadow: 4,
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ textAlign: 'center', flex: 1 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        {brand}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {brandRepairsCount} reparaciones
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </>
+      )}
 
       {/* MODAL: Categorías de Reparación por Marca */}
       <Dialog
