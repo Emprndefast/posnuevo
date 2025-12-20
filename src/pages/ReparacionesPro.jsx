@@ -183,9 +183,10 @@ const REPAIR_STATUSES = [
 const ReparacionesPro = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [view, setView] = useState('list'); // list, create, details
   const [selectedBrand, setSelectedBrand] = useState(null);
-  const [selectedRepair, setSelectedRepair] = useState(null);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryRepairs, setSelectedCategoryRepairs] = useState([]);
   const [repairs, setRepairs] = useState([
     // Datos de ejemplo para que siempre haya algo visible
     {
@@ -202,21 +203,16 @@ const ReparacionesPro = () => {
   ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
-  const [tabValue, setTabValue] = useState(0);
+  const [openDeviceModal, setOpenDeviceModal] = useState(false);
+  const [openRepairModal, setOpenRepairModal] = useState(false);
+  const [editingRepair, setEditingRepair] = useState(null);
 
   const [formData, setFormData] = useState({
-    brand: '',
-    device: '',
-    category: '',
-    problem: '',
-    status: 'pending',
     cost: '',
-    notes: '',
     customer_name: '',
     customer_phone: '',
+    status: 'pending',
+    notes: '',
   });
 
   useEffect(() => {
@@ -254,38 +250,46 @@ const ReparacionesPro = () => {
   };
 
   const handleCreateRepair = async () => {
-    if (!formData.brand || !formData.device || !formData.category) {
+    if (!editingRepair && (!selectedBrand || !selectedDevice || !selectedCategory)) {
       setError('Por favor completa los campos requeridos');
       return;
     }
 
+    const repairData = editingRepair ? {
+      ...editingRepair,
+      ...formData
+    } : {
+      brand: selectedBrand,
+      device: selectedDevice,
+      category: selectedCategory,
+      problem: formData.problem || 'Reparación',
+      cost: formData.cost || 0,
+      customer_name: formData.customer_name || '',
+      customer_phone: formData.customer_phone || '',
+      status: formData.status,
+      notes: formData.notes || '',
+    };
+
     try {
-      await api.post('/api/repairs', formData, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      if (editingRepair?._id) {
+        // Actualizar
+        await api.put(`/api/repairs/${editingRepair._id}`, repairData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+      } else {
+        // Crear nueva
+        await api.post('/api/repairs', repairData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+      }
+      
       fetchRepairs();
+      setOpenRepairModal(false);
+      setEditingRepair(null);
       resetForm();
-      setView('list');
       setError('');
     } catch (err) {
-      setError('Error al crear reparación: ' + err.message);
-    }
-  };
-
-  const handleUpdateRepair = async () => {
-    if (!selectedRepair?._id) return;
-
-    try {
-      await api.put(`/api/repairs/${selectedRepair._id}`, formData, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      fetchRepairs();
-      resetForm();
-      setView('list');
-      setSelectedRepair(null);
-      setError('');
-    } catch (err) {
-      setError('Error al actualizar reparación: ' + err.message);
+      setError('Error al guardar reparación: ' + err.message);
     }
   };
 
@@ -305,15 +309,11 @@ const ReparacionesPro = () => {
 
   const resetForm = () => {
     setFormData({
-      brand: '',
-      device: '',
-      category: '',
-      problem: '',
-      status: 'pending',
       cost: '',
-      notes: '',
       customer_name: '',
       customer_phone: '',
+      status: 'pending',
+      notes: '',
     });
   };
 
@@ -322,21 +322,28 @@ const ReparacionesPro = () => {
     return DEVICE_MODELS[brand] || [`${brand} Generic Device`];
   };
 
-  const handleBackClick = () => {
-    setView('list');
-    setSelectedBrand(null);
-    resetForm();
+  // Obtener reparaciones por categoría
+  const getRepairsForCategory = (brand, category) => {
+    return repairs.filter(r => 
+      r.brand?.toLowerCase() === brand.toLowerCase() && 
+      r.category === category
+    );
   };
 
-  const getRepairsForBrand = () => {
-    if (!selectedBrand) return [];
-    return repairs.filter(r => r.brand?.toLowerCase() === selectedBrand.toLowerCase());
+  // Abrir modal de categorías cuando selecciona marca
+  const handleSelectBrand = (brand) => {
+    setSelectedBrand(brand);
+    const devices = getDeviceModels(brand);
+    setSelectedDevice(devices[0]); // Seleccionar primer dispositivo por defecto
+    setOpenDeviceModal(true);
   };
 
-  const getRepairsForCategory = () => {
-    const brandRepairs = getRepairsForBrand();
-    if (!selectedRepair) return brandRepairs;
-    return brandRepairs.filter(r => r.category === selectedRepair);
+  // Abrir modal de reparaciones cuando selecciona categoría
+  const handleSelectCategory = (category) => {
+    setSelectedCategory(category);
+    const categoryRepairs = getRepairsForCategory(selectedBrand, category.id);
+    setSelectedCategoryRepairs(categoryRepairs);
+    setOpenRepairModal(true);
   };
 
   const getStatusColor = (status) => {
@@ -359,332 +366,303 @@ const ReparacionesPro = () => {
     return labels[status] || status;
   };
 
-  // Vista: Listado de Marcas
-  if (view === 'list' && !selectedBrand) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Reparaciones
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => setView('create')}
-          >
-            Nueva Reparación
-          </Button>
-        </Box>
-
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-        <Typography variant="subtitle1" sx={{ mb: 2, color: 'text.secondary' }}>
-          Selecciona una marca para ver reparaciones
+  // VISTA PRINCIPAL: Grid de Marcas
+  return (
+    <Container maxWidth="lg" sx={{ py: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+          Reparaciones Profesionales
         </Typography>
+      </Box>
 
-        <Grid container spacing={2}>
-          {DEVICE_BRANDS.map((brand) => (
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      <Typography variant="subtitle1" sx={{ mb: 3, color: 'text.secondary' }}>
+        Selecciona una marca de dispositivo para comenzar
+      </Typography>
+
+      <Grid container spacing={2}>
+        {DEVICE_BRANDS.map((brand) => {
+          const brandRepairsCount = repairs.filter(r => r.brand?.toLowerCase() === brand.toLowerCase()).length;
+          return (
             <Grid item xs={12} sm={6} md={4} lg={3} key={brand}>
               <Card
-                onClick={() => setSelectedBrand(brand)}
+                onClick={() => handleSelectBrand(brand)}
                 sx={{
                   cursor: 'pointer',
                   transition: 'all 0.3s',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 3,
+                    transform: 'translateY(-8px)',
+                    boxShadow: 4,
                   },
                 }}
               >
-                <CardContent sx={{ textAlign: 'center' }}>
+                <CardContent sx={{ textAlign: 'center', flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                     {brand}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {getRepairsForBrand().length} reparaciones
+                    {brandRepairsCount} reparaciones
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
-          ))}
-        </Grid>
-      </Container>
-    );
-  }
+          );
+        })}
+      </Grid>
 
-  // Vista: Reparaciones por Marca
-  if (view === 'list' && selectedBrand && !selectedRepair) {
-    return (
-      <Container maxWidth="lg" sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <IconButton onClick={handleBackClick}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            Reparaciones - {selectedBrand}
-          </Typography>
-        </Box>
-
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-          <TextField
-            placeholder="Buscar..."
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
-            }}
-            sx={{ flex: 1 }}
-          />
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Estado</InputLabel>
-            <Select
-              value={filterStatus}
-              label="Estado"
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              {REPAIR_STATUSES.map(s => (
-                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              setFormData({ ...formData, brand: selectedBrand });
-              setView('create');
-            }}
-          >
-            Agregar
-          </Button>
-        </Box>
-
-        <Grid container spacing={2}>
-          {REPAIR_CATEGORIES.map((category) => {
-            const categoryRepairs = getRepairsForBrand().filter(
-              r => r.category === category.id
-            );
-
-            if (categoryRepairs.length === 0) return null;
-
-            return (
-              <Grid item xs={12} key={category.id}>
-                <Paper sx={{ p: 2 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                    {category.name} ({categoryRepairs.length})
-                  </Typography>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                          <TableCell>Modelo</TableCell>
-                          <TableCell>Problema</TableCell>
-                          <TableCell>Cliente</TableCell>
-                          <TableCell>Costo</TableCell>
-                          <TableCell>Estado</TableCell>
-                          <TableCell align="right">Acciones</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {categoryRepairs.map((repair) => (
-                          <TableRow key={repair._id}>
-                            <TableCell>{repair.device}</TableCell>
-                            <TableCell>{repair.problem}</TableCell>
-                            <TableCell>{repair.customer_name || '-'}</TableCell>
-                            <TableCell>${repair.cost || '0.00'}</TableCell>
-                            <TableCell>
-                              <Chip
-                                label={getStatusLabel(repair.status)}
-                                color={getStatusColor(repair.status)}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <IconButton
-                                size="small"
-                                onClick={() => {
-                                  setSelectedRepair(repair);
-                                  setFormData(repair);
-                                  setView('create');
-                                }}
-                              >
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDeleteRepair(repair._id)}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Paper>
-              </Grid>
-            );
-          })}
-        </Grid>
-      </Container>
-    );
-  }
-
-  // Vista: Crear/Editar Reparación
-  if (view === 'create') {
-    return (
-      <Container maxWidth="sm" sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <IconButton onClick={handleBackClick}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-            {selectedRepair ? 'Editar Reparación' : 'Nueva Reparación'}
-          </Typography>
-        </Box>
-
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-        <Paper sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Marca</InputLabel>
+      {/* MODAL: Categorías de Reparación por Marca */}
+      <Dialog
+        open={openDeviceModal}
+        onClose={() => setOpenDeviceModal(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold', fontSize: '1.5rem' }}>
+          {selectedBrand} - Selecciona Dispositivo
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          {/* Selector de dispositivo */}
+          <Box sx={{ mb: 4, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'bold' }}>
+              Dispositivo a reparar: <span style={{ color: '#1976d2' }}>{selectedDevice}</span>
+            </Typography>
+            <FormControl fullWidth size="small">
+              <InputLabel>Cambiar dispositivo</InputLabel>
               <Select
-                value={formData.brand}
-                label="Marca"
-                onChange={(e) => {
-                  setFormData({ 
-                    ...formData, 
-                    brand: e.target.value,
-                    device: '' // Reset device when brand changes
-                  });
-                }}
+                value={selectedDevice}
+                label="Cambiar dispositivo"
+                onChange={(e) => setSelectedDevice(e.target.value)}
               >
-                {DEVICE_BRANDS.map(brand => (
-                  <MenuItem key={brand} value={brand}>{brand}</MenuItem>
+                {getDeviceModels(selectedBrand).map(model => (
+                  <MenuItem key={model} value={model}>{model}</MenuItem>
                 ))}
               </Select>
             </FormControl>
+          </Box>
 
-            {formData.brand && (
-              <FormControl fullWidth required>
-                <InputLabel>Modelo de Dispositivo</InputLabel>
+          {/* Grid de Categorías */}
+          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
+            Categorías de Reparación
+          </Typography>
+          <Grid container spacing={2}>
+            {REPAIR_CATEGORIES.map((category) => {
+              const categoryRepairsCount = repairs.filter(r =>
+                r.brand?.toLowerCase() === selectedBrand.toLowerCase() &&
+                r.category === category.id
+              ).length;
+
+              return (
+                <Grid item xs={12} sm={6} md={4} key={category.id}>
+                  <Card
+                    onClick={() => handleSelectCategory(category)}
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 3,
+                        backgroundColor: '#f9f9f9',
+                      },
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        {category.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        RD$0.00 - RD$0.00
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#4caf50', fontWeight: 'bold', display: 'block', mt: 1 }}>
+                        ✓ En stock para {categoryRepairsCount || 'varias'} variaciones
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenDeviceModal(false)}>
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* MODAL: Reparaciones para la Categoría Seleccionada */}
+      <Dialog
+        open={openRepairModal}
+        onClose={() => setOpenRepairModal(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          {selectedBrand} - {selectedDevice} - {selectedCategory?.name}
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
+          {editingRepair ? (
+            // FORMULARIO DE EDICIÓN
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Nombre del Cliente"
+                value={formData.customer_name}
+                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                placeholder="Ingresa nombre del cliente"
+              />
+
+              <TextField
+                fullWidth
+                label="Teléfono del Cliente"
+                value={formData.customer_phone}
+                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
+                type="tel"
+                placeholder="+34 600 000 000"
+              />
+
+              <TextField
+                fullWidth
+                label="Costo de Reparación"
+                value={formData.cost}
+                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                type="number"
+                InputProps={{
+                  startAdornment: <InputAdornment position="start">RD$</InputAdornment>,
+                }}
+              />
+
+              <FormControl fullWidth>
+                <InputLabel>Estado</InputLabel>
                 <Select
-                  value={formData.device}
-                  label="Modelo de Dispositivo"
-                  onChange={(e) => setFormData({ ...formData, device: e.target.value })}
+                  value={formData.status}
+                  label="Estado"
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                 >
-                  {getDeviceModels(formData.brand).map(model => (
-                    <MenuItem key={model} value={model}>{model}</MenuItem>
+                  {REPAIR_STATUSES.map(s => (
+                    <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            )}
 
-            <FormControl fullWidth required>
-              <InputLabel>Categoría de Reparación</InputLabel>
-              <Select
-                value={formData.category}
-                label="Categoría de Reparación"
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              >
-                {REPAIR_CATEGORIES.map(cat => (
-                  <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+              <TextField
+                fullWidth
+                label="Notas"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                multiline
+                rows={2}
+                placeholder="Notas adicionales..."
+              />
+            </Box>
+          ) : (
+            // LISTA DE REPARACIONES PRECARGADAS
+            <Box>
+              {selectedCategoryRepairs.length > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {selectedCategoryRepairs.map((repair) => (
+                    <Paper
+                      key={repair._id}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          boxShadow: 2,
+                          backgroundColor: '#f5f5f5',
+                        },
+                      }}
+                      onClick={() => {
+                        setEditingRepair(repair);
+                        setFormData({
+                          cost: repair.cost || '',
+                          customer_name: repair.customer_name || '',
+                          customer_phone: repair.customer_phone || '',
+                          status: repair.status || 'pending',
+                          notes: repair.notes || '',
+                        });
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                            {repair.device}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {repair.problem}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={`RD$${repair.cost || '0.00'}`}
+                          color="primary"
+                          variant="outlined"
+                          sx={{ fontWeight: 'bold' }}
+                        />
+                      </Box>
+                    </Paper>
+                  ))}
+                </Box>
+              ) : (
+                <Typography color="text.secondary" align="center" sx={{ py: 3 }}>
+                  No hay reparaciones precargadas. Crea una nueva.
+                </Typography>
+              )}
 
-            <TextField
-              fullWidth
-              label="Problema/Descripción"
-              value={formData.problem}
-              onChange={(e) => setFormData({ ...formData, problem: e.target.value })}
-              multiline
-              rows={3}
-              placeholder="Describe el problema del dispositivo..."
-            />
-
-            <TextField
-              fullWidth
-              label="Nombre del Cliente"
-              value={formData.customer_name}
-              onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-            />
-
-            <TextField
-              fullWidth
-              label="Teléfono del Cliente"
-              value={formData.customer_phone}
-              onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-              type="tel"
-            />
-
-            <TextField
-              fullWidth
-              label="Costo de Reparación"
-              value={formData.cost}
-              onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
-              type="number"
-              InputProps={{
-                startAdornment: <InputAdornment position="start">$</InputAdornment>,
-              }}
-            />
-
-            <FormControl fullWidth>
-              <InputLabel>Estado</InputLabel>
-              <Select
-                value={formData.status}
-                label="Estado"
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              >
-                {REPAIR_STATUSES.map(s => (
-                  <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              fullWidth
-              label="Notas"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              multiline
-              rows={2}
-              placeholder="Notas adicionales..."
-            />
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
               <Button
+                fullWidth
                 variant="outlined"
-                onClick={handleBackClick}
+                startIcon={<AddIcon />}
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  setEditingRepair(null);
+                  resetForm();
+                  setFormData({
+                    ...formData,
+                    cost: '0',
+                  });
+                }}
               >
-                Cancelar
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={selectedRepair ? handleUpdateRepair : handleCreateRepair}
-              >
-                {selectedRepair ? 'Actualizar' : 'Crear'}
+                Crear Nueva Reparación
               </Button>
             </Box>
-          </Box>
-        </Paper>
-      </Container>
-    );
-  }
-
-  return null;
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          {editingRepair && (
+            <Button
+              variant="text"
+              onClick={() => {
+                setEditingRepair(null);
+                resetForm();
+              }}
+            >
+              Atrás
+            </Button>
+          )}
+          <Button onClick={() => {
+            setOpenRepairModal(false);
+            setEditingRepair(null);
+            resetForm();
+          }}>
+            Cerrar
+          </Button>
+          {editingRepair && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleCreateRepair}
+            >
+              Guardar
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+    </Container>
+  );
+};
 };
 
 export default ReparacionesPro;
