@@ -117,19 +117,30 @@ const ReparacionesPro = () => {
   });
 
   useEffect(() => {
-    fetchRepairs();
+    if (user) {
+      fetchRepairs();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const fetchRepairs = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/repairs', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('No autenticado. Por favor inicia sesión.');
+        setRepairs([]);
+        setLoading(false);
+        return;
+      }
+
+      const response = await api.get('/repairs');
       setRepairs(response.data || []);
       setError('');
     } catch (err) {
-      console.log('Reparaciones:', err);
+      console.error('Error al cargar reparaciones:', err);
+      setError('Error al cargar reparaciones: ' + (err.response?.data?.message || err.message));
       setRepairs([]);
     } finally {
       setLoading(false);
