@@ -69,6 +69,7 @@ const ProductCostManager = React.lazy(() => import('./components/inventory/Produ
 const InvoiceGenerator = React.lazy(() => import('./components/billing/InvoiceGenerator').then(m => ({ default: m.InvoiceGenerator })));
 const Reparaciones = React.lazy(() => import('./pages/Reparaciones'));
 const ReparacionesNuevo = React.lazy(() => import('./pages/ReparacionesNuevo'));
+const ReparacionesPro = React.lazy(() => import('./pages/ReparacionesPro'));
 const Contabilidad = React.lazy(() => import('./pages/contabilidad/index'));
 const RegistroMovimiento = React.lazy(() => import('./pages/contabilidad/registro'));
 const Settings = React.lazy(() => import('./components/settings/Settings').then(m => ({ default: m.Settings })));
@@ -409,7 +410,7 @@ const AppContent = () => {
                   <Route path="/inventory/costs" element={<ProductCostManager />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/billing" element={<InvoiceGenerator />} />
-                  <Route path="/reparaciones" element={<Reparaciones />} />
+                  <Route path="/reparaciones" element={<ReparacionesPro />} />
                   <Route path="/reparaciones/nuevo" element={
                     <Suspense fallback={<CircularProgress />}>
                       <ReparacionesNuevo />
