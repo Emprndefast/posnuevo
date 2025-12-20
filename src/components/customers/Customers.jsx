@@ -60,6 +60,7 @@ import {
   Money as MoneyIcon,
 } from '@mui/icons-material';
 import { db } from '../../firebase/config';
+import api from '../../api/api';
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContextMongo';
 import { format } from 'date-fns';
@@ -187,12 +188,10 @@ export const Customers = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      fetchCustomers();
-    } else {
-      setLoading(false);
-    }
+    // Preferir backend si el usuario está autenticado por el backend (token)
+    fetchCustomers();
   }, [user]);
+
 
   useEffect(() => {
     // Permitir que otros componentes abran el modal de nuevo cliente
@@ -201,37 +200,48 @@ export const Customers = () => {
   }, []);
 
   const fetchCustomers = async () => {
-    if (!user?.uid) return;
-    
     try {
       setRefreshing(true);
+
+      // Si hay token, preferir backend
+      const token = localStorage.getItem('token');
+      if (token) {
+        const res = await api.get('/customers');
+        if (res.data && res.data.success) {
+          const customersData = res.data.data.map(c => ({ id: c._id, ...c }));
+          setCustomers(customersData);
+
+          const total = customersData.length;
+          const individual = customersData.filter(c => c.type === 'individual').length;
+          const business = customersData.filter(c => c.type === 'business').length;
+          const totalPurchases = customersData.reduce((sum, c) => sum + (c.totalPurchases || 0), 0);
+
+          setStats({ totalCustomers: total, individualCustomers: individual, businessCustomers: business, totalPurchases });
+          return;
+        }
+      }
+
+      // Fallback a Firestore si existe
+      if (!db || !user?.uid) {
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+
       const q = query(collection(db, 'customers'), where('userId', '==', user.uid));
       const querySnapshot = await getDocs(q);
-      const customersData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const customersData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCustomers(customersData);
-      
-      // Calcular estadísticas
+
       const total = customersData.length;
       const individual = customersData.filter(c => c.type === 'individual').length;
       const business = customersData.filter(c => c.type === 'business').length;
       const totalPurchases = customersData.reduce((sum, c) => sum + (c.totalPurchases || 0), 0);
-      
-      setStats({
-        totalCustomers: total,
-        individualCustomers: individual,
-        businessCustomers: business,
-        totalPurchases
-      });
+
+      setStats({ totalCustomers: total, individualCustomers: individual, businessCustomers: business, totalPurchases });
     } catch (err) {
-      setError('Error al cargar los clientes: ' + err.message);
-      setSnackbar({
-        open: true,
-        message: 'Error al cargar los clientes',
-        severity: 'error'
-      });
+      setError('Error al cargar los clientes: ' + (err.message || err.response?.data?.message));
+      setSnackbar({ open: true, message: 'Error al cargar los clientes', severity: 'error' });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -278,42 +288,45 @@ export const Customers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?.uid) return;
 
     try {
-      const customerData = {
-        ...customerForm,
-        userId: user.uid,
-        updatedAt: new Date()
-      };
+      const token = localStorage.getItem('token');
+      const customerData = { ...customerForm, updatedAt: new Date() };
 
-      if (editingCustomer) {
-        await updateDoc(doc(db, 'customers', editingCustomer.id), customerData);
-        setSnackbar({
-          open: true,
-          message: 'Cliente actualizado exitosamente',
-          severity: 'success'
-        });
+      if (token) {
+        // Backend flow
+        if (editingCustomer) {
+          await api.put(`/customers/${editingCustomer.id}`, customerData);
+          setSnackbar({ open: true, message: 'Cliente actualizado exitosamente', severity: 'success' });
+        } else {
+          const res = await api.post('/customers', customerData);
+          if (res.data && res.data.success) {
+            setSnackbar({ open: true, message: 'Cliente agregado exitosamente', severity: 'success' });
+          }
+        }
       } else {
-        customerData.createdAt = new Date();
-        customerData.totalPurchases = 0;
-        await addDoc(collection(db, 'customers'), customerData);
-        setSnackbar({
-          open: true,
-          message: 'Cliente agregado exitosamente',
-          severity: 'success'
-        });
+        // Fallback a Firestore
+        if (!user?.uid) {
+          setSnackbar({ open: true, message: 'Debes iniciar sesión para agregar clientes', severity: 'error' });
+          return;
+        }
+
+        if (editingCustomer) {
+          await updateDoc(doc(db, 'customers', editingCustomer.id), customerData);
+          setSnackbar({ open: true, message: 'Cliente actualizado exitosamente', severity: 'success' });
+        } else {
+          customerData.createdAt = new Date();
+          customerData.totalPurchases = 0;
+          await addDoc(collection(db, 'customers'), customerData);
+          setSnackbar({ open: true, message: 'Cliente agregado exitosamente', severity: 'success' });
+        }
       }
 
       handleCloseDialog();
       fetchCustomers();
     } catch (err) {
       console.error('Error al guardar cliente:', err);
-      setSnackbar({
-        open: true,
-        message: 'Error al guardar cliente',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: 'Error al guardar cliente: ' + (err.response?.data?.message || err.message), severity: 'error' });
     }
   };
 
@@ -327,20 +340,18 @@ export const Customers = () => {
 
   const handleConfirmDelete = async () => {
     try {
-      await deleteDoc(doc(db, 'customers', deleteDialog.customerId));
-      setSnackbar({
-        open: true,
-        message: 'Cliente eliminado exitosamente',
-        severity: 'success'
-      });
+      const token = localStorage.getItem('token');
+      if (token) {
+        await api.delete(`/customers/${deleteDialog.customerId}`);
+      } else {
+        await deleteDoc(doc(db, 'customers', deleteDialog.customerId));
+      }
+
+      setSnackbar({ open: true, message: 'Cliente eliminado exitosamente', severity: 'success' });
       fetchCustomers();
     } catch (err) {
       console.error('Error al eliminar cliente:', err);
-      setSnackbar({
-        open: true,
-        message: 'Error al eliminar cliente',
-        severity: 'error'
-      });
+      setSnackbar({ open: true, message: 'Error al eliminar cliente', severity: 'error' });
     } finally {
       setDeleteDialog({ open: false, customerId: null, customerName: '' });
     }

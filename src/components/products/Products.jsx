@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import api from '../../api/api';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -326,25 +327,20 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
     if (!file) return;
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
+    setError(null);
 
     try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-      const data = await response.json();
+      // Usar el servicio de almacenamiento que usa el endpoint del backend
+      const storageService = (await import('../../services/storageService')).default;
+      const result = await storageService.uploadProductImage(file);
+      
       setFormData(prev => ({
         ...prev,
-        imageUrl: data.secure_url
+        imageUrl: result.url
       }));
     } catch (err) {
-      setError('Error al cargar la imagen: ' + err.message);
+      setError('Error al cargar la imagen: ' + (err.message || 'Error desconocido'));
+      console.error('Error al subir imagen:', err);
     } finally {
       setIsUploading(false);
     }
@@ -352,14 +348,35 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar campos requeridos
+    if (!formData.name || !formData.name.trim()) {
+      setError('El nombre del producto es requerido');
+      return;
+    }
+    
+    if (!formData.code || !formData.code.trim()) {
+      setError('El código del producto es requerido');
+      return;
+    }
+    
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      setError('El precio del producto debe ser mayor a 0');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
     try {
       await onSave(formData);
+      // Solo cerrar si no hay error
       onClose();
     } catch (err) {
-      setError(err.message || 'Error al guardar el producto');
+      const errorMessage = err.message || err.response?.data?.message || 'Error al guardar el producto';
+      setError(errorMessage);
+      console.error('Error al guardar producto:', err);
+      // NO cerrar el modal si hay error
     } finally {
       setLoading(false);
     }
@@ -374,13 +391,36 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
   };
 
   const handleNewCategory = async () => {
-    if (!user?.uid) {
-      setError('Debes estar autenticado para crear una categoría');
+    if (!newCategory.trim()) {
+      setError('El nombre de la categoría no puede estar vacío');
       return;
     }
 
-    if (!newCategory.trim()) {
-      setError('El nombre de la categoría no puede estar vacío');
+    // Si hay token (user autenticado por backend), intentar crear categoría en backend
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const res = await api.post('/categories', { nombre: newCategory.trim() });
+        if (res.data && res.data.success) {
+          const cat = res.data.data;
+          const newCategoryObj = { id: cat._id, ...cat };
+          onAddCategory(newCategoryObj);
+          setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+          setNewCategory('');
+          setNewCategoryDialog(false);
+          setSnackbar({ open: true, message: 'Categoría creada correctamente', severity: 'success' });
+          return;
+        }
+      } catch (err) {
+        console.error('Error al crear categoría en backend:', err);
+        setError(err.response?.data?.message || 'Error al crear la categoría en el servidor');
+        return;
+      }
+    }
+
+    // Si no hay token o backend falla, intentar con Firestore si está disponible
+    if (!user?.uid || !db) {
+      setError('Debes estar autenticado para crear una categoría (Firebase) o asegúrate de iniciar sesión');
       return;
     }
 
@@ -392,30 +432,14 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
       };
 
       const docRef = await addDoc(collection(db, 'categories'), categoryData);
-      const newCategoryObj = {
-        id: docRef.id,
-        ...categoryData
-      };
-
-      // Actualizar el estado local de categorías en el componente padre
+      const newCategoryObj = { id: docRef.id, ...categoryData };
       onAddCategory(newCategoryObj);
-
-      // Actualizar el formData con la nueva categoría
-      setFormData(prev => ({
-        ...prev,
-        category: newCategory.trim()
-      }));
-
+      setFormData(prev => ({ ...prev, category: newCategory.trim() }));
       setNewCategory('');
       setNewCategoryDialog(false);
-      
-      setSnackbar({
-        open: true,
-        message: 'Categoría creada correctamente',
-        severity: 'success'
-      });
+      setSnackbar({ open: true, message: 'Categoría creada correctamente', severity: 'success' });
     } catch (err) {
-      console.error('Error al crear categoría:', err);
+      console.error('Error al crear categoría en Firestore:', err);
       setError('Error al crear la categoría: ' + err.message);
     }
   };
@@ -1550,9 +1574,21 @@ const Products = () => {
   }, [products, loading]);
 
   const fetchCategories = async () => {
-    const userId = user?.id || user?._id;
-    if (!userId) return;
-    
+    // Preferir backend si está disponible (manejo centralizado de categorías)
+    try {
+      const res = await api.get('/categories');
+      if (res.data && res.data.success) {
+        setCategories(res.data.data.map(c => ({ id: c._id, ...c })));
+        return;
+      }
+    } catch (err) {
+      console.error('Error al cargar categorías desde backend, intentando Firestore si está disponible:', err);
+    }
+
+    // Fallback a Firestore si existe y el usuario está autenticado por Firebase
+    const userId = user?.id || user?._id || user?.uid;
+    if (!userId || !db) return;
+
     try {
       const q = query(collection(db, 'categories'), where('userId', '==', userId));
       const querySnapshot = await getDocs(q);
@@ -1562,7 +1598,7 @@ const Products = () => {
       }));
       setCategories(categoriesData);
     } catch (err) {
-      console.error('Error al cargar categorías:', err);
+      console.error('Error al cargar categorías desde Firestore:', err);
     }
   };
 
@@ -1604,51 +1640,77 @@ const Products = () => {
     }
   };
 
-  // Modificar la función handleSaveProduct para notificar nuevos productos
+  // Modificar la función handleSaveProduct para usar MongoDB API
   const handleSaveProduct = async (formData) => {
-    const userId = user?.id || user?._id;
+    const userId = user?.id || user?._id || user?._id?.toString();
     if (!userId) {
       setError('Debes estar autenticado para guardar productos');
-      return;
+      throw new Error('Usuario no autenticado');
     }
 
     try {
+      // Importar la API de productos
+      const { createProduct, updateProduct } = await import('../../api/products');
+      
+      // Preparar datos del producto según el formato esperado por el backend
+      // El backend acepta tanto campos en inglés como en español
+      // Validar campos requeridos
+      if (!formData.name || !formData.name.trim()) {
+        throw new Error('El nombre del producto es requerido');
+      }
+      
+      if (!formData.code || !formData.code.trim()) {
+        throw new Error('El código del producto es requerido');
+      }
+      
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        throw new Error('El precio del producto debe ser mayor a 0');
+      }
+      
       const productData = {
-        name: formData.name,
-        description: formData.description,
+        // Campos en inglés (para compatibilidad)
+        name: formData.name.trim(),
+        description: formData.description || '',
         price: parseFloat(formData.price),
-        stock: parseInt(formData.currentStock) || 0, // Cambiado de formData.stock a formData.currentStock
-        category: formData.category,
-        code: formData.code,
-        imageUrl: formData.imageUrl,
-        minStock: parseInt(formData.minStock) || 0,
-        maxStock: parseInt(formData.maxStock) || 0,
-        userId: userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        status: parseInt(formData.currentStock) > 0 ? 'active' : 'inactive', // Cambiado para usar currentStock
-        unitKey: formData.unitKey,
-        unitType: formData.unitType,
-        provider: formData.provider,
-        loyaltyPoints: parseInt(formData.loyaltyPoints) || 0,
-        taxes: {
-          ieps: parseFloat(formData.taxes.ieps) || 0,
-          iva: parseFloat(formData.taxes.iva) || 0,
-          includesTaxes: formData.taxes.includesTaxes
-        },
-        profitMargin: parseInt(formData.profitMargin) || 0,
+        currentStock: parseInt(formData.currentStock) || 0,
+        stock: parseInt(formData.currentStock) || 0,
+        category: formData.category || '',
+        code: formData.code.trim(),
+        imageUrl: formData.imageUrl || null,
+        minStock: parseInt(formData.minStock) || 5,
         purchasePrice: parseFloat(formData.purchasePrice) || 0,
-        department: formData.department,
+        cost: parseFloat(formData.purchasePrice) || 0,
+        unitKey: formData.unitKey || '',
+        provider: formData.provider || '',
+        active: true,
+        activo: true,
+        // Campos en español (preferidos por el backend)
+        nombre: formData.name.trim(),
+        descripcion: formData.description || '',
+        precio: parseFloat(formData.price),
+        stock_actual: parseInt(formData.currentStock) || 0,
+        stock_minimo: parseInt(formData.minStock) || 5,
+        categoria: formData.category || '',
+        codigo: formData.code.trim(),
+        imagen: formData.imageUrl || null,
+        costo: parseFloat(formData.purchasePrice) || 0,
+        unidad_medida: formData.unitKey || 'unidad',
+        proveedor: formData.provider || ''
       };
 
+      let result;
       if (selectedProduct) {
         // Actualizar producto existente
-        const productRef = doc(db, 'products', selectedProduct.id);
-        await updateDoc(productRef, productData);
+        const { updateProduct } = await import('../../api/products');
+        result = await updateProduct(selectedProduct.id || selectedProduct._id, productData);
         
         // Actualizar el estado local
         setProducts(prevProducts => 
-          prevProducts.map(p => p.id === selectedProduct.id ? { ...p, ...productData } : p)
+          prevProducts.map(p => {
+            const productId = p.id || p._id;
+            const selectedId = selectedProduct.id || selectedProduct._id;
+            return productId === selectedId ? { ...p, ...result.data } : p;
+          })
         );
         
         setSnackbar({
@@ -1657,15 +1719,16 @@ const Products = () => {
           severity: 'success'
         });
       } else {
-        // Crear nuevo producto
-        const productsRef = collection(db, 'products');
-        const docRef = await addDoc(productsRef, productData);
+        // Crear nuevo producto usando la API de MongoDB
+        result = await createProduct(productData);
         
-        // Actualizar el estado local
-        const newProduct = {
-          id: docRef.id,
-          ...productData
-        };
+        // Verificar que la respuesta sea exitosa
+        if (!result.success) {
+          throw new Error(result.message || 'Error al crear el producto');
+        }
+        
+        // Actualizar el estado local con el nuevo producto
+        const newProduct = result.data || result;
         setProducts(prevProducts => [...prevProducts, newProduct]);
         
         setSnackbar({
@@ -1680,9 +1743,10 @@ const Products = () => {
       
     } catch (err) {
       console.error('Error al guardar producto:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Error al guardar el producto';
       setSnackbar({
         open: true,
-        message: err.message || 'Error al guardar el producto',
+        message: errorMessage,
         severity: 'error'
       });
       throw err;

@@ -12,7 +12,6 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useAuth } from '../context/AuthContextMongo';
-import api from '../config/api';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -25,6 +24,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { register } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,21 +46,24 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/register', {
-        name: formData.name,
+      // Usar el método register del contexto de autenticación
+      const result = await register({
+        nombre: formData.name,
         email: formData.email,
-        phone: formData.phone,
+        telefono: formData.phone,
         password: formData.password
       });
 
-      if (response.data.success) {
-        navigate('/login');
+      if (result.success) {
+        // Si el registro fue exitoso, el token ya está guardado y el usuario está logueado
+        // Navegar al dashboard
+        navigate('/dashboard', { replace: true });
       } else {
-        setError(response.data.message || 'Error al registrar');
+        setError(result.error || 'Error al registrar');
       }
     } catch (error) {
       console.error('Error al registrar:', error);
-      setError(error.response?.data?.message || 'Error al registrar. Por favor, intenta nuevamente.');
+      setError(error.response?.data?.message || error.message || 'Error al registrar. Por favor, intenta nuevamente.');
     } finally {
       setLoading(false);
     }
