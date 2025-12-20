@@ -26,6 +26,7 @@ import {
   Receipt as InvoiceIcon,
   LocalShipping as SupplierIcon,
   LocalOffer as PromotionIcon,
+  BuildCircle as RepairsIcon,
   ExpandLess,
   ExpandMore
 } from '@mui/icons-material';
@@ -45,6 +46,7 @@ const menuGroups = [
     items: [
       { text: 'Productos', icon: <InventoryIcon />, path: '/products' },
       { text: 'Ventas', icon: <SalesIcon />, path: '/sales' },
+      { text: 'Reparaciones', icon: <RepairsIcon />, path: '/repairs' },
     ],
   },
   {
