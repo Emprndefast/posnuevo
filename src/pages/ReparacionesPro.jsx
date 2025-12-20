@@ -663,6 +663,5 @@ const ReparacionesPro = () => {
     </Container>
   );
 };
-};
 
 export default ReparacionesPro;
