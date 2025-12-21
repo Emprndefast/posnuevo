@@ -46,6 +46,7 @@ import { ProductosProvider } from './context/ProductosContext';
 import { VentasProvider } from './context/VentasContext';
 import { ClientesProvider } from './context/ClientesContext';
 import { CrmProvider } from './context/CrmContext';
+import { CartProvider } from './context/CartContext';
 
 // Configurar goober
 setup(createElement);
@@ -465,18 +466,20 @@ function App() {
                       <TelegramProvider>
                         <PrinterProvider>
                           <PrintProvider>
-                            <ProductosProvider>
-                              <VentasProvider>
-                                <ClientesProvider>
-                                  <CrmProvider>
-                                    <SnackbarProvider maxSnack={3}>
-                                      <CssBaseline />
-                                      <AppContent />
-                                    </SnackbarProvider>
-                                  </CrmProvider>
-                                </ClientesProvider>
-                              </VentasProvider>
-                            </ProductosProvider>
+                            <CartProvider>
+                              <ProductosProvider>
+                                <VentasProvider>
+                                  <ClientesProvider>
+                                    <CrmProvider>
+                                      <SnackbarProvider maxSnack={3}>
+                                        <CssBaseline />
+                                        <AppContent />
+                                      </SnackbarProvider>
+                                    </CrmProvider>
+                                  </ClientesProvider>
+                                </VentasProvider>
+                              </ProductosProvider>
+                            </CartProvider>
                           </PrintProvider>
                         </PrinterProvider>
                       </TelegramProvider>

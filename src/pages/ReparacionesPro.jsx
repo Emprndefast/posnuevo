@@ -39,10 +39,14 @@ import {
   ArrowBack as ArrowBackIcon,
   Search as SearchIcon,
   Print as PrintIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Store as StoreIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../config/api';
 import { useAuth } from '../context/AuthContextMongo';
+import { useCart } from '../context/CartContext';
+import { enqueueSnackbar } from 'notistack';
 
 // Marcas de dispositivos profesionales
 const DEVICE_BRANDS = [
@@ -126,16 +130,133 @@ const DEVICE_MODELS = {
     'MacBook Pro'
   ],
   'Samsung': [
-    'Galaxy S24 Ultra',
-    'Galaxy S24+',
-    'Galaxy S24',
-    'Galaxy S23 Ultra',
-    'Galaxy S23',
-    'Galaxy S23 FE',
-    'Galaxy S22 Ultra',
-    'Galaxy S22',
-    'Galaxy Z Fold 6',
-    'Galaxy Z Flip 6'
+    'Galaxy S24 Ultra 5G',
+    'Galaxy S24 Plus 5G',
+    'Galaxy S24 5G',
+    'Galaxy S23 FE 5G',
+    'Galaxy S23 Ultra 5G',
+    'Galaxy S23 Plus 5G',
+    'Galaxy S23 5G',
+    'Galaxy S22 Ultra 5G',
+    'Galaxy S22 Plus 5G',
+    'Galaxy S22 5G',
+    'Galaxy S21 FE',
+    'Galaxy S21 Ultra',
+    'Galaxy S21 Plus',
+    'Galaxy S21',
+    'Galaxy S20 FE 5G',
+    'Galaxy S20 Ultra 5G',
+    'Galaxy S20 Plus 5G',
+    'Galaxy S20 5G',
+    'Galaxy S10 Lite',
+    'Galaxy S10 5G',
+    'Galaxy S10 Plus',
+    'Galaxy S10',
+    'Galaxy S10e',
+    'Galaxy S9 Plus',
+    'Galaxy S9',
+    'Galaxy S8 Plus',
+    'Galaxy S8 Active',
+    'Galaxy S8',
+    'Galaxy S7 Edge',
+    'Galaxy S7 Active',
+    'Galaxy S7',
+    'Galaxy S6 Edge Plus',
+    'Galaxy S6 Edge',
+    'Galaxy S6 Active',
+    'Galaxy S6',
+    'Galaxy S5 Neo',
+    'Galaxy S5 Active',
+    'Galaxy S5',
+    'Galaxy S4 Active',
+    'Galaxy S4',
+    'Galaxy S3',
+    'Galaxy S3 Mini',
+    'Galaxy Note 20 Ultra 5G',
+    'Galaxy Note 20 5G',
+    'Galaxy Note 10 Plus 5G',
+    'Galaxy Note 10 Lite',
+    'Galaxy Note 10',
+    'Galaxy Note 9',
+    'Galaxy Note 8',
+    'Galaxy Note 7',
+    'Galaxy Note 5',
+    'Galaxy Note 4',
+    'Galaxy Note 3',
+    'Galaxy Note 3 Neo',
+    'Galaxy Note 3 mini',
+    'Galaxy Note 2',
+    'J8 Plus (J805 / 2018)',
+    'J8 (J810 / 2018)',
+    'J7 Refine (J737 / 2018)',
+    'J7 Pro (J730 / 2017)',
+    'J7 Prime (G610 / 2016)',
+    'J7 (J727 / 2017)',
+    'J7 (J710 / 2016)',
+    'J7 (J700 / 2015)',
+    'J6 Plus (J610 / 2018)',
+    'J6 (J600 / 2018)',
+    'J5 Pro (J530 / 2017)',
+    'J5 Prime (G570 / 2016)',
+    'J5 (J510 / 2016)',
+    'J5 (J500 / 2015)',
+    'J4 Plus (J415 / 2018)',
+    'J4 (J400 / 2018)',
+    'J3 Pro (J330 / 2017)',
+    'J3 (J337 / 2018)',
+    'J3 (J327 / 2017)',
+    'J3 (J320 / 2016)',
+    'J2 Pro (J250 / 2018)',
+    'J2 Core (J260 / 2018)',
+    'J2 (J200 / 2015)',
+    'J1 Ace (J110 / 2016)',
+    'J1 (J120 / 2016)',
+    'A90 5G (A908 /2019)',
+    'A9 Pro (A910 / 2016)',
+    'A9 (A920 / 2018)',
+    'A80 (A805 / 2019)',
+    'A8 Plus (A730 / 2018)',
+    'A8s (G887 / 2018)',
+    'A8 (A810 / 2016)',
+    'A8 (A530 / 2018)',
+    'A73 5G (A736 / 2022)',
+    'A73 (A735 / 2022)',
+    'A72 (A725 / 2021)',
+    'A71 5G (A716 / 2020)',
+    'A71 (A715 / 2020)',
+    'A70 (A705 / 2019)',
+    'A7 (A750 / 2018)',
+    'A7 (A720 / 2017)',
+    'A7 (A710 / 2016)',
+    'A60 (A606 / 2019)',
+    'A6 Plus (A605 / 2018)',
+    'A6 (A600 / 2018)',
+    'A54 5G (A546 / 2023)',
+    'A53 5G (A536 / 2022)',
+    'A52s (A528 / 2021)',
+    'A52 5G (A526 / 2021)',
+    'A52 4G (A525 / 2021)',
+    'A51 5G (A516 / 2020)',
+    'A51 4G (A515 / 2019)',
+    'A50s (A507 / 2019)',
+    'A50 (A505 / 2019)',
+    'A5 (A520 / 2017)',
+    'A5 (A510 / 2016)',
+    'A5 (A500 / 2015)',
+    'A42 5G (A426 / 2020)',
+    'A41 (A415 / 2020)',
+    'A40S (A407 / 2019)',
+    'A40 (A405 / 2019)',
+    'A34 5G (A346 / 2023)',
+    'A33 5G (A336 / 2022)',
+    'A32 5G (A326 / 2021)',
+    'A32 4G (A325 / 2021)',
+    'A31 (A315 / 2020)',
+    'A30s (A307 / 2019)',
+    'A30 (A305 / 2019)',
+    'A3 (A320 / 2017)',
+    'A3 (A310 / 2016)',
+    'A3 (A300 / 2015)'
   ],
   'Google': [
     'Pixel 9 Pro XL',
@@ -183,6 +304,7 @@ const REPAIR_STATUSES = [
 const ReparacionesPro = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addRepairToCart } = useCart();
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -215,6 +337,32 @@ const ReparacionesPro = () => {
     status: 'pending',
     notes: '',
   });
+
+  // Variaciones seleccionadas por parte (nombre de parte => nombre variación)
+  const [selectedVariations, setSelectedVariations] = useState({});
+
+  const handleSelectVariation = (partName, variationName) => {
+    setSelectedVariations(prev => ({ ...prev, [partName]: variationName }));
+  };
+
+  const addPartToRepair = (part, variation) => {
+    const variationLabel = variation ? ` - ${variation.nombre}` : '';
+    const partNombre = `${part.nombre}${variationLabel}`;
+    const precio = variation?.precio_minimo ?? part.precio_minimo ?? 0;
+
+    const newRepair = {
+      brand: selectedBrand,
+      device: selectedDevice,
+      category: selectedCategory.id,
+      problem: `${part.nombre} repair`,
+      partes_reparar: [{ nombre: partNombre, precio, cantidad: 1 }],
+      cost: precio,
+      status: 'pending'
+    };
+
+    setEditingRepair(newRepair);
+    setFormData({ ...formData, cost: precio, customer_name: '', customer_phone: '', status: 'pending', notes: '' });
+  };
 
   useEffect(() => {
     if (user) {
@@ -251,46 +399,66 @@ const ReparacionesPro = () => {
   };
 
   const handleCreateRepair = async () => {
-    if (!editingRepair && (!selectedBrand || !selectedDevice || !selectedCategory)) {
-      setError('Por favor completa los campos requeridos');
+    // Validaciones
+    if (!selectedCategory) {
+      setError('Por favor selecciona una categoría de reparación');
       return;
     }
 
-    const repairData = editingRepair ? {
-      ...editingRepair,
-      ...formData
-    } : {
-      brand: selectedBrand,
-      device: selectedDevice,
-      category: selectedCategory,
+    if (!formData.cost || formData.cost <= 0) {
+      setError('Por favor ingresa un costo válido para la reparación');
+      return;
+    }
+
+    if (!formData.customer_name) {
+      setError('Por favor ingresa el nombre del cliente');
+      return;
+    }
+
+    // Construir datos
+    const categoryId = editingRepair?.category || selectedCategory?.id || selectedCategory;
+    
+    const repairData = {
+      brand: editingRepair?.brand || selectedBrand,
+      device: editingRepair?.device || selectedDevice,
+      category: categoryId,
       problem: formData.problem || 'Reparación',
-      cost: formData.cost || 0,
-      customer_name: formData.customer_name || '',
+      cost: parseFloat(formData.cost),
+      precio: parseFloat(formData.cost),
+      customer_name: formData.customer_name,
       customer_phone: formData.customer_phone || '',
-      status: formData.status,
+      status: formData.status || 'pending',
+      estado: formData.status || 'pending',
       notes: formData.notes || '',
+      partes_reparar: editingRepair?.partes_reparar || []
     };
 
     try {
       if (editingRepair?._id) {
-        // Actualizar
+        // Actualizar reparación existente
         await api.put(`/api/repairs/${editingRepair._id}`, repairData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        enqueueSnackbar('Reparación actualizada correctamente', { variant: 'success' });
       } else {
-        // Crear nueva
-        await api.post('/api/repairs', repairData, {
+        // Crear nueva reparación
+        const response = await api.post('/api/repairs', repairData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        enqueueSnackbar('Reparación guardada correctamente', { variant: 'success' });
       }
       
+      // Recargar y cerrar
       fetchRepairs();
       setOpenRepairModal(false);
       setEditingRepair(null);
       resetForm();
       setError('');
     } catch (err) {
-      setError('Error al guardar reparación: ' + err.message);
+      const errorMsg = err.response?.data?.message || err.message || 'Error al guardar reparación';
+      setError(errorMsg);
+      enqueueSnackbar(errorMsg, { variant: 'error' });
+      console.error('Error:', err);
     }
   };
 
@@ -320,15 +488,64 @@ const ReparacionesPro = () => {
 
   // Obtener modelos de dispositivos para una marca
   const getDeviceModels = (brand) => {
+    if (!brand) return [];
     return DEVICE_MODELS[brand] || [`${brand} Generic Device`];
   };
 
-  // Obtener reparaciones por categoría
+  // Obtener reparaciones por categoría (defensivo)
   const getRepairsForCategory = (brand, category) => {
-    return repairs.filter(r => 
-      r.brand?.toLowerCase() === brand.toLowerCase() && 
+    const brandNorm = String(brand || '').toLowerCase();
+    return repairs.filter(r =>
+      String(r.brand || '').toLowerCase() === brandNorm &&
       r.category === category
     );
+  };
+
+  // Mapeo de id de categoría a nombres de partes en plantillas
+  const CATEGORY_TO_PART_NAMES = {
+    screen: ['LCD Screen', 'Display'],
+    battery: ['Battery'],
+    camera: ['Cameras', 'Camera lens'],
+    cameralens: ['Camera lens'],
+    charging: ['Charging Port'],
+    button: ['Buttons'],
+    speaker: ['Speakers'],
+    mic: ['Microphone'],
+    glass: ['Back Glass'],
+    housing: ['Housing'],
+    antenna: ['Antennas'],
+    flexcable: ['Flex Cable'],
+    motherboard: ['Motherboard service'],
+    unlock: ['Unlock & Service'],
+    other: ['Other']
+  };
+
+  const getDeviceTypeForModel = (brand, model) => {
+    if (!brand) return '';
+    if (brand === 'Samsung') return 'Galaxy';
+    if (brand === 'Apple') {
+      if (String(model).toLowerCase().includes('ipad')) return 'iPad';
+      if (String(model).toLowerCase().includes('airpods')) return 'AirPods';
+      if (String(model).toLowerCase().includes('watch')) return 'Watch';
+      return 'iPhone';
+    }
+    if (brand === 'Google') return 'Pixel';
+    if (brand === 'Motorola') return 'Edge';
+    return brand;
+  };
+
+  const fetchPartsForModel = async (brand, model) => {
+    try {
+      const tipo = getDeviceTypeForModel(brand, model);
+      const token = localStorage.getItem('token');
+      const res = await api.get(`/repair-templates/brands/${encodeURIComponent(brand)}/types/${encodeURIComponent(tipo)}/models/${encodeURIComponent(model)}/parts`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      return res.data?.data?.partes || [];
+    } catch (err) {
+      // No hay plantilla, devolver vacío
+      return [];
+    }
   };
 
   // Abrir modal de categorías cuando selecciona marca
@@ -340,10 +557,22 @@ const ReparacionesPro = () => {
   };
 
   // Abrir modal de reparaciones cuando selecciona categoría
-  const handleSelectCategory = (category) => {
+  const handleSelectCategory = async (category) => {
     setSelectedCategory(category);
-    const categoryRepairs = getRepairsForCategory(selectedBrand, category.id);
-    setSelectedCategoryRepairs(categoryRepairs);
+
+    // Intentar cargar partes desde plantillas si existen
+    const parts = await fetchPartsForModel(selectedBrand, selectedDevice);
+    const partNames = CATEGORY_TO_PART_NAMES[category.id] || [];
+    const matched = parts.filter(p => partNames.includes(p.nombre));
+
+    if (matched.length > 0) {
+      // Mostrar partes (plantilla) en lugar de reparaciones seed
+      setSelectedCategoryRepairs(matched);
+    } else {
+      const categoryRepairs = getRepairsForCategory(selectedBrand, category.id);
+      setSelectedCategoryRepairs(categoryRepairs);
+    }
+
     setOpenRepairModal(true);
   };
 
@@ -474,8 +703,9 @@ const ReparacionesPro = () => {
           </Typography>
           <Grid container spacing={2}>
             {REPAIR_CATEGORIES.map((category) => {
+              const selectedBrandLower = String(selectedBrand || '').toLowerCase();
               const categoryRepairsCount = repairs.filter(r =>
-                r.brand?.toLowerCase() === selectedBrand.toLowerCase() &&
+                String(r.brand || '').toLowerCase() === selectedBrandLower &&
                 r.category === category.id
               ).length;
 
@@ -528,15 +758,26 @@ const ReparacionesPro = () => {
           {selectedBrand} - {selectedDevice} - {selectedCategory?.name}
         </DialogTitle>
         <DialogContent sx={{ py: 3 }}>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+              {error}
+            </Alert>
+          )}
           {editingRepair ? (
-            // FORMULARIO DE EDICIÓN
+            // FORMULARIO DE EDICIÓN / CREACIÓN
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Alert severity="info">
+                🔧 Creando reparación: <strong>{selectedBrand} {selectedDevice}</strong>
+              </Alert>
+
               <TextField
                 fullWidth
                 label="Nombre del Cliente"
                 value={formData.customer_name}
                 onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                 placeholder="Ingresa nombre del cliente"
+                required
+                error={formData.customer_name === ''}
               />
 
               <TextField
@@ -545,7 +786,7 @@ const ReparacionesPro = () => {
                 value={formData.customer_phone}
                 onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
                 type="tel"
-                placeholder="+34 600 000 000"
+                placeholder="+1 234 567 8900"
               />
 
               <TextField
@@ -557,6 +798,8 @@ const ReparacionesPro = () => {
                 InputProps={{
                   startAdornment: <InputAdornment position="start">RD$</InputAdornment>,
                 }}
+                required
+                error={formData.cost === '' || formData.cost <= 0}
               />
 
               <FormControl fullWidth>
@@ -574,60 +817,140 @@ const ReparacionesPro = () => {
 
               <TextField
                 fullWidth
-                label="Notas"
+                label="Notas o Descripción del Problema"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 multiline
-                rows={2}
-                placeholder="Notas adicionales..."
+                rows={3}
+                placeholder="Describe qué necesita reparación..."
               />
+
+              {error && <Alert severity="error">{error}</Alert>}
             </Box>
           ) : (
-            // LISTA DE REPARACIONES PRECARGADAS
+            // LISTA DE REPARACIONES PRECARGADAS O PLANTILLAS
             <Box>
               {selectedCategoryRepairs.length > 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {selectedCategoryRepairs.map((repair) => (
-                    <Paper
-                      key={repair._id}
-                      sx={{
-                        p: 2,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          boxShadow: 2,
-                          backgroundColor: '#f5f5f5',
-                        },
-                      }}
-                      onClick={() => {
-                        setEditingRepair(repair);
-                        setFormData({
-                          cost: repair.cost || '',
-                          customer_name: repair.customer_name || '',
-                          customer_phone: repair.customer_phone || '',
-                          status: repair.status || 'pending',
-                          notes: repair.notes || '',
-                        });
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                            {repair.device}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {repair.problem}
-                          </Typography>
+                  {/* Si los items son plantillas de partes (tienen `nombre`) mostrar variaciones */}
+                  {selectedCategoryRepairs[0]?.nombre ? (
+                    selectedCategoryRepairs.map((part) => (
+                      <Paper
+                        key={part.nombre}
+                        sx={{
+                          p: 2,
+                          cursor: 'default',
+                          transition: 'all 0.2s',
+                          '&:hover': { boxShadow: 2, backgroundColor: '#f5f5f5' }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                              {part.nombre}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {part.descripcion}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={`RD$${part.precio_minimo || '0.00'}`}
+                            color="primary"
+                            variant="outlined"
+                            sx={{ fontWeight: 'bold' }}
+                          />
                         </Box>
-                        <Chip
-                          label={`RD$${repair.cost || '0.00'}`}
-                          color="primary"
-                          variant="outlined"
-                          sx={{ fontWeight: 'bold' }}
-                        />
-                      </Box>
-                    </Paper>
-                  ))}
+
+                        {/* Variaciones si existen */}
+                        {part.variaciones && part.variaciones.length > 0 && (
+                          <Box sx={{ mt: 2 }}>
+                            <FormControl fullWidth size="small">
+                              <InputLabel>Variación</InputLabel>
+                              <Select
+                                value={selectedVariations[part.nombre] || ''}
+                                label="Variación"
+                                onChange={(e) => handleSelectVariation(part.nombre, e.target.value)}
+                              >
+                                <MenuItem value=""><em>Base</em></MenuItem>
+                                {part.variaciones.map(v => (
+                                  <MenuItem key={v.nombre} value={v.nombre}>{v.nombre} — RD${v.precio_minimo} (stock {v.stock})</MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+
+                            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                              <Button
+                                variant="outlined"
+                                onClick={() => {
+                                  const selName = selectedVariations[part.nombre];
+                                  const variation = part.variaciones.find(v => v.nombre === selName);
+                                  addPartToRepair(part, variation);
+                                }}
+                              >
+                                Seleccionar
+                              </Button>
+                            </Box>
+                          </Box>
+                        )}
+
+                        {!part.variaciones?.length && (
+                          <Box sx={{ mt: 2 }}>
+                            <Button
+                              variant="outlined"
+                              onClick={() => addPartToRepair(part, null)}
+                            >
+                              Seleccionar
+                            </Button>
+                          </Box>
+                        )}
+                      </Paper>
+                    ))
+                  ) : (
+                    // Lista antigua basada en reparaciones seed
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {selectedCategoryRepairs.map((repair) => (
+                        <Paper
+                          key={repair._id}
+                          sx={{
+                            p: 2,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              boxShadow: 2,
+                              backgroundColor: '#f5f5f5',
+                            },
+                          }}
+                          onClick={() => {
+                            setEditingRepair(repair);
+                            setFormData({
+                              cost: repair.cost || '',
+                              customer_name: repair.customer_name || '',
+                              customer_phone: repair.customer_phone || '',
+                              status: repair.status || 'pending',
+                              notes: repair.notes || '',
+                            });
+                          }}
+                        >
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+                                {repair.device}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {repair.problem}
+                              </Typography>
+                            </Box>
+                            <Chip
+                              label={`RD$${repair.cost || '0.00'}`}
+                              color="primary"
+                              variant="outlined"
+                              sx={{ fontWeight: 'bold' }}
+                            />
+                          </Box>
+                        </Paper>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
               ) : (
                 <Typography color="text.secondary" align="center" sx={{ py: 3 }}>
@@ -641,15 +964,27 @@ const ReparacionesPro = () => {
                 startIcon={<AddIcon />}
                 sx={{ mt: 2 }}
                 onClick={() => {
-                  setEditingRepair(null);
-                  resetForm();
+                  // Crear nuevo objeto vacío para activar formulario
+                  setEditingRepair({
+                    brand: selectedBrand,
+                    device: selectedDevice,
+                    category: selectedCategory?.id || selectedCategory,
+                    problem: '',
+                    cost: 0,
+                    partes_reparar: [],
+                    status: 'pending'
+                  });
+                  // Reset form pero con valores iniciales
                   setFormData({
-                    ...formData,
-                    cost: '0',
+                    cost: '',
+                    customer_name: '',
+                    customer_phone: '',
+                    status: 'pending',
+                    notes: '',
                   });
                 }}
               >
-                Crear Nueva Reparación
+                ➕ Crear Nueva Reparación
               </Button>
             </Box>
           )}
@@ -674,16 +1009,115 @@ const ReparacionesPro = () => {
             Cerrar
           </Button>
           {editingRepair && (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleCreateRepair}
-            >
-              Guardar
-            </Button>
+            <>
+              <Button
+                variant="outlined"
+                color="secondary"
+                disabled={!selectedCategory || !formData.customer_name || !formData.cost || formData.cost <= 0}
+                onClick={() => {
+                  // Validar antes de agregar
+                  if (!formData.customer_name) {
+                    setError('Por favor ingresa el nombre del cliente');
+                    return;
+                  }
+                  if (!formData.cost || formData.cost <= 0) {
+                    setError('Por favor ingresa un costo válido');
+                    return;
+                  }
+
+                  const repairToAdd = {
+                    brand: editingRepair?.brand || selectedBrand,
+                    device: editingRepair?.device || selectedDevice,
+                    category: editingRepair?.category || selectedCategory?.id || selectedCategory,
+                    problem: formData.notes || 'Reparación',
+                    cost: parseFloat(formData.cost),
+                    customer_name: formData.customer_name,
+                    customer_phone: formData.customer_phone,
+                    status: formData.status,
+                    partes_reparar: [
+                      {
+                        nombre: `${editingRepair?.device} - ${selectedCategory?.name || 'Reparación'}`,
+                        precio: parseFloat(formData.cost),
+                        cantidad: 1
+                      }
+                    ]
+                  };
+
+                  try {
+                    addRepairToCart(repairToAdd);
+                    enqueueSnackbar('Reparación agregada al carrito ✓', { variant: 'success' });
+                    setOpenRepairModal(false);
+                    setEditingRepair(null);
+                    resetForm();
+                    setError('');
+                    // Navegar automáticamente al POS después de agregar
+                    setTimeout(() => navigate('/pos'), 500);
+                  } catch (err) {
+                    enqueueSnackbar('Error al agregar al carrito: ' + err.message, { variant: 'error' });
+                  }
+                }}
+              >
+                ➕ Agregar al Pedido
+              </Button>
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleCreateRepair}
+              >
+                💾 Guardar
+              </Button>
+            </>
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Botón Flotante para IR AL POS */}
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 30,
+          right: 30,
+          zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1,
+        }}
+      >
+        <Button
+          variant="contained"
+          color="success"
+          sx={{
+            borderRadius: '50%',
+            width: 60,
+            height: 60,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 3,
+            fontSize: '1.5rem',
+            '&:hover': {
+              boxShadow: 6,
+              transform: 'scale(1.1)',
+            },
+          }}
+          onClick={() => navigate('/pos')}
+          title="Ir al POS (Nueva Venta)"
+        >
+          <ShoppingCartIcon sx={{ fontSize: '1.5rem' }} />
+        </Button>
+        <Typography variant="caption" sx={{ 
+          textAlign: 'center', 
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          padding: '4px 8px',
+          borderRadius: 1,
+          fontSize: '0.7rem',
+          whiteSpace: 'nowrap',
+        }}>
+          Ir a Venta
+        </Typography>
+      </Box>
     </Container>
   );
 };

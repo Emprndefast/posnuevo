@@ -114,6 +114,129 @@ const notificationService = {
       console.error('Error al enviar recordatorio diario:', error);
       throw error;
     }
+  },
+
+  // ===== NUEVAS FUNCIONES DE NOTIFICACIÓN MEJORADAS =====
+
+  /**
+   * Notificación nativa del navegador (desktop)
+   */
+  notifyDesktop: (options = {}) => {
+    if (!('Notification' in window)) {
+      console.warn('Notificaciones del navegador no soportadas');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      const {
+        title = 'Notificación',
+        body = '',
+        icon = '/logo192.png',
+        tag = 'default',
+        requireInteraction = false
+      } = options;
+
+      const notification = new Notification(title, {
+        body,
+        icon,
+        tag,
+        requireInteraction,
+        badge: icon
+      });
+
+      // Cerrar automáticamente después de 5s si no requiere interacción
+      if (!requireInteraction) {
+        setTimeout(() => notification.close(), 5000);
+      }
+
+      // Reproducir sonido
+      try {
+        const audio = new Audio('/notification.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+      } catch (e) {}
+
+      return notification;
+    }
+  },
+
+  /**
+   * Notificaciones contextuales predefinidas
+   */
+  notifyStockLow: (productName, quantity) => {
+    notificationService.notifyDesktop({
+      title: '⚠️ Stock Bajo',
+      body: `${productName}: Solo ${quantity} unidades`,
+      tag: 'stock-low',
+      requireInteraction: true
+    });
+  },
+
+  notifySaleSuccess: (amount, itemCount) => {
+    notificationService.notifyDesktop({
+      title: '✅ Venta Exitosa',
+      body: `${itemCount} producto(s) - RD$${amount.toFixed(2)}`,
+      tag: 'sale-success'
+    });
+  },
+
+  notifyRepairUpdate: (customerName, status) => {
+    const statusLabels = {
+      pending: 'Pendiente',
+      in_progress: 'En Reparación',
+      completed: 'Completado',
+      cancelled: 'Cancelado'
+    };
+
+    notificationService.notifyDesktop({
+      title: '🔧 Reparación - Cambio de Estado',
+      body: `${customerName}: ${statusLabels[status] || status}`,
+      tag: 'repair-update',
+      requireInteraction: true
+    });
+  },
+
+  notifyPaymentDue: (customerName, amount) => {
+    notificationService.notifyDesktop({
+      title: '💳 Pago Vencido',
+      body: `${customerName} debe RD$${amount.toFixed(2)}`,
+      tag: 'payment-due',
+      requireInteraction: true
+    });
+  },
+
+  notifyError: (message) => {
+    notificationService.notifyDesktop({
+      title: '❌ Error',
+      body: message,
+      tag: 'error',
+      requireInteraction: true
+    });
+  },
+
+  /**
+   * Solicitar permiso de notificaciones
+   */
+  requestPermission: async () => {
+    if (!('Notification' in window)) {
+      return false;
+    }
+
+    if (Notification.permission === 'granted') {
+      return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+      try {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+      } catch (error) {
+        console.error('Error solicitando permisos:', error);
+        return false;
+      }
+    }
+
+    return false;
   }
 };
 

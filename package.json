@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "prestart": "node ../scripts/sync-env.js",
     "start": "react-app-rewired start",
     "start:bot": "echo 'El bot no se iniciará automáticamente'",
     "start:all": "echo 'Ninguna aplicación se iniciará automáticamente'",
