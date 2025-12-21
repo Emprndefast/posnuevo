@@ -100,5 +100,5 @@ const API_CONFIG = {
   TELEGRAM_API_URL: 'https://api.telegram.org/bot'
 };
 
-export { API_ENDPOINTS, API_CONFIG };
+export { API_CONFIG };
 export default api; 
