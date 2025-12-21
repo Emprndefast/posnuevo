@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Card,
@@ -168,6 +168,7 @@ export const Customers = () => {
     type: 'individual',
     notes: ''
   });
+  const nameRef = useRef(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [filterType, setFilterType] = useState('all');
   const [stats, setStats] = useState({
@@ -290,8 +291,10 @@ export const Customers = () => {
     e.preventDefault();
 
     // Validaciones locales
+    console.debug('Submitting customer form', customerForm);
     if (!customerForm.name || !customerForm.name.trim()) {
       setSnackbar({ open: true, message: 'El nombre del cliente es requerido', severity: 'error' });
+      nameRef.current?.focus();
       return;
     }
 
@@ -1210,6 +1213,8 @@ export const Customers = () => {
                   value={customerForm.name}
                   onChange={handleInputChange}
                   required
+                  autoFocus
+                  inputRef={nameRef}
                   variant="outlined"
                   InputProps={{
                     startAdornment: (
