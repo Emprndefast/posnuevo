@@ -290,7 +290,7 @@ export const Customers = () => {
     e.preventDefault();
 
     // Validaciones locales
-    if (!customerForm.nombre || !customerForm.nombre.trim()) {
+    if (!customerForm.name || !customerForm.name.trim()) {
       setSnackbar({ open: true, message: 'El nombre del cliente es requerido', severity: 'error' });
       return;
     }

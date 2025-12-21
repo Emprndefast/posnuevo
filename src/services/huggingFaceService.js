@@ -11,7 +11,7 @@ const api = axios.create({
 export const huggingFaceService = {
   generateResponse: async (prompt) => {
     try {
-      const response = await api.post('/api/huggingface/generate', { prompt });
+      const response = await api.post('/huggingface/generate', { prompt });
       return response.data;
     } catch (error) {
       console.error('Error en Hugging Face Service:', error);

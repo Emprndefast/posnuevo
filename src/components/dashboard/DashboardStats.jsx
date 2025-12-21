@@ -97,10 +97,10 @@ export const DashboardStats = () => {
     try {
       setLoading(true);
       const [salesRes, customersRes, inventoryRes, repairsRes] = await Promise.all([
-        api.get('/api/sales/stats'),
-        api.get('/api/customers/count'),
-        api.get('/api/products/low-stock'),
-        api.get('/api/repairs/in-progress')
+        api.get('/sales/stats'),
+        api.get('/customers/count'),
+        api.get('/products/low-stock'),
+        api.get('/repairs/in-progress')
       ]);
 
       const salesData = salesRes.data?.data || {};

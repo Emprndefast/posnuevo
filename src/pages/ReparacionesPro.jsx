@@ -442,7 +442,7 @@ const ReparacionesPro = () => {
         enqueueSnackbar('Reparación actualizada correctamente', { variant: 'success' });
       } else {
         // Crear nueva reparación
-        const response = await api.post('/api/repairs', repairData, {
+        const response = await api.post('/repairs', repairData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         enqueueSnackbar('Reparación guardada correctamente', { variant: 'success' });
