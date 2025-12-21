@@ -300,17 +300,27 @@ export const Customers = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const customerData = { ...customerForm, updatedAt: new Date() };
+
+      // Map to backend expected keys when using backend auth
+      const backendPayload = {
+        nombre: customerForm.name?.trim() || '',
+        email: customerForm.email?.trim() || '',
+        telefono: customerForm.phone?.trim() || '',
+        direccion: customerForm.address?.trim() || '',
+        type: customerForm.type || 'individual',
+        notes: customerForm.notes?.trim() || '',
+        updatedAt: new Date()
+      };
 
       if (token) {
         // Backend flow
         console.log('Enviando cliente al backend con token:', token.substring(0, 20) + '...');
         
         if (editingCustomer) {
-          await api.put(`/customers/${editingCustomer.id}`, customerData);
+          await api.put(`/customers/${editingCustomer.id}`, backendPayload);
           setSnackbar({ open: true, message: 'Cliente actualizado exitosamente', severity: 'success' });
         } else {
-          const res = await api.post('/customers', customerData);
+          const res = await api.post('/customers', backendPayload);
           if (res.data && res.data.success) {
             setSnackbar({ open: true, message: 'Cliente agregado exitosamente', severity: 'success' });
           } else {

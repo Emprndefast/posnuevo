@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -7,7 +8,8 @@ import {
   Card,
   CardContent,
   Skeleton,
-  Alert
+  Alert,
+  Button
 } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
@@ -132,6 +134,8 @@ export const DashboardStats = () => {
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ width: '100%' }}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -202,7 +206,11 @@ export const DashboardStats = () => {
       </Grid>
 
       <Box sx={{ mt: 2, textAlign: 'right' }}>
-        <Typography variant="caption" color="text.secondary">
+        <Button variant="contained" color="secondary" startIcon={<LocalRepairIcon />} onClick={() => navigate('/reparaciones')}>
+          Ir a Reparaciones
+        </Button>
+
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
           Última actualización: {new Date().toLocaleTimeString()}
         </Typography>
       </Box>
