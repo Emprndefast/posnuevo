@@ -806,7 +806,7 @@ const QuickSale = () => {
       // Verificar el stock actual de cada producto
       for (const item of cart) {
         // Si el item es una reparación, no verificar stock
-        if (item.meta?.repair) continue;
+        if (item.meta?.type === 'repair' || item.meta?.repair === true) continue;
 
         // Buscar el producto en la lista de productos cargados
         const product = products.find(p => p.id === item.id);
@@ -832,10 +832,10 @@ const QuickSale = () => {
       // Preparar datos de la venta para el backend MongoDB
       const saleData = {
         items: cart.map(item => {
-          if (item.meta?.repair) {
+          if (item.meta?.type === 'repair' || item.meta?.repair === true) {
             return {
               tipo: 'repair',
-              repair: item.meta.repairData,
+              repair: item.meta?.repairData || item.meta,
               cantidad: item.quantity,
               precio_unitario: item.price,
               subtotal: item.price * item.quantity,

@@ -13,7 +13,11 @@ import {
   Divider,
   CircularProgress,
   Alert,
-  Snackbar
+  Snackbar,
+  List,
+  ListItem,
+  ListItemText,
+  Badge
 } from '@mui/material';
 import {
   TrendingUp,
@@ -23,12 +27,14 @@ import {
   Add as AddIcon,
   ArrowUpward,
   ArrowDownward,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  ShoppingCart as ShoppingCartIcon
 } from '@mui/icons-material';
 import { commonStyles } from '../styles/commonStyles';
 // Firebase imports - Mocked for backward compatibility
 import { db, collection, query, where, getDocs, Timestamp } from '../firebase/config';
 import { useAuth } from '../context/AuthContextMongo';
+import { useCart } from '../context/CartContext';
 
 // Función auxiliar para formatear la fecha en español
 const formatDate = (date) => {
@@ -130,6 +136,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { user } = useAuth();
+  const { cart } = useCart();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState({
@@ -144,6 +151,11 @@ const Dashboard = () => {
       reparaciones: 0
     }
   });
+
+  // Calcular total del carrito
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const repairsInCart = cart.filter(item => item.meta?.type === 'repair' || item.meta?.repair === true).length;
+  const productsInCart = cart.filter(item => item.meta?.type !== 'repair' && item.meta?.repair !== true).length;
 
   const loadStats = async () => {
     if (!user?.uid) return;
@@ -298,6 +310,65 @@ const Dashboard = () => {
           <Divider sx={{ my: 3 }} />
         </Grid>
 
+        {cart.length > 0 && (
+          <Grid item xs={12}>
+            <Paper sx={{ ...commonStyles.card, p: 3, backgroundColor: 'rgba(255, 193, 7, 0.05)', borderLeft: '4px solid #ffc107' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Badge badgeContent={cart.length} color="warning">
+                    <ShoppingCartIcon sx={{ color: '#ff9800' }} />
+                  </Badge>
+                  <Typography variant="h6">
+                    Carrito Actual
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  href="/pos"
+                  size="small"
+                >
+                  Ir a Cobrar
+                </Button>
+              </Box>
+              
+              <Grid container spacing={1} sx={{ mb: 2 }}>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.secondary">Productos</Typography>
+                  <Typography variant="h6" sx={{ color: 'primary.main' }}>{productsInCart}</Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.secondary">Reparaciones</Typography>
+                  <Typography variant="h6" sx={{ color: '#ff9800' }}>{repairsInCart}</Typography>
+                </Grid>
+                <Grid item xs={4}>
+                  <Typography variant="caption" color="text.secondary">Total</Typography>
+                  <Typography variant="h6" sx={{ color: 'success.main' }}>RD${cartTotal.toFixed(2)}</Typography>
+                </Grid>
+              </Grid>
+
+              <List sx={{ maxHeight: 200, overflow: 'auto' }}>
+                {cart.map((item, idx) => (
+                  <ListItem key={idx} sx={{ py: 0.5, px: 0 }}>
+                    <ListItemText
+                      primary={item.name}
+                      secondary={`${item.quantity}x RD$${item.price.toFixed(2)}`}
+                      sx={{ my: 0 }}
+                    />
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      RD${(item.quantity * item.price).toFixed(2)}
+                    </Typography>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Grid>
+        )}
+
+        <Grid item xs={12}>
+          <Divider sx={{ my: 3 }} />
+        </Grid>
+
         <Grid item xs={12}>
           <Paper sx={{ ...commonStyles.card, p: 3 }}>
             <Typography variant="h6" gutterBottom>
@@ -340,8 +411,20 @@ const Dashboard = () => {
                   fullWidth
                   startIcon={<AddIcon />}
                   sx={commonStyles.button}
+                  href="/pos"
                 >
                   Nueva Venta
+                </Button>
+              </Grid>
+              <Grid item xs={12} sm={6} lg={3}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  startIcon={<Build />}
+                  sx={{...commonStyles.button, backgroundColor: '#ff9800', '&:hover': {backgroundColor: '#f57c00'}}}
+                  href="/reparaciones"
+                >
+                  Reparación Rápida
                 </Button>
               </Grid>
             </Grid>
