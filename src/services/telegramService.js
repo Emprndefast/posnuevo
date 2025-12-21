@@ -2,7 +2,7 @@ import axios from 'axios';
 import { db } from '../firebase/config';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { TELEGRAM_CONFIG } from '../config/telegram';
-import API_CONFIG from '../config/api';
+import { API_CONFIG } from '../config/api';
 
 // Configurar interceptores de Axios
 axios.interceptors.request.use(
