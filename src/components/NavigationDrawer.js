@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import {
   Drawer,
   AppBar,
@@ -191,7 +191,7 @@ const NavigationDrawer = ({ children }) => {
                   if (action === 'logout') {
                     handleLogout();
                   } else {
-                    navigate(path);
+                    startTransition(() => navigate(path));
                     if (isMobile) setMobileOpen(false);
                   }
                 }}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, startTransition } from 'react';
 import {
   Box,
   Typography,
@@ -293,7 +293,7 @@ const Contabilidad = () => {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              onClick={() => setOpenModal(true)}
+              onClick={() => startTransition(() => setOpenModal(true))}
               sx={{ borderRadius: 2 }}
             >
               Registrar Movimiento

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, startTransition } from 'react';
 import {
   Stepper,
   Step,
@@ -165,7 +165,7 @@ const AdminSetupWizard = () => {
           </Alert>
           <Button
             variant="contained"
-            onClick={() => navigate('/modern-dashboard')}
+            onClick={() => startTransition(() => navigate('/modern-dashboard'))}
           >
             Ir al Dashboard
           </Button>

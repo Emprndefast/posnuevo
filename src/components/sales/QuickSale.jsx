@@ -176,158 +176,145 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
   const generateReceiptContent = (type = 'pre') => {
     if (!sale) return '';
 
-    const title = type === 'pre' ? 'PRE-FACTURA' : 'FACTURA FISCAL';
+    const title = type === 'pre' ? 'PRE-FACTURA / RECIBO' : 'FACTURA FISCAL';
     const invoiceNumber = sale.id?.slice(-8).toUpperCase() || 'N/A';
     const barcodeData = generateBarcode(invoiceNumber);
-    const currentDate = new Date();
+    const currency = 'RD$'; // Dominican Peso
 
     const fiscalInfo = type === 'fiscal' ? `
-      <div style="margin: 10px 0; padding: 10px; background-color: #f8f8f8; border-radius: 4px;">
-        <div style="font-size: 10pt; margin-bottom: 5px;">
-          <strong>Régimen Fiscal:</strong> ${businessInfo?.taxRegime || 'N/A'}
-        </div>
-        <div style="font-size: 10pt; margin-bottom: 5px;">
-          <strong>No. Autorización:</strong> ${businessInfo?.authNumber || 'N/A'}
-        </div>
-        <div style="font-size: 10pt;">
-          <strong>Fecha de Autorización:</strong> ${businessInfo?.authDate ? formatDate(businessInfo.authDate) : 'N/A'}
-        </div>
+      <div style="margin: 10px 0; padding: 10px; background-color: #f0f0f0; border: 1px solid #999; border-radius: 3px;">
+        <p style="margin: 3px 0; font-size: 9pt; font-weight: bold;">INFORMACIÓN FISCAL</p>
+        <p style="margin: 2px 0; font-size: 8pt;">
+          <strong>Régimen:</strong> ${businessInfo?.taxRegime || 'N/A'}
+        </p>
+        <p style="margin: 2px 0; font-size: 8pt;">
+          <strong>Autorización:</strong> ${businessInfo?.authNumber || 'N/A'}
+        </p>
+        <p style="margin: 2px 0; font-size: 8pt;">
+          <strong>Autorizado:</strong> ${businessInfo?.authDate ? formatDate(businessInfo.authDate) : 'N/A'}
+        </p>
       </div>
     ` : '';
 
+    const itemsRows = (sale.items || []).map(item => {
+      const isRepair = item.isRepair || item.tipo === 'repair';
+      const icon = isRepair ? '🔧' : '📦';
+      const itemTotal = (item.quantity || 0) * (item.price || 0);
+      return `
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 6px 5px; font-size: 9pt; text-align: left; word-break: break-word;">
+            ${icon} <strong>${item.name}</strong>
+            ${item.code ? `<br><span style="font-size: 7pt; color: #888;">Código: ${item.code}</span>` : ''}
+          </td>
+          <td style="padding: 6px 5px; font-size: 9pt; text-align: center;">${item.quantity}</td>
+          <td style="padding: 6px 5px; font-size: 9pt; text-align: right;">${currency} ${(item.price || 0).toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+          <td style="padding: 6px 5px; font-size: 9pt; text-align: right; font-weight: bold;">${currency} ${itemTotal.toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const subtotal = sale.subtotal || 0;
+    const discountAmount = sale.discount > 0 ? (subtotal * sale.discount / 100) : 0;
+    const total = sale.total || subtotal - discountAmount;
+    const tax = type === 'fiscal' ? (total * 0.18) : 0; // 18% ITBIS en RD
+    const totalWithTax = total + tax;
+
     return `
-      <div style="font-family: 'Arial', sans-serif; width: 80mm; padding: 5mm;">
-        <!-- Encabezado -->
-        <div style="text-align: center; margin-bottom: 15px;">
+      <div style="font-family: 'Courier New', monospace; width: 80mm; padding: 4mm; color: #000;">
+        
+        <!-- ENCABEZADO -->
+        <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
           ${businessInfo?.logo ? `
-            <img src="${businessInfo.logo}" alt="Logo" style="max-width: 150px; margin-bottom: 10px;">
+            <img src="${businessInfo.logo}" alt="Logo" style="max-width: 120px; max-height: 40px; margin-bottom: 6px;">
           ` : ''}
-          <h2 style="margin: 5px 0; font-size: 14pt;">${title}</h2>
-          <h3 style="margin: 5px 0; font-size: 12pt;">${businessInfo?.name || 'N/A'}</h3>
-          <p style="margin: 2px 0; font-size: 10pt;">${businessInfo?.address || 'N/A'}</p>
-          <p style="margin: 2px 0; font-size: 10pt;">Tel: ${businessInfo?.phone || 'N/A'}</p>
-          <p style="margin: 2px 0; font-size: 10pt;">RUC/NIT: ${businessInfo?.ruc || 'N/A'}</p>
+          <p style="margin: 4px 0; font-size: 11pt; font-weight: bold;">${businessInfo?.name || 'POSENT POS'}</p>
+          <p style="margin: 2px 0; font-size: 8pt;">${businessInfo?.address || 'Dirección no disponible'}</p>
+          <p style="margin: 2px 0; font-size: 8pt;">Tel: ${businessInfo?.phone || 'N/A'} | RUC: ${businessInfo?.ruc || 'N/A'}</p>
+          <p style="margin: 4px 0; font-size: 10pt; font-weight: bold; letter-spacing: 1px;">${title}</p>
         </div>
 
-        <!-- Código de Barras -->
-        <div style="text-align: center; margin: 15px 0;">
-          <img src="${barcodeData}" alt="Barcode" style="max-width: 100%;">
-          <p style="margin: 5px 0; font-size: 10pt;">No. ${invoiceNumber}</p>
+        <!-- CÓDIGO DE BARRAS Y NÚMERO -->
+        <div style="text-align: center; margin: 10px 0;">
+          <img src="${barcodeData}" alt="Barcode" style="max-width: 100%; height: 35px;">
+          <p style="margin: 3px 0; font-size: 9pt; letter-spacing: 2px;">#${invoiceNumber}</p>
         </div>
 
-        <!-- Información de la venta -->
-        <div style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
-          <p style="margin: 2px 0; font-size: 10pt;">
-            <strong>Fecha:</strong> ${formatDate(sale.date)}
-          </p>
-          <p style="margin: 2px 0; font-size: 10pt;">
-            <strong>Vendedor:</strong> ${user?.displayName || 'N/A'}
-          </p>
-          <p style="margin: 2px 0; font-size: 10pt;">
-            <strong>Cliente:</strong> ${sale.customer?.name || 'Cliente General'}
-          </p>
-          ${sale.customer ? `
-            ${sale.customer.ruc ? `
-              <p style="margin: 2px 0; font-size: 10pt;">
-                <strong>RUC/NIT:</strong> ${sale.customer.ruc}
-              </p>
-            ` : ''}
-            ${sale.customer.address ? `
-              <p style="margin: 2px 0; font-size: 10pt;">
-                <strong>Dirección:</strong> ${sale.customer.address}
-              </p>
-            ` : ''}
-            ${sale.customer.phone ? `
-              <p style="margin: 2px 0; font-size: 10pt;">
-                <strong>Teléfono:</strong> ${sale.customer.phone}
-              </p>
-            ` : ''}
-            ${sale.customer.email ? `
-              <p style="margin: 2px 0; font-size: 10pt;">
-                <strong>Email:</strong> ${sale.customer.email}
-              </p>
-            ` : ''}
-          ` : ''}
+        <!-- INFORMACIÓN DE LA VENTA -->
+        <div style="margin: 10px 0; font-size: 8pt; border-top: 1px solid #ddd; border-bottom: 1px solid #ddd; padding: 5px 0;">
+          <p style="margin: 2px 0;"><strong>Fecha:</strong> ${formatDate(sale.date)}</p>
+          <p style="margin: 2px 0;"><strong>Vendedor:</strong> ${user?.displayName || user?.nombre || 'N/A'}</p>
+          <p style="margin: 2px 0;"><strong>Cliente:</strong> ${sale.customer?.name || 'Cliente General'}</p>
+          ${sale.customer?.phone ? `<p style="margin: 2px 0;"><strong>Teléfono:</strong> ${sale.customer.phone}</p>` : ''}
+          ${sale.customer?.ruc ? `<p style="margin: 2px 0;"><strong>RUC/NIT:</strong> ${sale.customer.ruc}</p>` : ''}
         </div>
 
         ${fiscalInfo}
 
-        <!-- Detalle de productos -->
-        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <!-- TABLA DE ITEMS -->
+        <table style="width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 8pt;">
           <thead>
-            <tr style="background-color: #f8f8f8;">
-              <th style="padding: 5px; font-size: 10pt; text-align: left;">Producto / Servicio</th>
-              <th style="padding: 5px; font-size: 10pt; text-align: center;">Cant.</th>
-              <th style="padding: 5px; font-size: 10pt; text-align: right;">Precio</th>
-              <th style="padding: 5px; font-size: 10pt; text-align: right;">Total</th>
+            <tr style="border-top: 2px solid #000; border-bottom: 1px solid #000;">
+              <th style="padding: 4px; text-align: left; width: 50%;">DESCRIPCIÓN</th>
+              <th style="padding: 4px; text-align: center; width: 15%;">CANT.</th>
+              <th style="padding: 4px; text-align: right; width: 17.5%;">PRECIO</th>
+              <th style="padding: 4px; text-align: right; width: 17.5%;">TOTAL</th>
             </tr>
           </thead>
           <tbody>
-            ${sale.items?.map(item => {
-              const isRepair = item.isRepair;
-              const icon = isRepair ? '🔧' : '📦';
-              return `
-              <tr style="background-color: ${isRepair ? '#fff3e0' : 'transparent'};">
-                <td style="padding: 5px; font-size: 9pt; border-left: ${isRepair ? '3px solid #ff9800' : 'none'};">
-                  ${icon} ${item.name}
-                  <br>
-                  <span style="font-size: 8pt; color: #666;">Cod: ${item.code || 'N/A'}</span>
-                </td>
-                <td style="padding: 5px; font-size: 9pt; text-align: center;">${item.quantity}</td>
-                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${(item.price || 0).toFixed(2)}</td>
-                <td style="padding: 5px; font-size: 9pt; text-align: right;">$${((item.quantity || 0) * (item.price || 0)).toFixed(2)}</td>
-              </tr>
-            `;
-            }).join('')}
+            ${itemsRows}
           </tbody>
+          <tfoot>
+            <tr style="border-top: 2px solid #000;">
+            </tr>
+          </tfoot>
         </table>
 
-        <!-- Totales -->
-        <div style="margin: 15px 0; text-align: right;">
-          <p style="margin: 2px 0; font-size: 10pt;">
-            <strong>Subtotal:</strong> $${sale.subtotal?.toFixed(2) || '0.00'}
+        <!-- TOTALES -->
+        <div style="margin: 10px 0; font-size: 9pt; text-align: right;">
+          <p style="margin: 3px 0;">
+            <strong>Subtotal:</strong> ${currency} ${subtotal.toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
           </p>
           ${sale.discount > 0 ? `
-            <p style="margin: 2px 0; font-size: 10pt; color: #e53935;">
-              <strong>Descuento (${sale.discount}%):</strong> -$${((sale.subtotal * sale.discount) / 100).toFixed(2)}
+            <p style="margin: 3px 0; color: #e53935;">
+              <strong>Descuento (${sale.discount}%):</strong> -${currency} ${discountAmount.toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
             </p>
           ` : ''}
           ${type === 'fiscal' ? `
-            <p style="margin: 2px 0; font-size: 10pt;">
-              <strong>IVA (19%):</strong> $${(sale.total * 0.19).toFixed(2)}
+            <p style="margin: 3px 0;">
+              <strong>ITBIS (18%):</strong> ${currency} ${tax.toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
             </p>
           ` : ''}
-          <p style="margin: 5px 0; font-size: 12pt;">
-            <strong>Total:</strong> $${sale.total?.toFixed(2) || '0.00'}
+          <p style="margin: 5px 0; padding: 5px; background: #f0f0f0; border: 1px solid #000; font-size: 10pt; font-weight: bold;">
+            TOTAL A PAGAR: ${currency} ${(type === 'fiscal' ? totalWithTax : total).toLocaleString('es-DO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
           </p>
         </div>
 
-        <!-- Código QR -->
-        <div style="text-align: center; margin: 15px 0;">
-          <div id="qrcode" style="margin: 10px auto; width: 100px; height: 100px;"></div>
-          <p style="margin: 5px 0; font-size: 8pt; color: #666;">
-            Escanee para verificar la autenticidad
+        <!-- MÉTODO DE PAGO -->
+        ${sale.paymentMethod ? `
+          <p style="margin: 8px 0; font-size: 8pt; text-align: center;">
+            <strong>Método de Pago:</strong> ${(sale.paymentMethod === 'efectivo' ? 'EFECTIVO' : sale.paymentMethod === 'tarjeta' ? 'TARJETA' : sale.paymentMethod).toUpperCase()}
           </p>
+        ` : ''}
+
+        <!-- CÓDIGO QR -->
+        <div style="text-align: center; margin: 10px 0;">
+          <div id="qrcode" style="margin: 10px auto; width: 80px; height: 80px;"></div>
+          <p style="margin: 3px 0; font-size: 7pt; color: #666;">Escanee para verificar</p>
         </div>
 
-        <!-- Pie de página -->
-        <div style="text-align: center; margin-top: 20px;">
-          <p style="margin: 2px 0; font-size: 10pt;">¡Gracias por su compra!</p>
-          ${businessInfo?.website ? `
-            <p style="margin: 2px 0; font-size: 9pt;">${businessInfo.website}</p>
-          ` : ''}
-          ${type === 'fiscal' ? `
-            <p style="margin: 10px 0; font-size: 8pt; font-style: italic;">
-              Este documento es una representación impresa de un Comprobante Fiscal Digital
-            </p>
-          ` : `
-            <p style="margin: 10px 0; font-size: 8pt; font-style: italic;">
-              DOCUMENTO NO FISCAL.
-              <br>
-              NO VÁLIDO COMO FACTURA
-            </p>
-          `}
+        <!-- MENSAJE FINAL -->
+        <div style="text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 8pt;">
+          <p style="margin: 2px 0; font-weight: bold;">¡GRACIAS POR SU COMPRA!</p>
+          ${businessInfo?.website ? `<p style="margin: 2px 0;">${businessInfo.website}</p>` : ''}
+          <p style="margin: 2px 0; color: #666;">Soporte: ${businessInfo?.phone || 'N/A'}</p>
+          <p style="margin: 4px 0; font-size: 7pt; font-style: italic;">
+            ${type === 'fiscal' 
+              ? 'Documento fiscal digital autorizado' 
+              : 'DOCUMENTO NO FISCAL - NO VÁLIDO COMO FACTURA'}
+          </p>
+          <p style="margin: 2px 0; font-size: 7pt; color: #666;">${formatDate(new Date())}</p>
         </div>
+
       </div>
     `;
   };
@@ -913,24 +900,8 @@ const QuickSale = () => {
         }
       }
 
-      // Enviar notificación de venta
-      try {
-        console.log('🔔 Intentando enviar notificación de venta...');
-        await notifySale({
-          ticketNumber: saleId,
-          total: saleData.total,
-          customer: selectedCustomer?.name || 'Cliente General',
-          date: new Date().toISOString(),
-          items: cart.map(item => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        });
-        console.log('✅ Notificación de venta enviada');
-      } catch (error) {
-        console.error('❌ Error al enviar notificación:', error);
-      }
+      // Notificación de venta: ahora la envia el backend después de guardar la venta para evitar duplicados
+      console.log('🔔 La notificación de venta será enviada por el servidor (evitando duplicados).');
 
       // Limpiar el carrito y mostrar mensaje de éxito
       setPaymentDialog(false);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import {
   Card,
   CardContent,
@@ -109,11 +109,11 @@ const DailySummaryConfigCard = ({ user }) => {
 
   const handleConfigClick = () => {
     if (!config.hasWhatsapp && !config.hasTelegram) {
-      setOpenWhatsApp(true);
+      startTransition(() => setOpenWhatsApp(true));
     } else if (!config.hasWhatsapp) {
-      setOpenWhatsApp(true);
+      startTransition(() => setOpenWhatsApp(true));
     } else if (!config.hasTelegram) {
-      setOpenTelegram(true);
+      startTransition(() => setOpenTelegram(true));
     }
   };
 

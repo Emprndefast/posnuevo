@@ -8,7 +8,7 @@
  * - Escape: Cancelar/Cerrar
  */
 
-import { useEffect } from 'react';
+import { useEffect, startTransition } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const useHotkeys = () => {
@@ -19,32 +19,32 @@ export const useHotkeys = () => {
       // Ctrl+N: Nueva venta
       if (e.ctrlKey && e.key === 'n') {
         e.preventDefault();
-        navigate('/ventas');
+        startTransition(() => navigate('/ventas'));
       }
 
       // Ctrl+K: Buscar cliente
       if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
-        navigate('/clientes');
+        startTransition(() => navigate('/clientes'));
       }
 
       // Ctrl+M: Reparaciones
       if (e.ctrlKey && e.key === 'm') {
         e.preventDefault();
-        navigate('/repairs');
+        startTransition(() => navigate('/repairs'));
       }
 
       // Ctrl+P: Dashboard
       if (e.ctrlKey && e.key === 'p') {
         e.preventDefault();
-        navigate('/dashboard');
+        startTransition(() => navigate('/dashboard'));
       }
 
       // Ctrl+L: Logout
       if (e.ctrlKey && e.key === 'l') {
         e.preventDefault();
         localStorage.removeItem('token');
-        navigate('/login');
+        startTransition(() => navigate('/login'));
       }
     };
 

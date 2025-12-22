@@ -10,7 +10,7 @@ class PrintService {
   constructor() {
     // this.auth = getAuth(); // Firebase disabled
     this.auth = null; // Mock for now
-    this.printServerUrl = process.env.REACT_APP_PRINT_SERVER_URL || 'http://localhost:3001/print';
+    this.printServerUrl = process.env.REACT_APP_PRINT_SERVER_URL || 'http://localhost:3002/print';
   }
 
   async getPrinterConfig() {

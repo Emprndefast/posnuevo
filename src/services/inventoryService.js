@@ -13,7 +13,6 @@ import {
   increment
 } from 'firebase/firestore';
 import telegramService from './telegramService';
-import { useTelegram } from '../context/TelegramContext';
 
 class InventoryService {
   constructor() {

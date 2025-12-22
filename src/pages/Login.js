@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, startTransition } from 'react';
 import {
   Container, TextField, Button, Typography, Box, Snackbar, Alert, Link,
   Paper, useTheme, useMediaQuery, CircularProgress, Dialog, DialogTitle,
@@ -253,7 +253,7 @@ function Login() {
             </Button>
           </form>
           <Button
-            onClick={() => navigate('/register')}
+            onClick={() => startTransition(() => navigate('/register'))}
             variant="outlined"
             sx={{ 
               mt: 2,

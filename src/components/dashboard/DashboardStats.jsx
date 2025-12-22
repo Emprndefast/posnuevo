@@ -136,6 +136,10 @@ export const DashboardStats = () => {
 
   const navigate = useNavigate();
 
+  const goToRepairs = () => {
+    startTransition(() => navigate('/reparaciones'));
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -206,7 +210,7 @@ export const DashboardStats = () => {
       </Grid>
 
       <Box sx={{ mt: 2, textAlign: 'right' }}>
-        <Button variant="contained" color="secondary" startIcon={<LocalRepairIcon />} onClick={() => navigate('/reparaciones')}>
+        <Button variant="contained" color="secondary" startIcon={<LocalRepairIcon />} onClick={goToRepairs}>
           Ir a Reparaciones
         </Button>
 

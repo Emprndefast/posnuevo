@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+import api from '../api/api';
 
 export const generateSetupMessage = async (context, userInput) => {
   try {
-    const response = await axios.post(`${API_URL}/api/setup/chat`, {
+    const response = await api.post('/setup/chat', {
       context,
       userInput
     });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { startTransition } from 'react';
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, useTheme } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -54,7 +54,7 @@ const Sidebar = () => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigate(item.path)}
+            onClick={() => startTransition(() => navigate(item.path))}
             selected={location.pathname === item.path}
             sx={{
               '&.Mui-selected': {

@@ -94,9 +94,9 @@ export const API_ENDPOINTS = {
 };
 
 const API_CONFIG = {
-  BOT_BASE_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://posentbot.vercel.app'
-    : 'http://localhost:3001',
+  BOT_BASE_URL: process.env.NODE_ENV === 'production'
+    ? process.env.REACT_APP_BOT_BASE_URL || 'https://posentbot.vercel.app'
+    : process.env.REACT_APP_BOT_BASE_URL || 'http://localhost:3002',
   TELEGRAM_API_URL: 'https://api.telegram.org/bot'
 };
 

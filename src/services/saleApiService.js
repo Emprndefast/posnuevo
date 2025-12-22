@@ -30,20 +30,8 @@ const saleApiService = {
     try {
       const response = await api.post('/ventas', saleData);
       
-      // Enviar notificación de venta
-      try {
-        await notificationService.notifySale({
-          userId: localStorage.getItem('userId') || 'user123',
-          saleData: {
-            id: response.data.id,
-            total: saleData.total,
-            items: saleData.items.length,
-            date: new Date().toISOString()
-          }
-        });
-      } catch (notificationError) {
-        console.error('Error al enviar notificación de venta:', notificationError);
-      }
+      // Notificación de venta: el servidor se encargará de enviar la notificación tras guardar la venta
+      console.log('🔔 La notificación de venta será enviada por el servidor (evitando duplicados).');
       
       return response.data;
     } catch (error) {

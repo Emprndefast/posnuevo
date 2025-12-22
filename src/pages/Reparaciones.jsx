@@ -144,7 +144,7 @@ const Reparaciones = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate('/reparaciones/nuevo')}
+            onClick={() => startTransition(() => navigate('/reparaciones/nuevo'))}
           >
             Nueva Reparación
           </Button>

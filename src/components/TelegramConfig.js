@@ -30,8 +30,15 @@ const TelegramConfig = () => {
   const loadConfig = async () => {
     try {
       setLoading(true);
-      const data = await getTelegramConfig();
-      setConfig(data);
+      const res = await getTelegramConfig();
+
+      // La respuesta del backend viene en { success: true, data: { telegram, notificationSettings } }
+      if (res && res.success && res.data) {
+        const tg = res.data.telegram || { botToken: '', chatId: '' };
+        setConfig({ botToken: tg.botToken || '', chatId: tg.chatId || '' });
+      } else {
+        setConfig({ botToken: '', chatId: '' });
+      }
     } catch (err) {
       setError('Error al cargar la configuración');
     } finally {
@@ -69,7 +76,7 @@ const TelegramConfig = () => {
       setError(null);
       setSuccess(false);
 
-      await testTelegramConnection();
+      await testTelegramConnection(config);
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Error al probar la conexión');

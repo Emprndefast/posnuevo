@@ -814,7 +814,7 @@ const Manual = () => {
       }}>
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate(-1)}
+          onClick={() => startTransition(() => navigate(-1))}
           variant="outlined"
           sx={{
             color: theme.palette.text.primary,

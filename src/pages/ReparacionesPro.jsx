@@ -46,6 +46,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../config/api';
 import { useAuth } from '../context/AuthContextMongo';
 import { useCart } from '../context/CartContext';
+import { useTelegram } from '../context/TelegramContext';
 import { enqueueSnackbar } from 'notistack';
 
 // Marcas de dispositivos profesionales
@@ -305,6 +306,7 @@ const ReparacionesPro = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addRepairToCart } = useCart();
+  const { notifySale } = useTelegram();
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -445,6 +447,10 @@ const ReparacionesPro = () => {
         const response = await api.post('/repairs', repairData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        
+        // Notificación de reparación: la envía el servidor tras guardar la reparación para evitar duplicados
+        console.log('🔔 La notificación de reparación será enviada por el servidor (evitando duplicados).');
+        
         enqueueSnackbar('Reparación guardada correctamente', { variant: 'success' });
       }
       
@@ -1101,7 +1107,7 @@ const ReparacionesPro = () => {
               transform: 'scale(1.1)',
             },
           }}
-          onClick={() => navigate('/pos')}
+          onClick={() => startTransition(() => navigate('/pos'))}
           title="Ir al POS (Nueva Venta)"
         >
           <ShoppingCartIcon sx={{ fontSize: '1.5rem' }} />

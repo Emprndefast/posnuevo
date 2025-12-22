@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, Suspense, lazy, startTransition } from 'react';
 import {
   Box,
   Card,
@@ -33,6 +33,9 @@ import {
   CloudBackup,
 } from '@mui/icons-material';
 
+// Telegram context to determine whether it's configured
+import { useTelegram } from '../../context/TelegramContext';
+
 const EmpresaConfigModal = lazy(() => import('./modals/EmpresaConfigModal'));
 const ImpresoraConfigModal = lazy(() => import('./modals/ImpresoraConfigModal'));
 const NotificacionesConfigModal = lazy(() => import('./modals/NotificacionesConfigModal'));
@@ -40,6 +43,7 @@ const SeguridadConfigModal = lazy(() => import('./modals/SeguridadConfigModal'))
 const RespaldosConfigModal = lazy(() => import('./modals/RespaldosConfigModal'));
 const WhatsAppConfigModal = lazy(() => import('./modals/WhatsAppConfigModal'));
 const IntegracionesConfigModal = lazy(() => import('./modals/IntegracionesConfigModal'));
+const TelegramConfigModal = lazy(() => import('./modals/TelegramConfigModal'));
 const AparienciaConfigModal = lazy(() => import('./modals/AparienciaConfigModal'));
 const IdiomaConfigModal = lazy(() => import('./modals/IdiomaConfigModal'));
 const GeneralConfigModal = lazy(() => import('./modals/GeneralConfigModal'));
@@ -184,6 +188,13 @@ const Settings = () => {
   const theme = useTheme();
   const [openModal, setOpenModal] = useState(null);
 
+  // Preload modals that are commonly used to avoid suspense on click
+  React.useEffect(() => {
+    import('./modals/TelegramConfigModal');
+    import('./modals/NotificacionesConfigModal');
+    // Add other heavy modals if needed
+  }, []);
+
   const settingsConfig = [
     {
       id: 'empresa',
@@ -242,6 +253,14 @@ const Settings = () => {
       modal: IntegracionesConfigModal,
     },
     {
+      id: 'telegram',
+      title: 'Telegram',
+      description: 'Configura tu bot de Telegram para recibir notificaciones (token + chatId)',
+      icon: LocalAtm,
+      color: '#26A5E4',
+      modal: TelegramConfigModal,
+    },
+    {
       id: 'apariencia',
       title: 'Apariencia',
       description: 'Personaliza colores, tema y aspecto visual del sistema',
@@ -286,6 +305,9 @@ const Settings = () => {
   const handleCloseModal = () => {
     setOpenModal(null);
   };
+
+  // Obtener estado de Telegram para mostrar el badge
+  const { config: telegramConfig } = useTelegram();
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 4 }}>
@@ -336,21 +358,26 @@ const Settings = () => {
 
         {/* Grid de configuraciones */}
         <Grid container spacing={3}>
-          {settingsConfig.map((config) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={config.id}>
-              <SettingsCard
-                icon={config.icon}
-                title={config.title}
-                description={config.description}
-                color={config.color}
-                onConfigure={() => setOpenModal(config.id)}
-                isConfigured={false}
-              />
-            </Grid>
-          ))}
+          {settingsConfig.map((config) => {
+            const isConfigured = config.id === 'telegram'
+              ? Boolean(telegramConfig?.botToken && telegramConfig?.chatId && telegramConfig?.enabled !== false)
+              : false;
+
+            return (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={config.id}>
+                <SettingsCard
+                  icon={config.icon}
+                  title={config.title}
+                  description={config.description}
+                  color={config.color}
+                  onConfigure={() => startTransition(() => setOpenModal(config.id))}
+                  isConfigured={isConfigured}
+                />
+              </Grid>
+            );
+          })}
         </Grid>
       </Container>
-
       {/* Modales como diálogos flotantes */}
       <Suspense fallback={<CircularProgress />}>
         {settingsConfig.map((config) => {

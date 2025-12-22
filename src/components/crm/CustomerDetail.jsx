@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -132,7 +132,7 @@ const CustomerDetail = () => {
     <Box>
       <Button
         startIcon={<ArrowBackIcon />}
-        onClick={() => navigate('/crm/customers')}
+        onClick={() => startTransition(() => navigate('/crm/customers'))}
         sx={{ mb: 3 }}
       >
         Volver

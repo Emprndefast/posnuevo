@@ -16,6 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Normalize user shape to ensure `uid` exists (backend returns `_id`)
+  const normalizeUser = (u) => {
+    if (!u) return null;
+    return { ...u, uid: u.uid || u._id || u.id };
+  }; 
+
   useEffect(() => {
     checkAuthStatus();
   }, []);
@@ -30,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
       const response = await api.get('/auth/profile');
       if (response.data.success) {
-        setUser(response.data.user);
+        setUser(normalizeUser(response.data.user));
       } else {
         localStorage.removeItem('token');
       }
@@ -52,7 +58,7 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         const { token, user: userData } = response.data;
         localStorage.setItem('token', token);
-        setUser(userData);
+        setUser(normalizeUser(userData));
         return { success: true };
       } else {
         setError(response.data.message || 'Error al iniciar sesión');
@@ -77,7 +83,7 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         const { token, user: newUser } = response.data;
         localStorage.setItem('token', token);
-        setUser(newUser);
+        setUser(normalizeUser(newUser));
         return { success: true };
       } else {
         setError(response.data.message || 'Error al registrarse');
@@ -108,10 +114,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.put('/auth/profile', userData);
       if (response.data.success) {
-        setUser(response.data.user);
+        setUser(normalizeUser(response.data.user));
         return { success: true };
       }
-      return { success: false, error: response.data.message };
+      return { success: false, error: response.data.message }; 
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Error al actualizar perfil';
       return { success: false, error: errorMessage };
@@ -122,7 +128,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.get('/auth/profile');
       if (response.data.success) {
-        setUser(response.data.user);
+        setUser(normalizeUser(response.data.user));
       }
     } catch (error) {
       console.error('Error al recargar usuario:', error);

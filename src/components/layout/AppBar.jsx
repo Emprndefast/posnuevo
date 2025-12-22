@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, startTransition } from 'react';
 import {
   AppBar as MuiAppBar,
   Toolbar,
@@ -57,7 +57,7 @@ export const AppBar = ({ children }) => {
 
   const handleNavigate = (path) => {
     handleClose();
-    navigate(path);
+    startTransition(() => navigate(path));
   };
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export const AppBar = ({ children }) => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <IconButton color="inherit" onClick={() => setOpenNotificaciones(true)}>
+          <IconButton color="inherit" onClick={() => startTransition(() => setOpenNotificaciones(true))}>
             <Badge badgeContent={notificacionesNoLeidas} color="error">
               <NotificationsIcon />
             </Badge>
@@ -165,7 +165,7 @@ export const AppBar = ({ children }) => {
               </ListItemIcon>
               <ListItemText>Configuración</ListItemText>
             </MenuItem>
-            <MenuItem onClick={() => setOpenSoporte(true)}>
+            <MenuItem onClick={() => startTransition(() => setOpenSoporte(true))}>
               <ListItemIcon>
                 <SupportAgentIcon fontSize="small" />
               </ListItemIcon>

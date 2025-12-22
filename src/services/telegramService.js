@@ -1,4 +1,5 @@
 import axios from 'axios';
+import api from '../api/api';
 import { db } from '../firebase/config';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { TELEGRAM_CONFIG } from '../config/telegram';
@@ -33,8 +34,11 @@ axios.interceptors.response.use(
 
 class TelegramService {
   constructor() {
-    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    // Use the shared `api` instance (configured with REACT_APP_API_URL or default to http://localhost:3002/api)
     this.telegramApiUrl = API_CONFIG.TELEGRAM_API_URL;
+    if (!process.env.REACT_APP_API_URL) {
+      console.warn('REACT_APP_API_URL no está definida. Usando el valor por defecto de la instancia `api` (http://localhost:3002/api).');
+    }
   }
 
   async testConnection(botToken, chatId) {
@@ -45,16 +49,11 @@ class TelegramService {
 
       // Primero probamos la conexión con el bot en Vercel
       try {
-        const botResponse = await axios.post(
-          `${this.baseUrl}/api/bot/test`,
-          {
-            botToken,
-            chatId
-          }
-        );
-        console.log('✅ Conexión con el bot en Vercel exitosa:', botResponse.data);
+        // Use centralized api instance so it respects REACT_APP_API_URL
+        const botResponse = await api.post('/telegram/test', { botToken, chatId });
+        console.log('✅ Conexión con el bot backend exitosa:', botResponse.data);
       } catch (botError) {
-        console.error('❌ Error al conectar con el bot en Vercel:', botError.message);
+        console.error('❌ Error al conectar con el bot backend:', botError.message, botError.response?.data);
         // Continuamos con la prueba de Telegram API
       }
 
@@ -137,15 +136,13 @@ class TelegramService {
       }
 
       // Enviar la notificación a través del backend
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/bot/notify`,
-        {
-          botToken,
-          chatId,
-          type,
-          data
-        }
-      );
+      // Use centralized api instance (honors REACT_APP_API_URL)
+      const response = await api.post('/bot/notify', {
+        botToken,
+        chatId,
+        type,
+        data
+      });
 
       console.log('✅ Notificación enviada a través del backend:', response.data);
       return {

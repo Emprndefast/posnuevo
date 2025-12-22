@@ -180,7 +180,7 @@ const Layout = ({ children }) => {
             <>
               <IconButton 
                 color="inherit" 
-                onClick={() => setOpenNotificaciones(true)}
+                onClick={() => startTransition(() => setOpenNotificaciones(true))}
                 sx={{
                   color: 'gray.600',
                   mr: 1,
@@ -292,7 +292,7 @@ const Layout = ({ children }) => {
                   </ListItemIcon>
                   Configuración
                 </MenuItem>
-                <MenuItem onClick={() => setOpenSoporte(true)}>
+                <MenuItem onClick={() => startTransition(() => setOpenSoporte(true))}>
                   <ListItemIcon>
                     <SupportAgentIcon fontSize="small" />
                   </ListItemIcon>

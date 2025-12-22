@@ -28,16 +28,44 @@ export const TelegramProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       
-      // Obtener configuración de Telegram desde el documento del usuario
-      const userRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userRef);
-      
-      if (userDoc.exists() && userDoc.data().telegram) {
-        const telegramConfig = userDoc.data().telegram;
-        console.log('Configuración de Telegram cargada:', telegramConfig);
-        setConfig(telegramConfig);
+      // Obtener configuración de Telegram desde backend MongoDB
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setConfig(null);
+        return;
+      }
+
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      const url = baseUrl + '/telegram/config';
+      console.debug('[Telegram] GET', url, 'Authorization:', !!token);
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+
+      if (!contentType.includes('application/json')) {
+        // Respuesta inesperada (HTML por ejemplo)
+        throw new Error(`Respuesta inesperada del servidor: ${text.slice(0,200)}`);
+      }
+
+      const data = JSON.parse(text);
+
+      if (!res.ok) {
+        throw new Error(data?.message || `HTTP ${res.status}`);
+      }
+
+      if (data && data.success) {
+        const telegramData = data.data?.telegram || {};
+        const notificationSettings = data.data?.notificationSettings || { sales: true, lowStock: true, dailySummary: false };
+        const configToSet = {
+          ...telegramData,
+          notifications: notificationSettings
+        };
+        console.log('[Telegram] Config cargada correctamente:', configToSet);
+        setConfig(configToSet);
       } else {
-        console.log('No hay configuración de Telegram guardada');
         setConfig(null);
       }
     } catch (err) {
@@ -61,20 +89,40 @@ export const TelegramProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      await telegramService.saveConfig(user.uid, newConfig);
-      setConfig(newConfig);
-      
-      enqueueSnackbar('Configuración de Telegram guardada correctamente', { 
-        variant: 'success' 
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuario no autenticado');
+
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      const url = baseUrl + '/telegram/config';
+      console.debug('[Telegram] POST', url, 'body:', { botToken: !!newConfig?.botToken, chatId: !!newConfig?.chatId });
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newConfig)
       });
-      
+
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Respuesta inesperada del servidor: ${text.slice(0,200)}`);
+      }
+      const data = JSON.parse(text);
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+      setConfig({
+        ...(data.data?.telegram || newConfig),
+        notifications: data.data?.notificationSettings || newConfig?.notifications || { sales: true, lowStock: true, dailySummary: false }
+      });
+      enqueueSnackbar('Configuración de Telegram guardada correctamente', { variant: 'success' });
       return true;
     } catch (err) {
       setError(err.message);
       console.error('Error al guardar configuración de Telegram:', err);
-      enqueueSnackbar('Error al guardar la configuración de Telegram', { 
-        variant: 'error' 
-      });
+      enqueueSnackbar('Error al guardar la configuración de Telegram: ' + err.message, { variant: 'error' });
       return false;
     } finally {
       setLoading(false);
@@ -169,21 +217,41 @@ export const TelegramProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      
-      const result = await telegramService.testConnection(botToken, chatId);
-      
-      if (result.success) {
-        enqueueSnackbar('Conexión con Telegram establecida correctamente', {
-          variant: 'success'
-        });
+
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuario no autenticado');
+
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+      const url = baseUrl + '/telegram/test';
+      console.debug('[Telegram] POST', url, 'botToken set:', !!botToken, 'chatId set:', !!chatId);
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ botToken, chatId })
+      });
+
+      const contentType = res.headers.get('content-type') || '';
+      const text = await res.text();
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Respuesta inesperada del servidor: ${text.slice(0,200)}`);
       }
-      
-      return result;
+      const data = JSON.parse(text);
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+
+      if (data.success) {
+        enqueueSnackbar(data.message || 'Conexión con Telegram establecida correctamente', { variant: 'success' });
+      } else {
+        enqueueSnackbar(data.message || 'Error en la conexión de Telegram', { variant: 'error' });
+      }
+
+      return data;
     } catch (err) {
       setError(err.message);
-      enqueueSnackbar('Error al conectar con Telegram: ' + err.message, {
-        variant: 'error'
-      });
+      enqueueSnackbar('Error al conectar con Telegram: ' + err.message, { variant: 'error' });
       throw err;
     } finally {
       setLoading(false);

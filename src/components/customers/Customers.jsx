@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, startTransition } from 'react';
 import {
   Box,
   Card,
@@ -253,12 +253,12 @@ export const Customers = () => {
     if (customer) {
       setEditingCustomer(customer);
       setCustomerForm({
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address || '',
+        name: customer.nombre || customer.name || '',
+        email: customer.email || '',
+        phone: customer.telefono || customer.phone || '',
+        address: customer.direccion || customer.address || '',
         type: customer.type || 'individual',
-        notes: customer.notes || ''
+        notes: customer.notes || customer.notas || ''
       });
     } else {
       setEditingCustomer(null);
@@ -468,7 +468,7 @@ export const Customers = () => {
           <Button
             variant="contained"
             color="secondary"
-            onClick={() => navigate('/crm/customers')}
+            onClick={() => startTransition(() => navigate('/crm/customers'))}
             sx={{
               whiteSpace: 'nowrap',
               fontWeight: 700
