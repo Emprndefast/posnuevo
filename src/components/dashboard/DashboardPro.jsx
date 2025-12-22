@@ -45,6 +45,8 @@ import { useProductos } from '../../context/ProductosContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import api from '../../api/api';
+import ProCard from '../common/ui/ProCard';
+import ProButton from '../common/ui/ProButton';
 
 const DashboardPro = () => {
   const theme = useTheme();
@@ -70,7 +72,7 @@ const DashboardPro = () => {
     ultimasVentas: [],
   });
   const [hasData, setHasData] = useState(false);
-  
+
   // Filtros dinámicos para las cards
   const [productFilter, setProductFilter] = useState('precio'); // 'precio', 'stock', 'valor'
   const [productOrder, setProductOrder] = useState('desc'); // 'asc' ascendente, 'desc' descendente
@@ -83,7 +85,7 @@ const DashboardPro = () => {
     try {
       // Cargar productos primero
       await loadProductos();
-      
+
       // Obtener estadísticas de ventas
       let salesData = null;
       let productsData = null;
@@ -113,14 +115,14 @@ const DashboardPro = () => {
       // Calcular métricas reales desde productos
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       // Calcular valor del inventario desde productos
       let totalInventoryValue = 0;
       let totalInStock = 0;
       const productsList = productos || [];
-      
+
       console.log('📦 Total productos en contexto:', productsList.length);
-      
+
       productsList.forEach(product => {
         const price = parseFloat(product.precio) || 0;
         const stock = parseInt(product.stock) || 0;
@@ -134,7 +136,7 @@ const DashboardPro = () => {
       // Función para obtener productos top según el filtro
       const getTopProducts = (filter) => {
         let sorted = [];
-        
+
         switch (filter) {
           case 'precio':
             sorted = productsList
@@ -183,15 +185,15 @@ const DashboardPro = () => {
               return precioB - precioA;
             });
         }
-        
+
         return sorted.slice(0, 2).map(p => {
           const stock = parseInt(p.stock) || 0;
           const precio = parseFloat(p.precio) || 0;
           const valor = precio * stock;
-          
+
           let valueToShow = precio;
           let label = 'Stock';
-          
+
           if (filter === 'stock') {
             valueToShow = stock;
             label = 'Stock';
@@ -199,7 +201,7 @@ const DashboardPro = () => {
             valueToShow = valor;
             label = 'Valor';
           }
-          
+
           return {
             name: p.nombre || p.name || 'Sin nombre',
             sales: stock,
@@ -208,9 +210,9 @@ const DashboardPro = () => {
           };
         });
       };
-      
+
       const topProducts = getTopProducts(productFilter);
-      
+
       console.log('🏆 Top productos:', topProducts);
 
       // Calcular ventas del día desde estadísticas
@@ -230,10 +232,10 @@ const DashboardPro = () => {
       const stockBajo = productsList.filter(p => (parseInt(p.stock) || 0) < 10).length;
       const metaDia = 50000;
       const promedioHora = dailySales / 8; // Asumiendo 8 horas de operación
-      
+
       // Top clientes (simulado, debería venir del backend)
       const topClientes = [];
-      
+
       // Últimas ventas (limitar a 5)
       const ultimasVentas = salesData?.data?.recentSales || [];
 
@@ -255,11 +257,11 @@ const DashboardPro = () => {
       };
 
       setDashboardData(newData);
-      
+
       // Verificar si hay datos reales
       console.log('Dashboard data:', newData);
       console.log('Productos disponibles:', productos.length);
-      
+
       const hasRealData = (
         productos.length > 0 ||  // Si hay productos, mostrar datos
         newData.dailySales > 0 ||
@@ -267,7 +269,7 @@ const DashboardPro = () => {
         newData.inventoryValue > 0
       );
       setHasData(hasRealData);
-      
+
       console.log('Has data:', hasRealData);
 
       setLoading(false);
@@ -356,12 +358,12 @@ const DashboardPro = () => {
   );
 
   // Stat Card Component con gradientes y efectos
-  const StatCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    color, 
-    trend, 
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    color,
+    trend,
     subtitle,
     gradient
   }) => {
@@ -532,16 +534,12 @@ const DashboardPro = () => {
     >
       {/* Mensaje de no datos */}
       {!hasData && <NoDataMessage />}
-      
+
       <Box sx={{ p: { xs: 1, md: 2 } }}>
         {/* Header y Acciones Rápidas Combinados */}
-        <Card
-          sx={{
-            mb: 3,
-            borderRadius: 3,
-            boxShadow: 2,
-            p: 2.5,
-          }}
+        <ProCard
+          elevation={2}
+          sx={{ mb: 3, p: 2.5 }}
         >
           {/* Header dentro del Card */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
@@ -617,57 +615,75 @@ const DashboardPro = () => {
           </Typography>
           <Grid container spacing={1.5}>
             <Grid item xs={6} sm={4} md={2}>
-              <ActionButton
-                icon={Add}
-                label="Nueva Venta"
+              <ProButton
+                startIcon={<Add />}
                 color="success"
                 onClick={() => handleNavigate('/quick-sale')}
-              />
+                fullWidth
+                variant="gradient"
+              >
+                Nueva Venta
+              </ProButton>
             </Grid>
             <Grid item xs={6} sm={4} md={2}>
-              <ActionButton
-                icon={InventoryIcon}
-                label="Agregar Producto"
+              <ProButton
+                startIcon={<InventoryIcon />}
                 color="primary"
                 onClick={() => handleNavigate('/products')}
-              />
+                fullWidth
+              >
+                Agregar Producto
+              </ProButton>
             </Grid>
             <Grid item xs={6} sm={4} md={2}>
-              <ActionButton
-                icon={Analytics}
-                label="Ver Reportes"
+              <ProButton
+                startIcon={<Analytics />}
                 color="info"
                 onClick={() => handleNavigate('/analytics')}
-              />
+                fullWidth
+              >
+                Ver Reportes
+              </ProButton>
             </Grid>
             <Grid item xs={6} sm={4} md={2}>
-              <ActionButton
-                icon={PersonAdd}
-                label="Registrar Cliente"
+              <ProButton
+                startIcon={<PersonAdd />}
                 color="warning"
                 onClick={() => handleNavigate('/customers')}
-              />
+                fullWidth
+              >
+                Registrar Cliente
+              </ProButton>
             </Grid>
             <Grid item xs={6} sm={4} md={2}>
-              <ActionButton
-                icon={Receipt}
-                label="Ver Ventas"
+              <ProButton
+                startIcon={<Receipt />}
                 color="primary"
                 variant="outlined"
                 onClick={() => handleNavigate('/sales')}
-              />
+                fullWidth
+              >
+                Ver Ventas
+              </ProButton>
+            </Grid>
+            <Grid item xs={6} sm={4} md={2}>
+              <ProButton
+                startIcon={<Settings />}
+                color="secondary"
+                onClick={() => handleNavigate('/repairs')}
+                fullWidth
+                variant="soft"
+              >
+                Venta Reparaciones
+              </ProButton>
             </Grid>
           </Grid>
-        </Card>
+        </ProCard>
 
         {/* Contenedor de Métricas Principales */}
-        <Card
-          sx={{
-            mb: 3,
-            borderRadius: 3,
-            boxShadow: 2,
-            p: 2.5,
-          }}
+        <ProCard
+          elevation={2}
+          sx={{ mb: 3, p: 2.5 }}
         >
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
@@ -715,7 +731,7 @@ const DashboardPro = () => {
               />
             </Grid>
           </Grid>
-        </Card>
+        </ProCard>
 
         {/* Contenedor principal: Impulsos + Multimedia en fila */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -749,13 +765,13 @@ const DashboardPro = () => {
                   Impulso y Metas
                 </Typography>
               </Box>
-              
+
               <Grid container spacing={1.5}>
                 <Grid item xs={6} sm={3}>
-                  <Box 
-                    sx={{ 
-                      textAlign: 'center', 
-                      p: 1.5, 
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      p: 1.5,
                       borderRadius: 1.5,
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -777,10 +793,10 @@ const DashboardPro = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Box 
-                    sx={{ 
-                      textAlign: 'center', 
-                      p: 1.5, 
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      p: 1.5,
                       borderRadius: 1.5,
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -802,10 +818,10 @@ const DashboardPro = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Box 
-                    sx={{ 
-                      textAlign: 'center', 
-                      p: 1.5, 
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      p: 1.5,
                       borderRadius: 1.5,
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -824,17 +840,17 @@ const DashboardPro = () => {
                     <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', display: 'block' }}>
                       Meta del Día
                     </Typography>
-                    <Chip 
+                    <Chip
                       label={`${((dashboardData.dailySales / dashboardData.metaDia) * 100 || 0).toFixed(1)}%`}
                       size="small"
                       sx={{ mt: 0.25, height: 18, fontSize: '0.6rem', bgcolor: '#dbeafe', color: '#1e40af' }} />
                   </Box>
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <Box 
-                    sx={{ 
-                      textAlign: 'center', 
-                      p: 1.5, 
+                  <Box
+                    sx={{
+                      textAlign: 'center',
+                      p: 1.5,
                       borderRadius: 1.5,
                       border: '1px solid #e5e7eb',
                       transition: 'all 0.2s ease',
@@ -856,12 +872,12 @@ const DashboardPro = () => {
                   </Box>
                 </Grid>
               </Grid>
-              
+
               {/* Barra de progreso de meta */}
-              <Box sx={{ 
-                mt: 1.5, 
-                p: 1.5, 
-                borderRadius: 1.5, 
+              <Box sx={{
+                mt: 1.5,
+                p: 1.5,
+                borderRadius: 1.5,
                 bgcolor: '#f9fafb',
                 border: '1px solid #e5e7eb'
               }}>
@@ -890,7 +906,7 @@ const DashboardPro = () => {
               </Box>
             </Card>
           </Grid>
-          
+
           {/* Columna 2: Multimedia (25%) */}
           <Grid item xs={12} md={3}>
             <Card
@@ -982,124 +998,124 @@ const DashboardPro = () => {
                     </Box>
                   </Box>
                 </Box>
-                 <Stack spacing={1.5}>
-                   {(() => {
-                     // Calcular productos top según el filtro actual (sin recargar)
-                     const productsList = productos || [];
-                     const getFilteredProducts = () => {
-                       let sorted = [];
-                       const order = productOrder === 'asc' ? -1 : 1; // -1 para ascendente (menor a mayor), 1 para descendente (mayor a menor)
-                       
-                       switch (productFilter) {
-                         case 'precio':
-                           sorted = productsList
-                             .filter(p => {
-                               const precio = parseFloat(p.precio) || 0;
-                               return precio > 0;
-                             })
-                             .sort((a, b) => {
-                               const precioA = parseFloat(a.precio) || 0;
-                               const precioB = parseFloat(b.precio) || 0;
-                               return (precioB - precioA) * order;
-                             });
-                           break;
-                         case 'stock':
-                           // Mostrar todos los productos ordenados por stock
-                           sorted = productsList
-                             .filter(p => {
-                               const precio = parseFloat(p.precio) || 0;
-                               return precio > 0; // Al menos que tengan precio
-                             })
-                             .sort((a, b) => {
-                               const stockA = parseInt(a.stock) || 0;
-                               const stockB = parseInt(b.stock) || 0;
-                               return (stockB - stockA) * order;
-                             });
-                           break;
-                         case 'valor':
-                           // Calcular valor (precio * stock), usar 1 si stock es 0
-                           sorted = productsList
-                             .filter(p => {
-                               const precio = parseFloat(p.precio) || 0;
-                               return precio > 0;
-                             })
-                             .sort((a, b) => {
-                               const valorA = (parseFloat(a.precio) || 0) * Math.max(parseInt(a.stock) || 0, 1);
-                               const valorB = (parseFloat(b.precio) || 0) * Math.max(parseInt(b.stock) || 0, 1);
-                               return (valorB - valorA) * order;
-                             });
-                           break;
-                       }
-                       
-                       return sorted.slice(0, 2).map(p => {
-                         const stock = parseInt(p.stock) || 0;
-                         const precio = parseFloat(p.precio) || 0;
-                         // Para valor, si stock es 0, calcular como precio * 1
-                         const valor = precio * Math.max(stock, 1);
-                         
-                         let valueToShow = precio;
-                         let label = 'Precio';
-                         
-                         if (productFilter === 'stock') {
-                           valueToShow = stock;
-                           label = 'Stock';
-                         } else if (productFilter === 'valor') {
-                           valueToShow = valor;
-                           label = 'Valor';
-                         }
-                         
-                         return {
-                           name: p.nombre || p.name || 'Sin nombre',
-                           sales: stock,
-                           value: valueToShow,
-                           label: label,
-                           precio: precio // Guardar el precio para mostrar en detalles
-                         };
-                       });
-                     };
-                     
-                     const filteredProducts = getFilteredProducts();
-                     
-                     return filteredProducts.length > 0 ? filteredProducts.map((product, index) => (
-                       <Box key={index}>
-                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                           <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                             {product.name}
-                           </Typography>
-                           <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}>
-                           {productFilter === 'stock' 
-                             ? `${product.value.toLocaleString('es-DO')} unidades`
-                             : productFilter === 'valor'
-                               ? `$${product.value.toLocaleString('es-DO')}`
-                               : `$${product.value.toLocaleString('es-DO')}`
-                           }
-                         </Typography>
-                         </Box>
-                         <LinearProgress
-                           variant="determinate"
-                           value={Math.min((product.value / (productFilter === 'stock' ? 1000 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
-                           sx={{
-                             height: 6,
-                             borderRadius: 3,
-                             bgcolor: 'grey.200',
-                             '& .MuiLinearProgress-bar': {
-                               background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                             },
-                           }}
-                         />
-                         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', mt: 0.5, display: 'block' }}>
-                           {productFilter === 'precio' && `Stock: ${product.sales}`}
-                           {productFilter === 'stock' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')}`}
-                           {productFilter === 'valor' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')} × Stock: ${product.sales}`}
-                         </Typography>
-                       </Box>
-                     )) : (
-                       <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 3 }}>
-                         No hay productos top
-                       </Typography>
-                     );
-                   })()}
-                 </Stack>
+                <Stack spacing={1.5}>
+                  {(() => {
+                    // Calcular productos top según el filtro actual (sin recargar)
+                    const productsList = productos || [];
+                    const getFilteredProducts = () => {
+                      let sorted = [];
+                      const order = productOrder === 'asc' ? -1 : 1; // -1 para ascendente (menor a mayor), 1 para descendente (mayor a menor)
+
+                      switch (productFilter) {
+                        case 'precio':
+                          sorted = productsList
+                            .filter(p => {
+                              const precio = parseFloat(p.precio) || 0;
+                              return precio > 0;
+                            })
+                            .sort((a, b) => {
+                              const precioA = parseFloat(a.precio) || 0;
+                              const precioB = parseFloat(b.precio) || 0;
+                              return (precioB - precioA) * order;
+                            });
+                          break;
+                        case 'stock':
+                          // Mostrar todos los productos ordenados por stock
+                          sorted = productsList
+                            .filter(p => {
+                              const precio = parseFloat(p.precio) || 0;
+                              return precio > 0; // Al menos que tengan precio
+                            })
+                            .sort((a, b) => {
+                              const stockA = parseInt(a.stock) || 0;
+                              const stockB = parseInt(b.stock) || 0;
+                              return (stockB - stockA) * order;
+                            });
+                          break;
+                        case 'valor':
+                          // Calcular valor (precio * stock), usar 1 si stock es 0
+                          sorted = productsList
+                            .filter(p => {
+                              const precio = parseFloat(p.precio) || 0;
+                              return precio > 0;
+                            })
+                            .sort((a, b) => {
+                              const valorA = (parseFloat(a.precio) || 0) * Math.max(parseInt(a.stock) || 0, 1);
+                              const valorB = (parseFloat(b.precio) || 0) * Math.max(parseInt(b.stock) || 0, 1);
+                              return (valorB - valorA) * order;
+                            });
+                          break;
+                      }
+
+                      return sorted.slice(0, 2).map(p => {
+                        const stock = parseInt(p.stock) || 0;
+                        const precio = parseFloat(p.precio) || 0;
+                        // Para valor, si stock es 0, calcular como precio * 1
+                        const valor = precio * Math.max(stock, 1);
+
+                        let valueToShow = precio;
+                        let label = 'Precio';
+
+                        if (productFilter === 'stock') {
+                          valueToShow = stock;
+                          label = 'Stock';
+                        } else if (productFilter === 'valor') {
+                          valueToShow = valor;
+                          label = 'Valor';
+                        }
+
+                        return {
+                          name: p.nombre || p.name || 'Sin nombre',
+                          sales: stock,
+                          value: valueToShow,
+                          label: label,
+                          precio: precio // Guardar el precio para mostrar en detalles
+                        };
+                      });
+                    };
+
+                    const filteredProducts = getFilteredProducts();
+
+                    return filteredProducts.length > 0 ? filteredProducts.map((product, index) => (
+                      <Box key={index}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
+                            {product.name}
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}>
+                            {productFilter === 'stock'
+                              ? `${product.value.toLocaleString('es-DO')} unidades`
+                              : productFilter === 'valor'
+                                ? `$${product.value.toLocaleString('es-DO')}`
+                                : `$${product.value.toLocaleString('es-DO')}`
+                            }
+                          </Typography>
+                        </Box>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.min((product.value / (productFilter === 'stock' ? 1000 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
+                          sx={{
+                            height: 6,
+                            borderRadius: 3,
+                            bgcolor: 'grey.200',
+                            '& .MuiLinearProgress-bar': {
+                              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                            },
+                          }}
+                        />
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', mt: 0.5, display: 'block' }}>
+                          {productFilter === 'precio' && `Stock: ${product.sales}`}
+                          {productFilter === 'stock' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')}`}
+                          {productFilter === 'valor' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')} × Stock: ${product.sales}`}
+                        </Typography>
+                      </Box>
+                    )) : (
+                      <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 3 }}>
+                        No hay productos top
+                      </Typography>
+                    );
+                  })()}
+                </Stack>
               </CardContent>
             </Card>
           </Grid>

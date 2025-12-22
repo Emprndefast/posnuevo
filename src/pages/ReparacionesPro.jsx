@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, startTransition } from 'react';
 import {
   Container,
   Box,
@@ -419,7 +419,7 @@ const ReparacionesPro = () => {
 
     // Construir datos
     const categoryId = editingRepair?.category || selectedCategory?.id || selectedCategory;
-    
+
     const repairData = {
       brand: editingRepair?.brand || selectedBrand,
       device: editingRepair?.device || selectedDevice,
@@ -447,13 +447,13 @@ const ReparacionesPro = () => {
         const response = await api.post('/repairs', repairData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
-        
+
         // Notificación de reparación: la envía el servidor tras guardar la reparación para evitar duplicados
         console.log('🔔 La notificación de reparación será enviada por el servidor (evitando duplicados).');
-        
+
         enqueueSnackbar('Reparación guardada correctamente', { variant: 'success' });
       }
-      
+
       // Recargar y cerrar
       fetchRepairs();
       setOpenRepairModal(false);
@@ -1112,8 +1112,8 @@ const ReparacionesPro = () => {
         >
           <ShoppingCartIcon sx={{ fontSize: '1.5rem' }} />
         </Button>
-        <Typography variant="caption" sx={{ 
-          textAlign: 'center', 
+        <Typography variant="caption" sx={{
+          textAlign: 'center',
           backgroundColor: 'rgba(0,0,0,0.7)',
           color: 'white',
           padding: '4px 8px',

@@ -69,8 +69,8 @@ import {
   Tooltip as ChartTooltip,
   Legend,
 } from 'chart.js';
-// Firebase imports - Mocked for backward compatibility
-import { db, collection, query, where, getDocs, orderBy, limit, Timestamp } from '../../firebase/config';
+// API imports for MongoDB backend
+import api from '../../api/api';
 import { useAuth } from '../../context/AuthContextMongo';
 import { usePermissions } from '../../context/PermissionsContext';
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
@@ -126,13 +126,13 @@ const initialCategoryData = {
 const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
   const theme = useTheme();
   const colorValue = theme.palette[color]?.main || color;
-  
+
   return (
     <Fade in={true} timeout={800}>
-      <Card 
-        sx={{ 
-          height: '100%', 
-          position: 'relative', 
+      <Card
+        sx={{
+          height: '100%',
+          position: 'relative',
           overflow: 'hidden',
           transition: 'all 0.3s ease-in-out',
           '&:hover': {
@@ -147,11 +147,11 @@ const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
-              <Typography 
-                variant="subtitle1" 
-                color="text.secondary" 
+              <Typography
+                variant="subtitle1"
+                color="text.secondary"
                 gutterBottom
-                sx={{ 
+                sx={{
                   fontWeight: 500,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
@@ -160,10 +160,10 @@ const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
               >
                 {title}
               </Typography>
-              <Typography 
-                variant="h4" 
+              <Typography
+                variant="h4"
                 component="div"
-                sx={{ 
+                sx={{
                   fontWeight: 700,
                   background: `linear-gradient(45deg, ${colorValue}, ${alpha(colorValue, 0.8)})`,
                   WebkitBackgroundClip: 'text',
@@ -174,10 +174,10 @@ const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
                 {value}
               </Typography>
               {subtitle && (
-                <Typography 
-                  variant="body2" 
-                  color="text.secondary" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{
                     mt: 1,
                     fontSize: '0.875rem',
                     opacity: 0.8,
@@ -202,19 +202,19 @@ const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
                 },
               }}
             >
-              {React.cloneElement(icon, { 
-                sx: { 
+              {React.cloneElement(icon, {
+                sx: {
                   fontSize: 28,
                   color: colorValue,
-                } 
+                }
               })}
             </Box>
           </Box>
           {trend !== undefined && (
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
                 mt: 2,
                 backgroundColor: trend > 0 ? alpha(theme.palette.success.main, 0.1) : alpha(theme.palette.error.main, 0.1),
                 borderRadius: 2,
@@ -248,8 +248,8 @@ const MetricCard = ({ title, value, icon, trend, color, subtitle }) => {
 
 // Componente de gráfico mejorado con diseño moderno
 const ChartCard = ({ title, icon, children, loading }) => (
-  <Card 
-    sx={{ 
+  <Card
+    sx={{
       height: '100%',
       borderRadius: 3,
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -261,23 +261,23 @@ const ChartCard = ({ title, icon, children, loading }) => (
     }}
   >
     <CardContent sx={{ p: 3 }}>
-      <Box sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
         mb: 3,
         borderBottom: '1px solid rgba(0,0,0,0.05)',
         pb: 2,
       }}>
-        {React.cloneElement(icon, { 
-          sx: { 
+        {React.cloneElement(icon, {
+          sx: {
             fontSize: 25,
             color: 'primary.main',
             mr: 1,
-          } 
+          }
         })}
-        <Typography 
-          variant="h6" 
-          sx={{ 
+        <Typography
+          variant="h6"
+          sx={{
             fontWeight: 600,
             fontSize: '1.1rem',
             color: 'text.primary',
@@ -287,10 +287,10 @@ const ChartCard = ({ title, icon, children, loading }) => (
         </Typography>
       </Box>
       {loading ? (
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: 200,
           backgroundColor: 'rgba(0,0,0,0.02)',
           borderRadius: 2,
@@ -298,7 +298,7 @@ const ChartCard = ({ title, icon, children, loading }) => (
           <CircularProgress size={40} />
         </Box>
       ) : (
-        <Box sx={{ 
+        <Box sx={{
           height: 300,
           position: 'relative',
           '& canvas': {
@@ -314,8 +314,8 @@ const ChartCard = ({ title, icon, children, loading }) => (
 
 // Componente de lista de productos/ventas mejorado
 const ListCard = ({ title, icon, items, renderItem, emptyMessage, loading }) => (
-  <Card 
-    sx={{ 
+  <Card
+    sx={{
       height: '100%',
       borderRadius: 2,
       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
@@ -400,7 +400,7 @@ const ModernDashboard = () => {
           padding: 10,
           displayColors: false,
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               return `$${context.parsed.y.toFixed(2)}`;
             }
           }
@@ -413,7 +413,7 @@ const ModernDashboard = () => {
             color: 'rgba(0, 0, 0, 0.05)',
           },
           ticks: {
-            callback: function(value) {
+            callback: function (value) {
               return '$' + value.toFixed(0);
             }
           }
@@ -458,7 +458,7 @@ const ModernDashboard = () => {
           borderWidth: 1,
           padding: 10,
           callbacks: {
-            label: function(context) {
+            label: function (context) {
               const value = context.parsed;
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
               const percentage = ((value / total) * 100).toFixed(1);
@@ -475,7 +475,7 @@ const ModernDashboard = () => {
   const fetchDashboardData = async () => {
     // Obtener el ID del usuario (puede ser uid de Firebase o _id/id de MongoDB)
     const userId = user?.uid || user?._id || user?.id;
-    
+
     if (!userId) {
       console.warn('Usuario no autenticado o sin ID:', user);
       setError('Usuario no autenticado');
@@ -490,7 +490,7 @@ const ModernDashboard = () => {
       // Obtener ventas del día
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const salesQuery = query(
         collection(db, 'sales'),
         where('userId', '==', userId),
@@ -545,8 +545,8 @@ const ModernDashboard = () => {
         lastMonthRevenue += sale.total || 0;
       });
 
-      const salesTrend = lastMonthRevenue > 0 
-        ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+      const salesTrend = lastMonthRevenue > 0
+        ? ((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
         : 0;
 
       // Obtener productos más vendidos
@@ -739,12 +739,12 @@ const ModernDashboard = () => {
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '80vh' 
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '80vh'
       }}>
         <CircularProgress size={60} thickness={4} />
         <Typography variant="h6" sx={{ mt: 3 }}>
@@ -755,16 +755,16 @@ const ModernDashboard = () => {
   }
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       maxWidth: '100%',
       margin: '0 auto',
       padding: { xs: 2, sm: 3 },
       background: theme => theme.palette.background.default,
       minHeight: '100vh'
     }}>
-      <Paper 
-        elevation={0} 
-        sx={{ 
+      <Paper
+        elevation={0}
+        sx={{
           p: { xs: 2, sm: 3 },
           borderRadius: 2,
           backgroundColor: theme => theme.palette.background.paper,
@@ -772,14 +772,14 @@ const ModernDashboard = () => {
         }}
       >
         {/* Header */}
-        <Box sx={{ 
+        <Box sx={{
           mb: 4,
           textAlign: 'center'
         }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              mb: 1, 
+          <Typography
+            variant="h4"
+            sx={{
+              mb: 1,
               fontWeight: 700,
               fontSize: { xs: '1.5rem', sm: '2rem' },
               textTransform: 'uppercase',
@@ -787,41 +787,40 @@ const ModernDashboard = () => {
               color: 'primary.main'
             }}
           >
-              Dashboard
-            </Typography>
-          <Typography 
-            variant="subtitle1" 
+            Dashboard
+          </Typography>
+          <Typography
+            variant="subtitle1"
             color="text.secondary"
-            sx={{ 
+            sx={{
               fontSize: { xs: '0.875rem', sm: '1rem' },
               maxWidth: '600px',
               mx: 'auto'
             }}
           >
             Visión general del negocio en tiempo real
-            </Typography>
+          </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
-              <Chip
-                label={`Rol: ${
-                  userRole?.toLowerCase() === 'admin' ? 'ADMINISTRADOR' :
+            <Chip
+              label={`Rol: ${userRole?.toLowerCase() === 'admin' ? 'ADMINISTRADOR' :
                   userRole?.toLowerCase() === 'owner' ? 'PROPIETARIO' :
-                  userRole?.toLowerCase() === 'manager' ? 'GERENTE' :
-                  userRole?.toLowerCase() === 'staff' ? 'EMPLEADO' :
-                  userRole?.toUpperCase() || 'No asignado'
+                    userRole?.toLowerCase() === 'manager' ? 'GERENTE' :
+                      userRole?.toLowerCase() === 'staff' ? 'EMPLEADO' :
+                        userRole?.toUpperCase() || 'No asignado'
                 }`}
-                color={isAdmin() || isOwner() ? 'primary' : 'default'}
+              color={isAdmin() || isOwner() ? 'primary' : 'default'}
               sx={{ fontWeight: 500, mb: 1, px: 2, py: 0.5 }}
-                icon={<Person />}
-              />
+              icon={<Person />}
+            />
           </Box>
         </Box>
 
         {/* Botones rápidos */}
-        <Box sx={{ 
-          display: 'flex', 
+        <Box sx={{
+          display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           flexWrap: { md: 'wrap' },
-          gap: { xs: 2, md: 3 }, 
+          gap: { xs: 2, md: 3 },
           mb: 4,
           justifyContent: 'center',
           alignItems: 'stretch',
@@ -847,7 +846,7 @@ const ModernDashboard = () => {
           >
             Nueva Venta
           </Button>
-          
+
           <Button
             variant="contained"
             startIcon={<InventoryIcon />}
@@ -895,7 +894,7 @@ const ModernDashboard = () => {
             disabled={refreshing}
             sx={{
               height: { xs: 56, md: 48 },
-            borderRadius: 2,
+              borderRadius: 2,
               px: 3,
               flex: { md: '1 1 calc(33.333% - 16px)', lg: '1 1 calc(25% - 16px)' },
               maxWidth: { md: 'calc(33.333% - 16px)', lg: 'calc(25% - 16px)' },
@@ -945,6 +944,26 @@ const ModernDashboard = () => {
 
           <Button
             variant="contained"
+            startIcon={<Build />}
+            onClick={() => handleNavigate('/repairs')}
+            sx={{
+              bgcolor: '#9c27b0',
+              color: 'white',
+              '&:hover': { bgcolor: '#7b1fa2' },
+              height: { xs: 56, md: 48 },
+              borderRadius: 2,
+              px: 3,
+              flex: { md: '1 1 calc(33.333% - 16px)', lg: '1 1 calc(25% - 16px)' },
+              maxWidth: { md: 'calc(33.333% - 16px)', lg: 'calc(25% - 16px)' },
+              minWidth: { xs: '100%', md: '200px' },
+              fontSize: { xs: '1rem', md: '0.875rem' }
+            }}
+          >
+            Venta de Reparaciones
+          </Button>
+
+          <Button
+            variant="contained"
             startIcon={<Settings />}
             onClick={() => handleNavigate('/settings')}
             sx={{
@@ -952,7 +971,7 @@ const ModernDashboard = () => {
               color: 'white',
               '&:hover': { bgcolor: 'error.dark' },
               height: { xs: 56, md: 48 },
-            borderRadius: 2,
+              borderRadius: 2,
               px: 3,
               flex: { md: '1 1 calc(33.333% - 16px)', lg: '1 1 calc(25% - 16px)' },
               maxWidth: { md: 'calc(33.333% - 16px)', lg: 'calc(25% - 16px)' },
@@ -997,8 +1016,8 @@ const ModernDashboard = () => {
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.7 }}>
                   {dashboardData.salesTrend > 0 ? '+' : ''}{dashboardData.salesTrend.toFixed(1)}% vs día anterior
-          </Typography>
-        </Box>
+                </Typography>
+              </Box>
               <Box sx={{ position: 'absolute', top: '50%', right: -20, transform: 'translateY(-50%)', opacity: 0.1 }}>
                 <AttachMoney sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
@@ -1006,7 +1025,7 @@ const ModernDashboard = () => {
           </Grid>
 
           {/* Ticket promedio */}
-        <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               component={motion.div}
               initial={{ opacity: 0, y: 20 }}
@@ -1039,10 +1058,10 @@ const ModernDashboard = () => {
                 <Receipt sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Clientes atendidos */}
-        <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               component={motion.div}
               initial={{ opacity: 0, y: 20 }}
@@ -1075,10 +1094,10 @@ const ModernDashboard = () => {
                 <People sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Valor del inventario */}
-        <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               component={motion.div}
               initial={{ opacity: 0, y: 20 }}
@@ -1111,10 +1130,10 @@ const ModernDashboard = () => {
                 <Inventory sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Productos con stock bajo */}
-        <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={3}>
             <Card
               component={motion.div}
               initial={{ opacity: 0, y: 20 }}
@@ -1147,7 +1166,7 @@ const ModernDashboard = () => {
                 <Warning sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Ventas del mes */}
           <Grid item xs={12} sm={6} md={3}>
@@ -1183,19 +1202,19 @@ const ModernDashboard = () => {
                 <CalendarMonth sx={{ fontSize: { xs: 60, sm: 80 } }} />
               </Box>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Top productos vendidos */}
-        <Grid item xs={12} md={6}>
-            <Card sx={{ 
+          <Grid item xs={12} md={6}>
+            <Card sx={{
               height: '100%',
               borderRadius: 2,
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <CardContent>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   mb: 3,
                   gap: 1
                 }}>
@@ -1210,11 +1229,11 @@ const ModernDashboard = () => {
                   </Box>
                 ) : dashboardData.topProducts.length > 0 ? (
                   dashboardData.topProducts.slice(0, 3).map((product, index) => (
-                    <Box 
-                      key={product.id} 
-                      sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
+                    <Box
+                      key={product.id}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
                         justifyContent: 'space-between',
                         p: 1,
                         '&:not(:last-child)': {
@@ -1224,36 +1243,36 @@ const ModernDashboard = () => {
                       }}
                     >
                       <Typography variant="body2">
-                  {product.name}
-                </Typography>
-                <Chip
+                        {product.name}
+                      </Typography>
+                      <Chip
                         label={`${product.salesCount || 0} unidades`}
-                  size="small"
-                  color="primary"
+                        size="small"
+                        color="primary"
                         sx={{ borderRadius: 1 }}
-                />
-              </Box>
+                      />
+                    </Box>
                   ))
                 ) : (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
                     No hay productos vendidos
                   </Typography>
-            )}
+                )}
               </CardContent>
             </Card>
-        </Grid>
+          </Grid>
 
           {/* Última venta */}
-        <Grid item xs={12} md={6}>
-            <Card sx={{ 
+          <Grid item xs={12} md={6}>
+            <Card sx={{
               height: '100%',
               borderRadius: 2,
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
             }}>
               <CardContent>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   mb: 3,
                   gap: 1
                 }}>
@@ -1273,22 +1292,22 @@ const ModernDashboard = () => {
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       Cliente: {dashboardData.recentSales[0].customerName || 'Cliente general'}
-                </Typography>
-                <Chip
+                    </Typography>
+                    <Chip
                       label={`$${dashboardData.recentSales[0].total?.toLocaleString()}`}
-                  color="success"
+                      color="success"
                       sx={{ borderRadius: 1 }}
-                />
-              </Box>
+                    />
+                  </Box>
                 ) : (
                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
                     No hay ventas recientes
                   </Typography>
-            )}
+                )}
               </CardContent>
             </Card>
+          </Grid>
         </Grid>
-      </Grid>
       </Paper>
 
       <Snackbar
@@ -1297,9 +1316,9 @@ const ModernDashboard = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
           variant="filled"
         >

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, startTransition } from 'react';
 import {
   Container,
   Box,
@@ -96,7 +96,7 @@ const ReparacionesNuevo = () => {
     try {
       setLoading(true);
       setError('');
-      
+
       const repairData = {
         cliente: customerName,
         marca: selectedDevice.marca,

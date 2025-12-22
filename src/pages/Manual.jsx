@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Container, 
-  Paper, 
-  Tabs, 
-  Tab, 
+import React, { useState, startTransition } from 'react';
+import {
+  Box,
+  Typography,
+  Container,
+  Paper,
+  Tabs,
+  Tab,
   Divider,
   List,
   ListItem,
@@ -129,7 +129,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Acceder al Sistema"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -141,7 +141,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Cambio de Usuario"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -174,7 +174,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Nueva Venta"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -186,7 +186,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Proceso de Pago"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -219,7 +219,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Consulta de Stock"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -231,7 +231,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Recepción de Mercancía"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -264,7 +264,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Registro de Cliente"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -276,7 +276,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Historial de Cliente"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -309,7 +309,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Ventas"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -325,7 +325,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Navegación"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -373,7 +373,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Personalización de la Interfaz"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -386,7 +386,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Configuración de Pantallas"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -420,7 +420,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Control de Lotes"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -433,7 +433,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Múltiples Almacenes"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -467,7 +467,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Gestión de Precios"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -480,7 +480,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Facturación Electrónica"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -514,7 +514,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Roles y Permisos"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -527,7 +527,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Configuración de Seguridad"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -574,7 +574,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Error: Usuario o contraseña incorrectos"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -586,7 +586,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Error: No se puede conectar al servidor"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -619,7 +619,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="La impresora no responde"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -631,7 +631,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Impresión cortada o borrosa"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -664,7 +664,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Sistema lento"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -676,7 +676,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Reportes tardan en cargar"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -709,7 +709,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Niveles de Soporte"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -721,7 +721,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Información Requerida"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -756,7 +756,7 @@ const Manual = () => {
               <CardContent>
                 <List>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Configuración en iPhone"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -769,7 +769,7 @@ const Manual = () => {
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemText 
+                    <ListItemText
                       primary="Configuración en Safari"
                       secondary={
                         <Box component="ul" sx={{ ml: 2 }}>
@@ -806,7 +806,7 @@ const Manual = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Botón de retroceso */}
-      <Box sx={{ 
+      <Box sx={{
         mb: 3,
         display: 'flex',
         alignItems: 'center',
@@ -839,8 +839,8 @@ const Manual = () => {
 
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs 
-            value={selectedTab} 
+          <Tabs
+            value={selectedTab}
             onChange={handleTabChange}
             variant="fullWidth"
             sx={{
@@ -851,30 +851,30 @@ const Manual = () => {
               }
             }}
           >
-            <Tab 
-              icon={<Book />} 
-              label="Manual Básico" 
-              sx={{ 
+            <Tab
+              icon={<Book />}
+              label="Manual Básico"
+              sx={{
                 color: selectedTab === 0 ? theme.palette.primary.main : 'text.secondary',
                 '&.Mui-selected': {
                   color: theme.palette.primary.main
                 }
               }}
             />
-            <Tab 
-              icon={<Settings />} 
+            <Tab
+              icon={<Settings />}
               label="Manual Avanzado"
-              sx={{ 
+              sx={{
                 color: selectedTab === 1 ? theme.palette.primary.main : 'text.secondary',
                 '&.Mui-selected': {
                   color: theme.palette.primary.main
                 }
               }}
             />
-            <Tab 
-              icon={<Help />} 
+            <Tab
+              icon={<Help />}
               label="Solución de Problemas"
-              sx={{ 
+              sx={{
                 color: selectedTab === 2 ? theme.palette.primary.main : 'text.secondary',
                 '&.Mui-selected': {
                   color: theme.palette.primary.main
