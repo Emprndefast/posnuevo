@@ -36,7 +36,9 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
-import saleService from '../services/saleService';
+import saleApiService from '../services/saleApiService';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { useSnackbar } from '../hooks/useSnackbar';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import usePrint from '../hooks/usePrint';
@@ -59,13 +61,32 @@ const Sales = () => {
     loadSales();
   }, []);
 
+  const normalizeSale = (sale) => {
+    const date = sale.fecha ? new Date(sale.fecha) : (sale.date ? new Date(sale.date) : new Date());
+    return {
+      id: sale._id || sale.id,
+      date,
+      total: sale.total || 0,
+      customerName: sale.cliente_nombre || (sale.cliente_id && (sale.cliente_id.nombre || sale.cliente_id.name)) || 'Cliente General',
+      items: (sale.items || []).map(i => ({
+        name: i.nombre || i.name || 'Producto',
+        price: i.precio_unitario || i.price || (i.subtotal ? i.subtotal / (i.cantidad || i.quantity || 1) : 0),
+        quantity: i.cantidad || i.quantity || 1
+      })),
+      status: sale.estado || sale.status || 'completed',
+      ticketNumber: sale.numero_venta || sale._id || sale.id
+    };
+  };
+
   const loadSales = async () => {
     try {
       setLoading(true);
-      const salesData = await saleService.getAll();
-      setSales(salesData);
+      // Usar API del backend (MongoDB)
+      const response = await saleApiService.getAllSales();
+      const salesData = (response.data && response.data.data) ? response.data.data : response.data || [];
+      setSales(salesData.map(normalizeSale));
     } catch (error) {
-      showSnackbar('Error al cargar las ventas: ' + error.message, 'error');
+      showSnackbar('Error al cargar las ventas: ' + (error.message || error), 'error');
     } finally {
       setLoading(false);
     }
@@ -87,7 +108,7 @@ const Sales = () => {
         type: 'sale',
         content: {
           ...sale,
-          date: saleService.formatDate(sale.date),
+          date: format(sale.date, 'dd/MM/yyyy HH:mm', { locale: es }),
           items: sale.items.map(item => ({
             ...item,
             subtotal: (item.price * item.quantity).toFixed(2)
@@ -114,8 +135,32 @@ const Sales = () => {
 
   const handlePrintReport = async () => {
     try {
-      const salesInPeriod = await saleService.getSalesByPeriod(printPeriod, printDate);
-      
+      // Obtener ventas desde el backend (calcular periodo aquí)
+      const computeRange = (period, date) => {
+        const start = new Date(date);
+        const end = new Date(date);
+        switch (period) {
+          case 'day':
+            start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+            break;
+          case 'week':
+            start.setDate(start.getDate() - start.getDay()); start.setHours(0,0,0,0);
+            end.setDate(end.getDate() + (6 - end.getDay())); end.setHours(23,59,59,999);
+            break;
+          case 'month':
+            start.setDate(1); start.setHours(0,0,0,0);
+            end = new Date(start.getFullYear(), start.getMonth()+1, 0); end.setHours(23,59,59,999);
+            break;
+          default:
+            start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+        }
+        return { start, end };
+      };
+
+      const { start, end } = computeRange(printPeriod, printDate);
+      const salesRes = await saleApiService.getSalesByDateRange(start.toISOString(), end.toISOString());
+      const salesInPeriod = (salesRes.data && salesRes.data.data) ? salesRes.data.data.map(normalizeSale) : [];
+
       // Crear un nuevo documento PDF
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage([600, 800]);
