@@ -22,4 +22,10 @@ export const updateProduct = async (id, productData) => {
 export const deleteProduct = async (id) => {
   const response = await api.delete(`/products/${id}`);
   return response.data;
-}; 
+};
+
+// Importación masiva
+export const bulkImport = async (products) => {
+  const response = await api.post('/products/bulk-import', { products });
+  return response.data;
+};
