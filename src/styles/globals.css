@@ -2,7 +2,6 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@import 'tw-animate-css';
 
 /* Pega aquí las variables y custom properties de la documentación */
 @custom-variant dark (&:is(.dark *));
