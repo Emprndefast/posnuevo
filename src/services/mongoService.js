@@ -16,10 +16,10 @@ class MongoService {
   async getCollection(collectionName, userId = null) {
     try {
       const endpoint = this.getEndpoint(collectionName);
-      
+
       // Si hay userId, filtrar por usuario
       const url = userId ? `${endpoint}?userId=${userId}` : endpoint;
-      
+
       const response = await this.api.get(url);
       return response.data.success ? response.data.data : [];
     } catch (error) {
@@ -62,10 +62,16 @@ class MongoService {
   async deleteDocument(collectionName, docId) {
     try {
       const endpoint = this.getEndpoint(collectionName);
-      const response = await this.api.delete(`${endpoint}/${docId}`);
+      const url = `${endpoint}/${docId}`;
+      console.log(`🗑️ MongoService: Eliminando documento - URL: ${url}`);
+
+      const response = await this.api.delete(url);
+      console.log('✅ MongoService: Respuesta del servidor:', response.data);
+
       return response.data.success;
     } catch (error) {
-      console.error(`Error al eliminar documento de ${collectionName}:`, error);
+      console.error(`❌ MongoService: Error al eliminar documento de ${collectionName}:`, error);
+      console.error('Detalles del error:', error.response?.data || error.message);
       throw error;
     }
   }
@@ -132,7 +138,7 @@ class MongoService {
   subscribe(collectionName, callback) {
     console.warn(`subscribe not fully implemented for ${collectionName} - using polling`);
     // TODO: Implementar websockets o polling
-    return () => {}; // Return unsubscribe function
+    return () => { }; // Return unsubscribe function
   }
 }
 

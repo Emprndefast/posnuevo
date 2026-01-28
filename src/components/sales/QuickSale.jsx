@@ -617,6 +617,55 @@ const QuickSale = () => {
     console.log('Configuración de Telegram:', notifySale);
   }, [notifySale]);
 
+  // Auto-apply promotions when cart changes
+  useEffect(() => {
+    const applyPromotions = async () => {
+      if (cart.length === 0 || promotions.length === 0) {
+        setDiscount(0);
+        setSelectedPromotion(null);
+        return;
+      }
+
+      try {
+        const subtotal = calculateSubtotal();
+        const cartProducts = cart.map(item => ({
+          producto_id: item.id,
+          cantidad: item.quantity,
+          precio: item.price
+        }));
+
+        const result = await promotionService.applyPromotionsToSale(cartProducts, subtotal);
+
+        if (result.promocionesAplicadas && result.promocionesAplicadas.length > 0) {
+          const newPromo = result.promocionesAplicadas[0];
+          const discountPercentage = (result.descuentoTotal / subtotal) * 100;
+
+          // Only show notification if promotion changed
+          const promoChanged = !selectedPromotion ||
+            (selectedPromotion._id !== newPromo._id && selectedPromotion.nombre !== newPromo.nombre);
+
+          setDiscount(discountPercentage);
+          setSelectedPromotion(newPromo);
+
+          if (promoChanged) {
+            enqueueSnackbar(
+              `Promoción aplicada: ${newPromo.nombre}`,
+              { variant: 'success' }
+            );
+          }
+        } else {
+          setDiscount(0);
+          setSelectedPromotion(null);
+        }
+      } catch (error) {
+        console.error('Error applying promotions:', error);
+        // Don't show error to user, just silently fail
+      }
+    };
+
+    applyPromotions();
+  }, [cart, promotions]);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -633,9 +682,12 @@ const QuickSale = () => {
 
   const loadPromotions = async () => {
     try {
-      const promos = await promotionService.getActivePromotions();
-      setPromotions(promos);
+      // Load ALL promotions for the selector (not just active)
+      const response = await promotionService.getPromotions(1, 100);
+      console.log('Promociones cargadas en QuickSale:', response);
+      setPromotions(response || []);
     } catch (error) {
+      console.error('Error loading promotions:', error);
       setPromotions([]);
     }
   };
@@ -1298,17 +1350,18 @@ const QuickSale = () => {
                   <Select
                     fullWidth
                     size="small"
-                    value={selectedPromotion ? selectedPromotion.id : ''}
+                    value={selectedPromotion ? (selectedPromotion._id || selectedPromotion.id) : ''}
                     displayEmpty
                     onChange={e => {
-                      const promo = promotions.find(p => p.id === e.target.value);
+                      const promo = promotions.find(p => (p._id || p.id) === e.target.value);
                       setSelectedPromotion(promo || null);
                       if (promo) {
-                        if (promo.type === 'percentage') {
-                          setDiscount(Number(promo.value));
-                        } else if (promo.type === 'fixed') {
+                        // Handle different promotion types from backend
+                        if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
+                          setDiscount(Number(promo.descuentoPorcentaje));
+                        } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
                           const subtotal = calculateSubtotal();
-                          setDiscount(subtotal > 0 ? (100 * Number(promo.value) / subtotal) : 0);
+                          setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
                         } else {
                           setDiscount(0);
                         }
@@ -1320,7 +1373,9 @@ const QuickSale = () => {
                   >
                     <MenuItem value="">Sin promoción</MenuItem>
                     {promotions.map(promo => (
-                      <MenuItem key={promo.id} value={promo.id}>{promo.name}</MenuItem>
+                      <MenuItem key={promo._id || promo.id} value={promo._id || promo.id}>
+                        {promo.nombre || promo.name}
+                      </MenuItem>
                     ))}
                   </Select>
                 </Box>

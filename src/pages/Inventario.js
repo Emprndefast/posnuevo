@@ -56,7 +56,7 @@ import {
   Settings as SettingsIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { useFirebase } from '../hooks/useFirebase';
+import { useMongo } from '../hooks/useMongo';
 import { COLLECTIONS, ERROR_MESSAGES } from '../constants';
 import ProductForm from '../components/inventory/ProductForm';
 import StockManager from '../components/inventory/StockManager';
@@ -74,8 +74,8 @@ const Inventory = () => {
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const { darkMode } = useTheme();
-  const { loading: firebaseLoading, error, getCollection, addDocument, updateDocument, deleteDocument, uploadFile } = useFirebase();
-  
+  const { loading: mongoLoading, error, getCollection, addDocument, updateDocument, deleteDocument, uploadFile } = useMongo();
+
   // Estados
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -129,48 +129,60 @@ const Inventory = () => {
       if (!isInitialLoading) {
         setIsRefreshing(true);
       }
-      
+
       console.log("Cargando productos de la colección:", COLLECTIONS.PRODUCTS);
       const data = await getCollection(COLLECTIONS.PRODUCTS);
-      
+
       if (!data) {
         throw new Error('No se pudo obtener datos de la colección');
       }
 
+      console.log("Datos recibidos del backend:", data);
+
       // Procesar datos para asegurar que todos los campos necesarios estén presentes
-      const processedData = data.map(product => ({
-        id: product.id,
-        name: product.name || 'Producto sin nombre',
-        code: product.code || product.id.substring(0, 6),
-        price: parseFloat(product.price) || 0,
-        cost: parseFloat(product.cost) || 0,
-        quantity: parseInt(product.quantity) || 0,
-        minStock: parseInt(product.minStock) || 5,
-        category: product.category || 'Otros',
-        tags: product.tags || [],
-        photo: product.photo || '',
-        description: product.description || '',
-        location: product.location || '',
-        barcode: product.barcode || '',
-        createdAt: product.createdAt || new Date().toISOString(),
-        updatedAt: product.updatedAt || new Date().toISOString()
-      }));
+      // Filtrar solo productos activos
+      const processedData = data
+        .filter(product => product.active !== false) // Filtrar productos inactivos
+        .map(product => ({
+          id: product.id || product._id,
+          _id: product._id || product.id,
+          name: product.name || product.nombre || 'Producto sin nombre',
+          code: product.code || product.codigo || (product.id || product._id).substring(0, 6),
+          barcode: product.barcode || '',
+          price: parseFloat(product.price || product.precio) || 0,
+          cost: parseFloat(product.cost || product.costo) || 0,
+          quantity: parseInt(product.stock || product.stock_actual || product.quantity) || 0,
+          minStock: parseInt(product.minStock || product.stock_minimo) || 5,
+          maxStock: parseInt(product.maxStock || product.stock_maximo) || 100,
+          category: product.category || product.categoria || 'Otros',
+          department: product.department || product.departamento || '',
+          profit: parseFloat(product.profit) || 0,
+          profitMargin: parseFloat(product.profitMargin) || 0,
+          tags: product.tags || [],
+          photo: product.photo || product.imageUrl || product.imagen || '',
+          description: product.description || product.descripcion || '',
+          location: product.location || product.ubicacion || '',
+          supplier: product.supplier || product.proveedor || '',
+          active: product.active !== false,
+          createdAt: product.created_at || product.createdAt || new Date().toISOString(),
+          updatedAt: product.updated_at || product.updatedAt || new Date().toISOString()
+        }));
 
       console.log("Productos procesados:", processedData);
       setProducts(processedData);
-      
+
       // Calcular estadísticas
       const stats = processedData.reduce((acc, product) => {
         acc.totalProducts++;
         acc.totalStock += product.quantity;
         acc.totalValue += product.price * product.quantity;
-        
+
         if (product.quantity === 0) {
           acc.outOfStockCount++;
         } else if (product.quantity <= product.minStock) {
           acc.lowStockCount++;
         }
-        
+
         return acc;
       }, {
         totalProducts: 0,
@@ -179,9 +191,9 @@ const Inventory = () => {
         outOfStockCount: 0,
         totalValue: 0
       });
-      
+
       setStats(stats);
-      
+
       // Extraer categorías únicas
       const uniqueCategories = [...new Set(processedData.map(p => p.category).filter(Boolean))];
       setCategories(uniqueCategories);
@@ -225,46 +237,46 @@ const Inventory = () => {
   // Filtrar y ordenar productos
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...products];
-    
+
     // Aplicar búsqueda
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      result = result.filter(product => 
+      result = result.filter(product =>
         product.name?.toLowerCase().includes(searchLower) ||
         product.code?.toLowerCase().includes(searchLower) ||
         product.category?.toLowerCase().includes(searchLower)
       );
     }
-    
+
     // Aplicar filtros
     if (activeFilters.category) {
       result = result.filter(product => product.category === activeFilters.category);
     }
     if (activeFilters.lowStock) {
-      result = result.filter(product => 
+      result = result.filter(product =>
         product.quantity > 0 && product.quantity <= (product.minStock || 5)
       );
     }
     if (activeFilters.outOfStock) {
       result = result.filter(product => product.quantity === 0);
     }
-    
+
     // Aplicar ordenamiento
     result.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
-      
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' 
+        return sortDirection === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-      
+
       return sortDirection === 'asc'
         ? aValue - bValue
         : bValue - aValue;
     });
-    
+
     return result;
   }, [products, searchTerm, activeFilters, sortField, sortDirection]);
 
@@ -319,7 +331,7 @@ const Inventory = () => {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      
+
       const exportData = products.map(product => ({
         Código: product.code,
         Nombre: product.name,
@@ -330,13 +342,13 @@ const Inventory = () => {
         Ubicación: product.location,
         Descripción: product.description
       }));
-      
+
       const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
-      
+
       XLSX.writeFile(wb, 'inventario.xlsx');
-      
+
       setSnackbar({
         open: true,
         message: 'Inventario exportado exitosamente',
@@ -357,20 +369,20 @@ const Inventory = () => {
     try {
       setIsImporting(true);
       setImportProgress(0);
-      
+
       const file = event.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onload = async (e) => {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
-        
+
         const total = jsonData.length;
         let processed = 0;
-        
+
         for (const row of jsonData) {
           const productData = {
             code: row.Código?.toString(),
@@ -384,22 +396,22 @@ const Inventory = () => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           };
-          
+
           await addDocument(COLLECTIONS.PRODUCTS, productData);
-          
+
           processed++;
           setImportProgress((processed / total) * 100);
         }
-        
+
         await loadProducts(false);
-        
+
         setSnackbar({
           open: true,
           message: 'Inventario importado exitosamente',
           severity: 'success'
         });
       };
-      
+
       reader.readAsArrayBuffer(file);
     } catch (err) {
       setSnackbar({
@@ -416,18 +428,22 @@ const Inventory = () => {
   const handleDelete = async (product) => {
     if (window.confirm(`¿Estás seguro de que deseas eliminar el producto "${product.name}"?`)) {
       try {
-        await deleteDocument(COLLECTIONS.PRODUCTS, product.id);
+        console.log('🗑️ Eliminando producto:', { id: product.id, name: product.name });
+        const result = await deleteDocument(COLLECTIONS.PRODUCTS, product.id);
+        console.log('✅ Resultado de eliminación:', result);
+
         await loadProducts(false);
-        
+
         setSnackbar({
           open: true,
           message: 'Producto eliminado exitosamente',
           severity: 'success'
         });
       } catch (err) {
+        console.error('❌ Error al eliminar producto:', err);
         setSnackbar({
           open: true,
-          message: 'Error al eliminar el producto',
+          message: `Error al eliminar el producto: ${err.message}`,
           severity: 'error'
         });
       }
@@ -467,7 +483,7 @@ const Inventory = () => {
       setIsSubmitting(true);
       setOpenProductForm(false);
       setSelectedProduct(null);
-      
+
       if (selectedProduct) {
         // Actualizar producto existente
         await updateDocument(COLLECTIONS.PRODUCTS, selectedProduct.id, processedData);
@@ -490,7 +506,7 @@ const Inventory = () => {
           severity: 'success'
         });
       }
-      
+
       // Recargar productos después de cerrar el formulario
       await loadProducts(false);
     } catch (err) {
@@ -512,23 +528,23 @@ const Inventory = () => {
     try {
       const product = products.find(p => p.id === productId);
       if (!product) return;
-      
-      const newQuantity = operation === 'add' 
+
+      const newQuantity = operation === 'add'
         ? product.quantity + quantity
         : product.quantity - quantity;
-      
+
       if (newQuantity < 0) {
         throw new Error('No hay suficiente stock disponible');
       }
-      
+
       // Cerrar diálogo primero
       setOpenStockManager(false);
-      
+
       await updateDocument(COLLECTIONS.PRODUCTS, productId, {
         quantity: newQuantity,
         updatedAt: new Date().toISOString()
       });
-      
+
       // Registrar movimiento de stock
       await addDocument(COLLECTIONS.INVENTORY, {
         productId,
@@ -540,13 +556,13 @@ const Inventory = () => {
         newStock: newQuantity,
         timestamp: new Date().toISOString()
       });
-      
+
       setSnackbar({
         open: true,
         message: 'Stock actualizado exitosamente',
         severity: 'success'
       });
-      
+
       // Recargar productos sin mostrar mensaje
       await loadProducts(false);
     } catch (err) {
@@ -562,9 +578,9 @@ const Inventory = () => {
   const renderTableHeader = () => (
     <TableHead>
       <TableRow>
-        <TableCell 
+        <TableCell
           onClick={() => handleSort('name')}
-          sx={{ 
+          sx={{
             cursor: 'pointer',
             whiteSpace: 'nowrap',
             minWidth: isMobile ? '120px' : '200px'
@@ -575,9 +591,9 @@ const Inventory = () => {
             <SortIcon sx={{ ml: 1, transform: sortField === 'name' ? `rotate(${sortDirection === 'asc' ? 0 : 180}deg)` : 'none' }} />
           </Box>
         </TableCell>
-        <TableCell 
+        <TableCell
           onClick={() => handleSort('code')}
-          sx={{ 
+          sx={{
             cursor: 'pointer',
             whiteSpace: 'nowrap',
             display: isMobile ? 'none' : 'table-cell'
@@ -588,9 +604,9 @@ const Inventory = () => {
             <SortIcon sx={{ ml: 1, transform: sortField === 'code' ? `rotate(${sortDirection === 'asc' ? 0 : 180}deg)` : 'none' }} />
           </Box>
         </TableCell>
-        <TableCell 
+        <TableCell
           onClick={() => handleSort('category')}
-          sx={{ 
+          sx={{
             cursor: 'pointer',
             whiteSpace: 'nowrap',
             display: isMobile ? 'none' : 'table-cell'
@@ -601,9 +617,9 @@ const Inventory = () => {
             <SortIcon sx={{ ml: 1, transform: sortField === 'category' ? `rotate(${sortDirection === 'asc' ? 0 : 180}deg)` : 'none' }} />
           </Box>
         </TableCell>
-        <TableCell 
+        <TableCell
           onClick={() => handleSort('price')}
-          sx={{ 
+          sx={{
             cursor: 'pointer',
             whiteSpace: 'nowrap'
           }}
@@ -613,9 +629,9 @@ const Inventory = () => {
             <SortIcon sx={{ ml: 1, transform: sortField === 'price' ? `rotate(${sortDirection === 'asc' ? 0 : 180}deg)` : 'none' }} />
           </Box>
         </TableCell>
-        <TableCell 
+        <TableCell
           onClick={() => handleSort('quantity')}
-          sx={{ 
+          sx={{
             cursor: 'pointer',
             whiteSpace: 'nowrap'
           }}
@@ -634,7 +650,7 @@ const Inventory = () => {
 
   const renderTableRow = (product) => (
     <TableRow key={product.id} hover>
-      <TableCell sx={{ 
+      <TableCell sx={{
         maxWidth: isMobile ? '120px' : '200px',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -664,8 +680,8 @@ const Inventory = () => {
       <TableCell align="right">
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
           <Tooltip title="Editar">
-            <IconButton 
-              size="small" 
+            <IconButton
+              size="small"
               onClick={() => {
                 setSelectedProduct(product);
                 setOpenProductForm(true);
@@ -675,7 +691,7 @@ const Inventory = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Gestionar Stock">
-            <IconButton 
+            <IconButton
               size="small"
               onClick={() => {
                 setSelectedProduct(product);
@@ -686,7 +702,7 @@ const Inventory = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Imprimir Etiqueta">
-            <IconButton 
+            <IconButton
               size="small"
               onClick={() => {
                 setSelectedProduct(product);
@@ -697,7 +713,7 @@ const Inventory = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton 
+            <IconButton
               size="small"
               onClick={() => handleDelete(product)}
             >
@@ -812,8 +828,8 @@ const Inventory = () => {
       </ContentSection>
 
       {/* Diálogos */}
-      <Dialog 
-        open={openProductForm} 
+      <Dialog
+        open={openProductForm}
         onClose={() => {
           if (isSubmitting) return; // Prevenir cierre durante el envío
           setOpenProductForm(false);
@@ -829,8 +845,8 @@ const Inventory = () => {
           }
         }}
       >
-        <DialogTitle sx={{ 
-          borderBottom: 1, 
+        <DialogTitle sx={{
+          borderBottom: 1,
           borderColor: 'divider',
           display: 'flex',
           alignItems: 'center',
@@ -860,14 +876,14 @@ const Inventory = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ 
+        <DialogContent sx={{
           flex: 1,
           overflow: 'auto',
           p: 0 // El padding lo maneja el ProductForm
         }}>
-          <ProductForm 
-            product={selectedProduct} 
-            onSave={handleSaveProduct} 
+          <ProductForm
+            product={selectedProduct}
+            onSave={handleSaveProduct}
             onCancel={() => {
               if (isSubmitting) return;
               setOpenProductForm(false);
@@ -877,8 +893,8 @@ const Inventory = () => {
         </DialogContent>
       </Dialog>
 
-      <Dialog 
-        open={openStockManager} 
+      <Dialog
+        open={openStockManager}
         onClose={() => setOpenStockManager(false)}
         maxWidth="sm"
         fullWidth
@@ -887,16 +903,16 @@ const Inventory = () => {
           Gestionar Stock: {selectedProduct?.name}
         </DialogTitle>
         <DialogContent>
-          <StockManager 
-            product={selectedProduct} 
-            onSave={handleSaveStock} 
-            onCancel={() => setOpenStockManager(false)} 
+          <StockManager
+            product={selectedProduct}
+            onSave={handleSaveStock}
+            onCancel={() => setOpenStockManager(false)}
           />
         </DialogContent>
       </Dialog>
 
-      <Dialog 
-        open={openProductLabel} 
+      <Dialog
+        open={openProductLabel}
         onClose={() => setOpenProductLabel(false)}
         maxWidth="sm"
         fullWidth
@@ -905,9 +921,9 @@ const Inventory = () => {
           Imprimir Etiqueta: {selectedProduct?.name}
         </DialogTitle>
         <DialogContent>
-          <ProductLabel 
-            product={selectedProduct} 
-            onClose={() => setOpenProductLabel(false)} 
+          <ProductLabel
+            product={selectedProduct}
+            onClose={() => setOpenProductLabel(false)}
           />
         </DialogContent>
       </Dialog>
@@ -918,8 +934,8 @@ const Inventory = () => {
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >

@@ -41,7 +41,11 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
     cost: '',
     quantity: '',
     minStock: '',
+    maxStock: '100',
     category: '',
+    department: '',
+    profit: '0',
+    profitMargin: '0',
     location: '',
     description: '',
     photo: '',
@@ -90,7 +94,11 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
         cost: '',
         quantity: '',
         minStock: '',
+        maxStock: '100',
         category: '',
+        department: '',
+        profit: '0',
+        profitMargin: '0',
         location: '',
         description: '',
         photo: '',
@@ -117,10 +125,27 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
     setIsDirty(false);
   }, [product]);
 
+  // Calcular automáticamente profit y profitMargin cuando cambian precio o costo
+  useEffect(() => {
+    const price = parseFloat(formData.price) || 0;
+    const cost = parseFloat(formData.cost) || 0;
+
+    if (price > 0 && cost >= 0) {
+      const profit = price - cost;
+      const profitMargin = cost > 0 ? ((profit / cost) * 100) : 0;
+
+      setFormData(prev => ({
+        ...prev,
+        profit: profit.toFixed(2),
+        profitMargin: profitMargin.toFixed(2)
+      }));
+    }
+  }, [formData.price, formData.cost]);
+
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
     setIsDirty(true);
-    
+
     if (name === 'photo' && files && files[0]) {
       const file = files[0];
       if (file.size > 5 * 1024 * 1024) {
@@ -130,7 +155,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
         }));
         return;
       }
-      
+
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -170,13 +195,17 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!formData.name.trim()) errors.name = 'El nombre es requerido';
     if (!formData.code.trim()) errors.code = 'El código es requerido';
     if (!formData.price || formData.price <= 0) errors.price = 'El precio debe ser mayor a 0';
     if (!formData.cost || formData.cost < 0) errors.cost = 'El costo no puede ser negativo';
     if (!formData.quantity || formData.quantity < 0) errors.quantity = 'La cantidad no puede ser negativa';
     if (!formData.minStock || formData.minStock < 0) errors.minStock = 'El stock mínimo no puede ser negativo';
+    if (!formData.maxStock || formData.maxStock < 0) errors.maxStock = 'El stock máximo no puede ser negativo';
+    if (formData.maxStock && formData.minStock && parseFloat(formData.maxStock) < parseFloat(formData.minStock)) {
+      errors.maxStock = 'El stock máximo debe ser mayor o igual al stock mínimo';
+    }
     if (!formData.category) errors.category = 'La categoría es requerida';
     if (formData.barcode && !/^\d+$/.test(formData.barcode)) {
       errors.barcode = 'El código de barras debe contener solo números';
@@ -187,22 +216,22 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
     if (formData.dimensions.weight && formData.dimensions.weight < 0) {
       errors['dimensions.weight'] = 'El peso no puede ser negativo';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
+
     try {
       setIsSubmitting(true);
       let photoURL = formData.photo;
-      
+
       if (photoFile) {
         photoURL = await uploadFile(`productos/${Date.now()}_${formData.name}`, photoFile);
       }
-      
+
       const productData = {
         ...formData,
         photo: photoURL,
@@ -219,7 +248,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
           height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : null,
         }
       };
-      
+
       await onSave(productData);
       setIsDirty(false);
     } catch (err) {
@@ -255,7 +284,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
           {error}
         </Alert>
       )}
-      
+
       <Grid container spacing={2}>
         {/* Información básica */}
         <Grid item xs={12}>
@@ -263,7 +292,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             Información básica
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -276,7 +305,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -289,7 +318,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -301,7 +330,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             helperText={validationErrors.barcode}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -314,14 +343,33 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             required
           />
         </Grid>
-        
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            select
+            label="Departamento"
+            name="department"
+            value={formData.department}
+            onChange={handleInputChange}
+          >
+            <MenuItem value="">Sin departamento</MenuItem>
+            <MenuItem value="Electrónicos">Electrónicos</MenuItem>
+            <MenuItem value="Repuestos">Repuestos</MenuItem>
+            <MenuItem value="Accesorios">Accesorios</MenuItem>
+            <MenuItem value="Herramientas">Herramientas</MenuItem>
+            <MenuItem value="Servicios">Servicios</MenuItem>
+            <MenuItem value="Otros">Otros</MenuItem>
+          </TextField>
+        </Grid>
+
         {/* Precios y stock */}
         <Grid item xs={12}>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Precios y stock
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -338,7 +386,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             }}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -354,7 +402,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             }}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -368,7 +416,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -382,14 +430,58 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             required
           />
         </Grid>
-        
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Stock máximo"
+            name="maxStock"
+            type="number"
+            value={formData.maxStock}
+            onChange={handleInputChange}
+            error={!!validationErrors.maxStock}
+            helperText={validationErrors.maxStock}
+            required
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Ganancia"
+            name="profit"
+            type="number"
+            value={formData.profit}
+            InputProps={{
+              readOnly: true,
+              startAdornment: <InputAdornment position="start">$</InputAdornment>,
+            }}
+            helperText="Calculado automáticamente: Precio - Costo"
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6}>
+          <TextField
+            fullWidth
+            label="Margen de Ganancia"
+            name="profitMargin"
+            type="number"
+            value={formData.profitMargin}
+            InputProps={{
+              readOnly: true,
+              endAdornment: <InputAdornment position="end">%</InputAdornment>,
+            }}
+            helperText="Calculado automáticamente"
+          />
+        </Grid>
+
         {/* Información adicional */}
         <Grid item xs={12}>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Información adicional
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -399,7 +491,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             onChange={handleInputChange}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -415,7 +507,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             <MenuItem value="m">Metro</MenuItem>
           </TextField>
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -428,7 +520,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             helperText={validationErrors.taxRate}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -439,14 +531,14 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             placeholder="Ej: 12 meses"
           />
         </Grid>
-        
+
         {/* Dimensiones */}
         <Grid item xs={12}>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Dimensiones
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -457,7 +549,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             onChange={handleInputChange}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -468,7 +560,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             onChange={handleInputChange}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -479,7 +571,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             onChange={handleInputChange}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6}>
           <TextField
             fullWidth
@@ -492,14 +584,14 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             helperText={validationErrors['dimensions.weight']}
           />
         </Grid>
-        
+
         {/* Descripción y notas */}
         <Grid item xs={12}>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Descripción y notas
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -511,7 +603,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             rows={3}
           />
         </Grid>
-        
+
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -523,14 +615,14 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             rows={2}
           />
         </Grid>
-        
+
         {/* Foto del producto */}
         <Grid item xs={12}>
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
             Foto del producto
           </Typography>
         </Grid>
-        
+
         <Grid item xs={12}>
           <Box
             sx={{
@@ -582,7 +674,7 @@ const ProductForm = ({ product = null, onSave, onCancel }) => {
             />
           </Box>
         </Grid>
-        
+
         {/* Botones de acción */}
         <Grid item xs={12} sx={{ mt: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>

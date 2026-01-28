@@ -99,17 +99,38 @@ const Promotions = () => {
     e.preventDefault();
     try {
       setLoading(true);
+
+      // Sanitize formData before sending
+      const sanitizedData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        tipo: formData.tipo,
+        descuentoFijo: parseFloat(formData.descuentoFijo) || 0,
+        descuentoPorcentaje: parseFloat(formData.descuentoPorcentaje) || 0,
+        montoMinimo: parseFloat(formData.montoMinimo) || 0,
+        codigo: formData.codigo || undefined,
+        usosMaximos: formData.usosMaximos ? parseInt(formData.usosMaximos) : undefined,
+        fechaInicio: formData.fechaInicio,
+        fechaFin: formData.fechaFin,
+        horaInicio: formData.horaInicio || undefined,
+        horaFin: formData.horaFin || undefined,
+        activa: formData.activa,
+        aplicaEnLinea: formData.aplicaEnLinea,
+        aplicaEnTienda: formData.aplicaEnTienda
+      };
+
       if (selectedPromotion) {
-        await promotionService.updatePromotion(selectedPromotion._id, formData);
+        await promotionService.updatePromotion(selectedPromotion._id, sanitizedData);
         setSnackbar({ open: true, message: 'Promoción actualizada', severity: 'success' });
       } else {
-        await promotionService.createPromotion(formData);
+        await promotionService.createPromotion(sanitizedData);
         setSnackbar({ open: true, message: 'Promoción creada', severity: 'success' });
       }
       handleCloseDialog();
       loadPromotions();
       loadStats();
     } catch (error) {
+      console.error('Error al guardar promoción:', error);
       setSnackbar({ open: true, message: 'Error al guardar promoción', severity: 'error' });
     } finally {
       setLoading(false);

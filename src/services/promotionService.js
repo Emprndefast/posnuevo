@@ -1,10 +1,10 @@
-import axios from 'axios';
+import api from '../api/api';
 
 class PromotionService {
   // Crear promoción
   async createPromotion(promotionData) {
     try {
-      const response = await axios.post('/api/promotions', promotionData);
+      const response = await api.post('/promotions', promotionData);
       return response.data.promotion;
     } catch (error) {
       console.error('Error al crear promoción:', error);
@@ -15,7 +15,7 @@ class PromotionService {
   // Obtener todas las promociones del usuario
   async getPromotions(page = 1, limit = 10) {
     try {
-      const response = await axios.get(`/api/promotions?page=${page}&limit=${limit}`);
+      const response = await api.get(`/promotions?page=${page}&limit=${limit}`);
       return response.data.promotions;
     } catch (error) {
       console.error('Error al obtener promociones:', error);
@@ -26,7 +26,7 @@ class PromotionService {
   // Obtener promociones activas
   async getActivePromotions() {
     try {
-      const response = await axios.get('/api/promotions/activas/lista');
+      const response = await api.get('/promotions/activas/lista');
       return response.data.promotions;
     } catch (error) {
       console.error('Error al obtener promociones activas:', error);
@@ -37,7 +37,7 @@ class PromotionService {
   // Actualizar promoción
   async updatePromotion(promotionId, promotionData) {
     try {
-      const response = await axios.put(`/api/promotions/${promotionId}`, promotionData);
+      const response = await api.put(`/promotions/${promotionId}`, promotionData);
       return response.data.promotion;
     } catch (error) {
       console.error('Error al actualizar promoción:', error);
@@ -48,7 +48,7 @@ class PromotionService {
   // Eliminar promoción
   async deletePromotion(promotionId) {
     try {
-      await axios.delete(`/api/promotions/${promotionId}`);
+      await api.delete(`/promotions/${promotionId}`);
     } catch (error) {
       console.error('Error al eliminar promoción:', error);
       throw error;
@@ -58,7 +58,7 @@ class PromotionService {
   // Validar cupón
   async validateCoupon(codigo, total) {
     try {
-      const response = await axios.post('/api/promotions/cupones/validar', {
+      const response = await api.post('/promotions/cupones/validar', {
         codigo,
         total
       });
@@ -72,7 +72,7 @@ class PromotionService {
   // Usar cupón
   async useCoupon(couponId) {
     try {
-      const response = await axios.post(`/api/promotions/cupones/${couponId}/usar`);
+      const response = await api.post(`/promotions/cupones/${couponId}/usar`);
       return response.data;
     } catch (error) {
       console.error('Error al usar cupón:', error);
@@ -83,7 +83,7 @@ class PromotionService {
   // Aplicar promociones a venta
   async applyPromotionsToSale(productos, total) {
     try {
-      const response = await axios.post('/api/promotions/aplicar', {
+      const response = await api.post('/promotions/aplicar', {
         productos,
         total
       });
@@ -97,7 +97,7 @@ class PromotionService {
   // Obtener estadísticas
   async getPromotionStats() {
     try {
-      const response = await axios.get('/api/promotions/stats/general');
+      const response = await api.get('/promotions/stats/general');
       return response.data;
     } catch (error) {
       console.error('Error al obtener estadísticas:', error);
@@ -108,7 +108,7 @@ class PromotionService {
   // Activar/Desactivar promoción
   async togglePromotion(promotionId) {
     try {
-      const response = await axios.patch(`/api/promotions/${promotionId}/toggle`);
+      const response = await api.patch(`/promotions/${promotionId}/toggle`);
       return response.data.promotion;
     } catch (error) {
       console.error('Error al cambiar estado:', error);

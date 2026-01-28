@@ -268,7 +268,7 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
         name: product.name || '',
         code: product.code || '',
         price: product.price || '',
-        currentStock: product.currentStock || '',
+        currentStock: product.stock !== undefined ? product.stock : (product.currentStock || ''),
         minStock: product.minStock || '',
         maxStock: product.maxStock || '',
         category: product.category || '',
@@ -1502,7 +1502,7 @@ const Products = () => {
           code: product.codigo || '',
           barcode: product.barcode || '',
           imageUrl: product.imagen || '',
-          status: 'active',
+          status: (product.activo && (product.stock_actual > 0)) ? 'active' : 'inactive',
           ...product
         }));
 
@@ -1678,7 +1678,7 @@ const Products = () => {
         category: formData.category || '',
         code: formData.code.trim(),
         imageUrl: formData.imageUrl || null,
-        minStock: parseInt(formData.minStock) || 5,
+        minStock: parseInt(formData.minStock) || 0,
         purchasePrice: parseFloat(formData.purchasePrice) || 0,
         cost: parseFloat(formData.purchasePrice) || 0,
         unitKey: formData.unitKey || '',
@@ -1690,7 +1690,7 @@ const Products = () => {
         descripcion: formData.description || '',
         precio: parseFloat(formData.price),
         stock_actual: parseInt(formData.currentStock) || 0,
-        stock_minimo: parseInt(formData.minStock) || 5,
+        stock_minimo: parseInt(formData.minStock) || 0,
         categoria: formData.category || '',
         codigo: formData.code.trim(),
         imagen: formData.imageUrl || null,
