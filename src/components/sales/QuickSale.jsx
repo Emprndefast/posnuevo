@@ -1168,7 +1168,14 @@ const QuickSale = () => {
   }
 
   return (
-    <Box sx={{ p: 2, height: 'calc(100vh - 64px)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{
+      p: { xs: 1, md: 2 },
+      height: { xs: 'auto', md: 'calc(100vh - 64px)' },
+      minHeight: { xs: 'calc(100vh - 64px)', md: 'auto' },
+      overflow: { xs: 'visible', md: 'hidden' },
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       {/* Título - Compacto */}
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -1177,10 +1184,23 @@ const QuickSale = () => {
       </Box>
 
       {/* Layout Flexbox Robusto (Garantiza 3 columnas) */}
-      <Box sx={{ display: 'flex', gap: 2, height: '100%', overflow: 'hidden', alignItems: 'stretch' }}>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: 2,
+        height: '100%',
+        overflow: { xs: 'visible', md: 'hidden' },
+        alignItems: 'stretch'
+      }}>
 
         {/* COLUMNA 1: PRODUCTOS (Flexible, ocupa el resto) */}
-        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: { xs: '500px', md: 'auto' } // Altura fija en móvil para scroll interno
+        }}>
           {/* Barra de Búsqueda Integrada */}
           <Box sx={{ p: 1, pb: 0, mb: 1, display: 'flex', gap: 1 }}>
             <Autocomplete
@@ -1307,8 +1327,14 @@ const QuickSale = () => {
           </Paper>
         </Box>
 
-        {/* COLUMNA 2: DETALLES (Fija 300px) */}
-        <Box sx={{ width: 300, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        {/* COLUMNA 2: DETALLES (Fija 300px en desktop) */}
+        <Box sx={{
+          width: { xs: '100%', md: 300 },
+          display: 'flex',
+          flexDirection: 'column',
+          flexShrink: 0,
+          order: { xs: 3, md: 2 } // En móvil, detalles al final
+        }}>
           <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
             <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -1384,8 +1410,16 @@ const QuickSale = () => {
           </Card>
         </Box>
 
-        {/* COLUMNA 3: CARRITO (Fija 350px) */}
-        <Box sx={{ width: 350, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+        {/* COLUMNA 3: CARRITO (Fija 350px en desktop) */}
+        <Box sx={{
+          width: { xs: '100%', md: 350 },
+          display: 'flex',
+          flexDirection: 'column',
+          flexShrink: 0,
+          height: { xs: 'auto', md: '100%' },
+          maxHeight: { xs: '500px', md: 'none' },
+          order: { xs: 2, md: 3 } // En móvil, carrito después de productos
+        }}>
           <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, bgcolor: darkMode ? '#1e1e1e' : '#FAFAFA' }}>
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: darkMode ? '#252525' : '#fff' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
