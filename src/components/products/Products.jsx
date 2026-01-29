@@ -404,7 +404,11 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
         const res = await api.post('/categories', { nombre: newCategory.trim() });
         if (res.data && res.data.success) {
           const cat = res.data.data;
-          const newCategoryObj = { id: cat._id, ...cat };
+          const newCategoryObj = {
+            id: cat._id,
+            name: cat.nombre, // Map backend 'nombre' to frontend 'name'
+            ...cat
+          };
           onAddCategory(newCategoryObj);
           setFormData(prev => ({ ...prev, category: newCategory.trim() }));
           setNewCategory('');
@@ -1579,7 +1583,11 @@ const Products = () => {
     try {
       const res = await api.get('/categories');
       if (res.data && res.data.success) {
-        setCategories(res.data.data.map(c => ({ id: c._id, ...c })));
+        setCategories(res.data.data.map(c => ({
+          id: c._id,
+          name: c.nombre, // Map backend 'nombre' to frontend 'name'
+          ...c
+        })));
         return;
       }
     } catch (err) {
