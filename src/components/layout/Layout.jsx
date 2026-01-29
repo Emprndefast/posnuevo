@@ -1,11 +1,11 @@
 import React, { useState, useEffect, startTransition } from 'react';
-import { 
-  Box, 
-  IconButton, 
-  useTheme, 
-  useMediaQuery, 
-  AppBar, 
-  Toolbar, 
+import {
+  Box,
+  IconButton,
+  useTheme,
+  useMediaQuery,
+  AppBar,
+  Toolbar,
   Tooltip,
   Typography,
   Avatar,
@@ -43,8 +43,8 @@ const Layout = ({ children }) => {
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -98,8 +98,8 @@ const Layout = ({ children }) => {
   const drawerWidth = isMobile ? '100%' : '280px';
 
   return (
-    <Box sx={{ 
-      display: 'flex', 
+    <Box sx={{
+      display: 'flex',
       minHeight: '100vh',
       flexDirection: isMobile ? 'column' : 'row',
       bgcolor: '#f5f5f5'
@@ -107,8 +107,8 @@ const Layout = ({ children }) => {
       <AppBar
         position="fixed"
         sx={{
-          width: { xs: '100%', sm: `calc(100% - ${drawerWidth})` },
-          ml: { xs: 0, sm: drawerWidth },
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth})` },
+          ml: { xs: 0, md: drawerWidth },
           zIndex: theme.zIndex.drawer + 1,
           background: 'white',
           color: 'gray.900',
@@ -116,14 +116,14 @@ const Layout = ({ children }) => {
           borderBottom: '1px solid #e5e7eb'
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: '56px', sm: '56px' }, px: 2 }}>
+        <Toolbar sx={{ minHeight: { xs: '64px', md: '64px' }, px: 2 }}>
           {isMobile && (
             <IconButton
               color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
-              sx={{ 
+              sx={{
                 mr: 1,
                 color: 'gray.700',
                 '&:hover': {
@@ -136,9 +136,9 @@ const Layout = ({ children }) => {
           )}
 
           {/* Search Bar - Similar to Whabot */}
-          <Box 
-            sx={{ 
-              flex: 1, 
+          <Box
+            sx={{
+              flex: 1,
               mx: { xs: 1, md: 4 },
               display: { xs: 'none', md: 'block' }
             }}
@@ -178,8 +178,8 @@ const Layout = ({ children }) => {
 
           {user && (
             <>
-              <IconButton 
-                color="inherit" 
+              <IconButton
+                color="inherit"
                 onClick={() => startTransition(() => setOpenNotificaciones(true))}
                 sx={{
                   color: 'gray.600',
@@ -196,11 +196,11 @@ const Layout = ({ children }) => {
               <NotificacionesModal open={openNotificaciones} onClose={() => setOpenNotificaciones(false)} />
 
               <Tooltip title="Opciones de perfil">
-                <Box 
+                <Box
                   onClick={handleMenuOpen}
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 1,
                     cursor: 'pointer',
                     py: 0.5,
@@ -211,11 +211,11 @@ const Layout = ({ children }) => {
                     }
                   }}
                 >
-                  <Avatar 
+                  <Avatar
                     src={user.photoURL}
                     alt={user.displayName}
-                    sx={{ 
-                      width: 32, 
+                    sx={{
+                      width: 32,
                       height: 32,
                       border: '1px solid',
                       borderColor: 'gray.200',
@@ -225,9 +225,9 @@ const Layout = ({ children }) => {
                     {user.displayName?.[0] || user.email?.[0]}
                   </Avatar>
                   <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+                    <Typography
+                      variant="body2"
+                      sx={{
                         fontWeight: 600,
                         color: 'gray.700',
                         fontSize: '0.875rem'
@@ -235,9 +235,9 @@ const Layout = ({ children }) => {
                     >
                       {user.displayName || user.email?.split('@')[0]}
                     </Typography>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
+                    <Typography
+                      variant="caption"
+                      sx={{
                         color: 'gray.500',
                         display: 'block'
                       }}
@@ -299,9 +299,9 @@ const Layout = ({ children }) => {
                   Soporte técnico
                 </MenuItem>
                 <Divider />
-                <MenuItem 
-                  onClick={handleLogout} 
-                  sx={{ 
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{
                     color: 'error.main',
                     '&:hover': {
                       bgcolor: 'error.50',
@@ -320,8 +320,8 @@ const Layout = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      <Navigation 
-        mobileOpen={mobileOpen} 
+      <Navigation
+        mobileOpen={mobileOpen}
         onClose={handleDrawerToggle}
         drawerWidth={drawerWidth}
       />
@@ -330,17 +330,17 @@ const Layout = ({ children }) => {
         sx={{
           flexGrow: 1,
           p: { xs: 2, sm: 3, md: 4 },
-          width: { 
+          width: {
             xs: '100%',
             sm: '100%'
           },
-          ml: { 
+          ml: {
             xs: 0,
-            sm: 0 
+            sm: 0
           },
-          mt: { 
-            xs: '56px',
-            sm: '56px' 
+          mt: {
+            xs: '64px',
+            md: '64px'
           },
           overflow: 'auto',
           maxWidth: '100%',
@@ -356,6 +356,6 @@ const Layout = ({ children }) => {
       <SoporteTecnicoModal open={openSoporte} onClose={() => setOpenSoporte(false)} />
     </Box>
   );
-}; 
+};
 
 export default Layout; 

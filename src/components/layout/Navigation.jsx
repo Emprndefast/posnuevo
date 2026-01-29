@@ -79,7 +79,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedGroups, setExpandedGroups] = React.useState({});
 
   const handleNavigation = (path) => {
@@ -120,9 +120,9 @@ export const Navigation = ({ mobileOpen, onClose }) => {
       }}
     >
       {/* Logo/Brand Section */}
-      <Box 
-        sx={{ 
-          p: 3, 
+      <Box
+        sx={{
+          p: 3,
           textAlign: 'center',
           borderBottom: '1px solid #e5e7eb'
         }}
@@ -139,9 +139,9 @@ export const Navigation = ({ mobileOpen, onClose }) => {
               display: 'block'
             }}
           />
-          <Typography 
-            variant="h6" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            sx={{
               fontWeight: 700,
               color: 'primary.main',
               fontSize: '1.25rem'
@@ -182,7 +182,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                 {group.group}
               </Typography>
             </Box>
-            
+
             <List sx={{ py: 0 }}>
               {group.items.map((item) => (
                 <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
@@ -209,16 +209,16 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                       },
                     }}
                   >
-                    <ListItemIcon 
-                      sx={{ 
+                    <ListItemIcon
+                      sx={{
                         color: location.pathname === item.path ? 'primary.main' : 'gray.600',
                         minWidth: 40
                       }}
                     >
                       {item.icon}
                     </ListItemIcon>
-                    <ListItemText 
-                      primary={item.text} 
+                    <ListItemText
+                      primary={item.text}
                       primaryTypographyProps={{
                         fontSize: '0.875rem',
                         fontWeight: location.pathname === item.path ? 600 : 400,
@@ -228,7 +228,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                 </ListItem>
               ))}
             </List>
-            
+
             {groupIndex < menuGroups.length - 1 && (
               <Divider sx={{ my: 1 }} />
             )}
