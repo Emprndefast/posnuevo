@@ -38,7 +38,13 @@ import {
   Select,
   MenuItem,
   Tooltip,
+  Drawer,
+  Fab,
+  Zoom,
+  useMediaQuery
 } from '@mui/material';
+import CartSection from './CartSection';
+import SaleDetailsSection from './SaleDetailsSection';
 import { LoadingButton } from '@mui/lab';
 import { alpha } from '@mui/material/styles';
 import {
@@ -582,6 +588,11 @@ const QuickSale = () => {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [scannerOpen, setScannerOpen] = useState(false);
+
+  // Mobile UI States
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [notes, setNotes] = useState('');
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   // Estados para Reparaciones
   const [repairs, setRepairs] = useState([]);
@@ -1174,8 +1185,98 @@ const QuickSale = () => {
       minHeight: { xs: 'calc(100vh - 64px)', md: 'auto' },
       overflow: { xs: 'visible', md: 'hidden' },
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      position: 'relative' // For absolute positioning of FAB if needed
     }}>
+      {/* Mobile Cart FAB */}
+      <Zoom in={isMobile && cart.length > 0}>
+        <Fab
+          variant="extended"
+          color="primary"
+          aria-label="cart"
+          onClick={() => setMobileDrawerOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1300,
+            fontWeight: 700,
+            px: 3
+          }}
+        >
+          <Badge badgeContent={cart.length} color="error" sx={{ mr: 2 }}>
+            <ShoppingCartIcon />
+          </Badge>
+          Total: ${calculateTotal().toFixed(2)}
+        </Fab>
+      </Zoom>
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            height: '85vh',
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16
+          }
+        }}
+      >
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 0 }}>
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+            <Box sx={{ width: 40, height: 4, bgcolor: 'grey.300', borderRadius: 2 }} />
+          </Box>
+          <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
+
+            {/* Sale Details in Drawer */}
+            <Box sx={{ mb: 2 }}>
+              <SaleDetailsSection
+                selectedCustomer={selectedCustomer}
+                onSelectCustomer={() => setCustomerDialogOpen(true)}
+                notes={notes}
+                onNotesChange={(e) => setNotes(e.target.value)}
+                promotions={promotions}
+                selectedPromotion={selectedPromotion}
+                onPromotionChange={e => {
+                  const promo = promotions.find(p => (p._id || p.id) === e.target.value);
+                  setSelectedPromotion(promo || null);
+                  // Logic copied from original component
+                  if (promo) {
+                    if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
+                      setDiscount(Number(promo.descuentoPorcentaje));
+                    } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
+                      const subtotal = calculateSubtotal();
+                      setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
+                    } else {
+                      setDiscount(0);
+                    }
+                  } else {
+                    setDiscount(0);
+                  }
+                }}
+                isMobile={true}
+              />
+            </Box>
+
+            {/* Cart Logic in Drawer */}
+            <CartSection
+              cart={cart}
+              darkMode={darkMode}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveFromCart={handleRemoveFromCart}
+              subtotal={calculateSubtotal()}
+              total={calculateTotal()}
+              discount={discount}
+              discountAmount={calculateSubtotal() * discount / 100}
+              onCheckout={() => setPaymentDialog(true)}
+              processingPayment={processingPayment}
+              isMobile={true}
+            />
+          </Box>
+        </Box>
+      </Drawer>
       {/* Título - Compacto */}
       <Box sx={{ mb: 2, flexShrink: 0 }}>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
@@ -1327,180 +1428,68 @@ const QuickSale = () => {
           </Paper>
         </Box>
 
-        {/* COLUMNA 2: DETALLES (Fija 300px en desktop) */}
-        <Box sx={{
-          width: { xs: '100%', md: 300 },
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          order: { xs: 3, md: 2 } // En móvil, detalles al final
-        }}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2 }}>
-            <CardContent sx={{ flexGrow: 1, overflowY: 'auto', p: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
-                Datos de Venta
-              </Typography>
+        {/* COLUMNA 2: DETALLES (Fija 300px en desktop) - SOLO VISIBLE EN DESKTOP */}
+        {!isMobile && (
+          <Box sx={{
+            width: { xs: '100%', md: 300 },
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            order: { xs: 3, md: 2 }
+          }}>
+            <SaleDetailsSection
+              selectedCustomer={selectedCustomer}
+              onSelectCustomer={() => setCustomerDialogOpen(true)}
+              notes={notes}
+              onNotesChange={(e) => setNotes(e.target.value)}
+              promotions={promotions}
+              selectedPromotion={selectedPromotion}
+              onPromotionChange={e => {
+                const promo = promotions.find(p => (p._id || p.id) === e.target.value);
+                setSelectedPromotion(promo || null);
+                if (promo) {
+                  if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
+                    setDiscount(Number(promo.descuentoPorcentaje));
+                  } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
+                    const subtotal = calculateSubtotal();
+                    setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
+                  } else {
+                    setDiscount(0);
+                  }
+                } else {
+                  setDiscount(0);
+                }
+              }}
+              isMobile={false}
+            />
+          </Box>
+        )}
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <Box>
-                  <Typography variant="caption" sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>Cliente</Typography>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    color={selectedCustomer ? 'primary' : 'inherit'}
-                    startIcon={<CustomerIcon />}
-                    onClick={() => setCustomerDialogOpen(true)}
-                    sx={{ justifyContent: 'flex-start', textAlign: 'left', borderRadius: 1.5, textTransform: 'none', py: 1 }}
-                  >
-                    <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {selectedCustomer ? selectedCustomer.name : 'Seleccionar Cliente'}
-                    </Box>
-                  </Button>
-                </Box>
-
-                <Box>
-                  <Typography variant="caption" sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>Notas</Typography>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    placeholder="Notas de la venta..."
-                    variant="outlined"
-                    size="small"
-                    InputProps={{ sx: { borderRadius: 1.5 } }}
-                  />
-                </Box>
-
-                <Box>
-                  <Typography variant="caption" sx={{ mb: 0.5, display: 'block', fontWeight: 600 }}>Promoción</Typography>
-                  <Select
-                    fullWidth
-                    size="small"
-                    value={selectedPromotion ? (selectedPromotion._id || selectedPromotion.id) : ''}
-                    displayEmpty
-                    onChange={e => {
-                      const promo = promotions.find(p => (p._id || p.id) === e.target.value);
-                      setSelectedPromotion(promo || null);
-                      if (promo) {
-                        // Handle different promotion types from backend
-                        if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
-                          setDiscount(Number(promo.descuentoPorcentaje));
-                        } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
-                          const subtotal = calculateSubtotal();
-                          setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
-                        } else {
-                          setDiscount(0);
-                        }
-                      } else {
-                        setDiscount(0);
-                      }
-                    }}
-                    sx={{ borderRadius: 1.5 }}
-                  >
-                    <MenuItem value="">Sin promoción</MenuItem>
-                    {promotions.map(promo => (
-                      <MenuItem key={promo._id || promo.id} value={promo._id || promo.id}>
-                        {promo.nombre || promo.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
-
-        {/* COLUMNA 3: CARRITO (Fija 350px en desktop) */}
-        <Box sx={{
-          width: { xs: '100%', md: 350 },
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          height: { xs: 'auto', md: '100%' },
-          maxHeight: { xs: '500px', md: 'none' },
-          order: { xs: 2, md: 3 } // En móvil, carrito después de productos
-        }}>
-          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: 2, bgcolor: darkMode ? '#1e1e1e' : '#FAFAFA' }}>
-            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: darkMode ? '#252525' : '#fff' }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ShoppingCartIcon color="primary" /> Carrito
-              </Typography>
-              <Chip label={`${cart.length} items`} color="primary" size="small" sx={{ fontWeight: 600 }} />
-            </Box>
-
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', p: 0 }}>
-              {cart.length === 0 ? (
-                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-                  <ShoppingCartIcon sx={{ fontSize: 60, mb: 1, color: 'text.disabled' }} />
-                  <Typography variant="body2" color="text.secondary">Su carrito está vacío</Typography>
-                </Box>
-              ) : (
-                <List disablePadding>
-                  {cart.map((item) => (
-                    <ListItem key={item.id} divider sx={{ px: 2, py: 1.5, bgcolor: darkMode ? 'transparent' : '#fff' }}>
-                      <Box sx={{ width: '100%' }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.name}</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>${(item.price * item.quantity).toLocaleString()}</Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : '#f0f0f0', borderRadius: 1, p: 0.5 }}>
-                            <IconButton size="small" onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)} sx={{ width: 24, height: 24 }}>
-                              <RemoveIcon fontSize="small" />
-                            </IconButton>
-                            <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center', fontWeight: 600 }}>{item.quantity}</Typography>
-                            <IconButton size="small" onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)} sx={{ width: 24, height: 24 }}>
-                              <AddIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-                          <IconButton size="small" color="error" onClick={() => handleRemoveFromCart(item.id)}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Box>
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </Box>
-
-            <Box sx={{ p: 2, bgcolor: darkMode ? '#252525' : '#fff', borderTop: 1, borderColor: 'divider', boxShadow: '0px -4px 12px rgba(0,0,0,0.05)' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" color="text.secondary">Subtotal</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>${calculateSubtotal().toFixed(2)}</Typography>
-              </Box>
-              {discount > 0 && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: 'error.main' }}>
-                  <Typography variant="body2">Descuento</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>-${(calculateSubtotal() * discount / 100).toFixed(2)}</Typography>
-                </Box>
-              )}
-              <Divider sx={{ my: 1.5 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Total</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${calculateTotal().toFixed(2)}</Typography>
-              </Box>
-
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                startIcon={<PaymentIcon />}
-                onClick={() => setPaymentDialog(true)}
-                disabled={cart.length === 0 || processingPayment}
-                sx={{
-                  height: 48,
-                  fontSize: '1.1rem',
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-                }}
-              >
-                Cobrar
-              </Button>
-            </Box>
-          </Card>
-        </Box>
+        {/* COLUMNA 3: CARRITO (Fija 350px en desktop) - SOLO VISIBLE EN DESKTOP */}
+        {!isMobile && (
+          <Box sx={{
+            width: { xs: '100%', md: 350 },
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            height: { xs: 'auto', md: '100%' },
+            order: { xs: 2, md: 3 }
+          }}>
+            <CartSection
+              cart={cart}
+              darkMode={darkMode}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveFromCart={handleRemoveFromCart}
+              subtotal={calculateSubtotal()}
+              total={calculateTotal()}
+              discount={discount}
+              discountAmount={calculateSubtotal() * discount / 100}
+              onCheckout={() => setPaymentDialog(true)}
+              processingPayment={processingPayment}
+              isMobile={false}
+            />
+          </Box>
+        )}
       </Box>
 
       {/* Diálogos (sin cambios en lógica) */}
@@ -1633,7 +1622,7 @@ const QuickSale = () => {
           <Button onClick={() => setRepairDialogOpen(false)}>Cancelar</Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Box >
   );
 };
 
