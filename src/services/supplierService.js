@@ -1,27 +1,11 @@
-import { getFirestore, collection, addDoc, updateDoc, doc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import api from '../config/api';
 
 class SupplierService {
-  constructor() {
-    this.db = getFirestore();
-    this.auth = getAuth();
-  }
-
   // Agregar proveedor
   async addSupplier(supplierData) {
     try {
-      const user = this.auth.currentUser;
-      if (!user) throw new Error('Usuario no autenticado');
-
-      const supplierRef = collection(this.db, 'suppliers');
-      const docRef = await addDoc(supplierRef, {
-        ...supplierData,
-        userId: user.uid,
-        createdAt: new Date(),
-        isActive: true
-      });
-
-      return docRef.id;
+      const response = await api.post('/suppliers', supplierData);
+      return response.data.data.id;
     } catch (error) {
       console.error('Error al agregar proveedor:', error);
       throw error;
@@ -31,11 +15,8 @@ class SupplierService {
   // Actualizar proveedor
   async updateSupplier(supplierId, supplierData) {
     try {
-      const supplierRef = doc(this.db, 'suppliers', supplierId);
-      await updateDoc(supplierRef, {
-        ...supplierData,
-        updatedAt: new Date()
-      });
+      await api.put(`/suppliers/${supplierId}`, supplierData);
+      return true;
     } catch (error) {
       console.error('Error al actualizar proveedor:', error);
       throw error;
@@ -45,8 +26,8 @@ class SupplierService {
   // Eliminar proveedor
   async deleteSupplier(supplierId) {
     try {
-      const supplierRef = doc(this.db, 'suppliers', supplierId);
-      await deleteDoc(supplierRef);
+      await api.delete(`/suppliers/${supplierId}`);
+      return true;
     } catch (error) {
       console.error('Error al eliminar proveedor:', error);
       throw error;
@@ -56,23 +37,26 @@ class SupplierService {
   // Obtener proveedores
   async getSuppliers(filters = {}) {
     try {
-      const user = this.auth.currentUser;
-      if (!user) throw new Error('Usuario no autenticado');
-
-      const suppliersRef = collection(this.db, 'suppliers');
-      let q = query(suppliersRef, where('userId', '==', user.uid));
-
+      const params = {};
       if (filters.isActive !== undefined) {
-        q = query(q, where('isActive', '==', filters.isActive));
+        params.activo = filters.isActive;
       }
 
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const response = await api.get('/suppliers', { params });
+      return response.data.data;
     } catch (error) {
       console.error('Error al obtener proveedores:', error);
+      throw error;
+    }
+  }
+
+  // Obtener un proveedor por ID
+  async getSupplierById(supplierId) {
+    try {
+      const response = await api.get(`/suppliers/${supplierId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error al obtener proveedor:', error);
       throw error;
     }
   }
@@ -80,14 +64,8 @@ class SupplierService {
   // Obtener productos de un proveedor
   async getSupplierProducts(supplierId) {
     try {
-      const productsRef = collection(this.db, 'products');
-      const q = query(productsRef, where('supplierId', '==', supplierId));
-      const querySnapshot = await getDocs(q);
-      
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const response = await api.get(`/suppliers/${supplierId}/products`);
+      return response.data.data;
     } catch (error) {
       console.error('Error al obtener productos del proveedor:', error);
       throw error;
@@ -95,4 +73,4 @@ class SupplierService {
   }
 }
 
-export default new SupplierService(); 
+export default new SupplierService();

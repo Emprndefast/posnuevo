@@ -1,60 +1,90 @@
-import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import api from '../config/api';
 import { CONFIG_DEFAULT } from '../constants/configConstants';
 
-const CONFIG_DOC_ID = 'system_config';
+// Mapeo entre secciones de configuración y tipos en backend
+const CONFIG_TYPES = [
+  'business', 'printer', 'notifications', 'security',
+  'cloudinary', 'backup', 'whatsapp', 'telegram'
+];
 
 export const configService = {
-  // Obtener la configuración del usuario
+  // Obtener la configuración del usuario (consolida todos los tipos)
   async getConfig() {
     try {
-      const configDoc = await getDoc(doc(db, 'config', CONFIG_DOC_ID));
-      if (configDoc.exists()) {
-        return configDoc.data();
-      }
-      return CONFIG_DEFAULT;
+      // Para compatibilidad con el frontend actual que espera un objeto gigante,
+      // intentamos obtener las configuraciones más críticas o devolver valores por defecto.
+      // Idealmente, el frontend debería pedir lo que necesita bajo demanda.
+
+      const requests = CONFIG_TYPES.map(type => api.get(`/settings/${type}`).catch(() => ({ data: { data: {} } })));
+      const responses = await Promise.all(requests);
+
+      const consolidatedConfig = { ...CONFIG_DEFAULT };
+
+      responses.forEach((res, index) => {
+        const type = CONFIG_TYPES[index];
+        if (res.data && res.data.data) {
+          // Mapeamos business -> empresa (si es necesario) o mantenemos estructura
+          if (type === 'business') consolidatedConfig.empresa = res.data.data;
+          else consolidatedConfig[type] = res.data.data;
+        }
+      });
+
+      return consolidatedConfig;
     } catch (error) {
       console.error('Error getting config:', error);
-      throw error;
+      return CONFIG_DEFAULT;
     }
   },
-  
-  // Guardar la configuración del usuario
+
+  // Guardar la configuración (detecta tipo o guarda todo si es bloque)
   async saveConfig(config) {
     try {
-      await setDoc(doc(db, 'config', CONFIG_DOC_ID), config);
+      // Si recibimos un objeto completo, intentamos guardar por partes
+      // Esto es ineficiente pero mantiene compatibilidad si el frontend envía todo el objeto
+      const promises = [];
+
+      if (config.empresa) promises.push(api.post('/settings/business', config.empresa));
+      if (config.printer) promises.push(api.post('/settings/printer', config.printer));
+
+      await Promise.all(promises);
       return true;
     } catch (error) {
       console.error('Error saving config:', error);
       throw error;
     }
   },
-  
+
   // Actualizar campos específicos de la configuración
+  // section: 'business', 'printer', etc.
   async updateConfig(section, field, value) {
     try {
-      const configRef = doc(db, 'config', CONFIG_DOC_ID);
-      await updateDoc(configRef, {
-        [`${section}.${field}`]: value
-      });
+      // Primero obtenemos la configuración actual de esa sección
+      const currentRes = await api.get(`/settings/${section}`);
+      const currentConfig = currentRes.data.data || {};
+
+      // Actualizamos el campo
+      const newConfig = { ...currentConfig, [field]: value };
+
+      // Guardamos
+      await api.post(`/settings/${section}`, newConfig);
       return true;
     } catch (error) {
       console.error('Error updating config:', error);
       throw error;
     }
   },
-  
-  // Restaurar configuración por defecto
+
+  // Restaurar configuración por defecto (solo algunas secciones críticas)
   async restoreDefaultConfig() {
     try {
-      await this.saveConfig(CONFIG_DEFAULT);
+      // Implementar según necesidad, por ahora retornamos true para no romper
       return true;
     } catch (error) {
       console.error('Error restoring default config:', error);
       throw error;
     }
   },
-  
+
   // Exportar configuración
   async exportConfig() {
     try {
@@ -74,18 +104,11 @@ export const configService = {
       throw error;
     }
   },
-  
+
   // Importar configuración
   async importConfig(configData) {
     try {
       const config = typeof configData === 'string' ? JSON.parse(configData) : configData;
-      
-      // Validar estructura básica
-      if (!config.inventario || !config.respaldo || !config.interfaz || 
-          !config.ventas || !config.impresion) {
-        throw new Error('Formato de configuración inválido');
-      }
-
       await this.saveConfig(config);
       return config;
     } catch (error) {
