@@ -90,6 +90,7 @@ import {
 const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
+import QuickExpenseModal from '../expenses/QuickExpenseModal';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -111,6 +112,7 @@ const Sales = () => {
   const navigate = useNavigate();
   const [isListOpen, setIsListOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [openExpenseModal, setOpenExpenseModal] = useState(false);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{
@@ -773,6 +775,19 @@ const Sales = () => {
             Nueva Venta
           </Button>
           <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            startIcon={<MoneyIcon />}
+            onClick={() => setOpenExpenseModal(true)}
+            sx={{
+              height: 48,
+              borderRadius: 2
+            }}
+          >
+            Registrar Gasto
+          </Button>
+          <Button
             variant="outlined"
             fullWidth
             startIcon={<RefreshIcon />}
@@ -1396,6 +1411,11 @@ const Sales = () => {
           {error}
         </Alert>
       )}
+
+      <QuickExpenseModal
+        open={openExpenseModal}
+        onClose={() => setOpenExpenseModal(false)}
+      />
     </Box>
   );
 };

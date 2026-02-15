@@ -47,6 +47,7 @@ import { es } from 'date-fns/locale';
 import api from '../../api/api';
 import ProCard from '../common/ui/ProCard';
 import ProButton from '../common/ui/ProButton';
+import QuickExpenseModal from '../expenses/QuickExpenseModal';
 
 const DashboardPro = () => {
   const theme = useTheme();
@@ -72,6 +73,7 @@ const DashboardPro = () => {
     ultimasVentas: [],
   });
   const [hasData, setHasData] = useState(false);
+  const [openExpenseModal, setOpenExpenseModal] = useState(false);
 
   // Filtros dinámicos para las cards
   const [productFilter, setProductFilter] = useState('precio'); // 'precio', 'stock', 'valor'
@@ -675,6 +677,17 @@ const DashboardPro = () => {
                 variant="soft"
               >
                 Venta Reparaciones
+              </ProButton>
+            </Grid>
+            <Grid item xs={6} sm={4} md={2}>
+              <ProButton
+                startIcon={<AttachMoney />}
+                color="error"
+                onClick={() => setOpenExpenseModal(true)}
+                fullWidth
+                variant="outlined"
+              >
+                Gastos Rápidos
               </ProButton>
             </Grid>
           </Grid>
@@ -1384,6 +1397,16 @@ const DashboardPro = () => {
           </Grid>
         </Grid>
       </Box>
+
+      <QuickExpenseModal
+        open={openExpenseModal}
+        onClose={() => setOpenExpenseModal(false)}
+        onSuccess={() => {
+          // Opcional: recargar datos del dashboard si los gastos afectan el flujo de caja mostrado
+          // fetchDashboardData(); 
+          // Por ahora solo cerramos
+        }}
+      />
     </Box>
   );
 };
