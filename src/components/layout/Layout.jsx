@@ -119,15 +119,15 @@ const Layout = ({ children }) => {
         <Toolbar sx={{ minHeight: { xs: '64px', md: '64px' }, px: 2 }}>
           {isMobile && (
             <IconButton
-              color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
               sx={{
                 mr: 1,
-                color: 'gray.700',
+                color: '#1f2937', // Gray 800 explícito para asegurar contraste
+                backgroundColor: 'rgba(0,0,0,0.04)', // Fondo sutil para que se note que es un botón
                 '&:hover': {
-                  bgcolor: 'gray.100'
+                  bgcolor: 'rgba(0,0,0,0.08)'
                 }
               }}
             >

@@ -56,6 +56,7 @@ import {
   Warning,
   CalendarMonth,
   MoneyOff,
+  AddShoppingCart,
 } from '@mui/icons-material';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -983,10 +984,32 @@ const ModernDashboard = () => {
             Venta de Reparaciones
           </Button>
 
+          {/* Botón de Gasto Rápido - Prioridad Alta */}
           <Button
             variant="contained"
-            startIcon={<Settings />}
-            onClick={() => handleNavigate('/settings')}
+            startIcon={<MoneyOff />}
+            onClick={() => handleNavigate('/expenses')}
+            sx={{
+              bgcolor: '#e53e3e', // Red 600
+              color: 'white',
+              '&:hover': { bgcolor: '#c53030' },
+              height: { xs: 56, md: 48 },
+              borderRadius: 2,
+              px: 3,
+              flex: { md: '1 1 calc(33.333% - 16px)', lg: '1 1 calc(25% - 16px)' },
+              maxWidth: { md: 'calc(33.333% - 16px)', lg: 'calc(25% - 16px)' },
+              minWidth: { xs: '100%', md: '200px' },
+              fontSize: { xs: '1rem', md: '0.875rem' },
+              boxShadow: '0 4px 6px rgba(229, 62, 62, 0.25)'
+            }}
+          >
+            Registrar Gasto
+          </Button>
+
+          <Button
+            variant="contained"
+            startIcon={<AddShoppingCart />}
+            onClick={() => handleNavigate('/pos')}
             sx={{
               bgcolor: 'error.main',
               color: 'white',

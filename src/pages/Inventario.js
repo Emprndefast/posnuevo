@@ -69,12 +69,18 @@ import ResponsiveLayout from '../components/layout/ResponsiveLayout';
 import ContentCard from '../components/layout/ContentCard';
 import ContentSection from '../components/layout/ContentSection';
 import { pageStyles, cardStyles, tableStyles } from '../styles/commonStyles';
+import { useBranch } from '../context/BranchContext';
+import inventoryService from '../services/inventoryService';
+import TransferStockModal from '../components/inventory/TransferStockModal';
+import MovementHistoryModal from '../components/inventory/MovementHistoryModal';
+import { SwapHoriz as TransferIcon, History as HistoryIcon } from '@mui/icons-material';
 
 const Inventory = () => {
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const { darkMode } = useTheme();
   const { loading: mongoLoading, error, getCollection, addDocument, updateDocument, deleteDocument, uploadFile } = useMongo();
+  const { activeBranch, branches, changeBranch } = useBranch();
 
   // Estados
   const [isInitialLoading, setIsInitialLoading] = useState(true);
@@ -90,6 +96,8 @@ const Inventory = () => {
   const [openProductForm, setOpenProductForm] = useState(false);
   const [openStockManager, setOpenStockManager] = useState(false);
   const [openProductLabel, setOpenProductLabel] = useState(false);
+  const [openTransferModal, setOpenTransferModal] = useState(false);
+  const [openHistoryModal, setOpenHistoryModal] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [anchorEl, setAnchorEl] = useState(null);
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
@@ -130,45 +138,45 @@ const Inventory = () => {
         setIsRefreshing(true);
       }
 
-      console.log("Cargando productos de la colección:", COLLECTIONS.PRODUCTS);
-      const data = await getCollection(COLLECTIONS.PRODUCTS);
-
-      if (!data) {
-        throw new Error('No se pudo obtener datos de la colección');
+      if (!activeBranch) {
+        console.log("No hay sucursal activa seleccionada");
+        return;
       }
 
+      console.log("Cargando inventario para sucursal:", activeBranch.id);
+
+      // Usar servicio de inventario en lugar de getCollection directo
+      // Esto trae productos + stock de la sucursal actual
+      const response = await inventoryService.getStockByBranch(activeBranch.id, { limit: 1000 }); // Traer todos por ahora para client-side filtering
+
+      if (!response.success) {
+        throw new Error('No se pudo obtener datos del inventario');
+      }
+
+      const data = response.data;
       console.log("Datos recibidos del backend:", data);
 
-      // Procesar datos para asegurar que todos los campos necesarios estén presentes
-      // Filtrar solo productos activos
-      const processedData = data
-        .filter(product => product.active !== false) // Filtrar productos inactivos
-        .map(product => ({
-          id: product.id || product._id,
-          _id: product._id || product.id,
-          name: product.name || product.nombre || 'Producto sin nombre',
-          code: product.code || product.codigo || (product.id || product._id).substring(0, 6),
-          barcode: product.barcode || '',
-          price: parseFloat(product.price || product.precio) || 0,
-          cost: parseFloat(product.cost || product.costo) || 0,
-          quantity: parseInt(product.stock || product.stock_actual || product.quantity) || 0,
-          minStock: parseInt(product.minStock || product.stock_minimo) || 5,
-          maxStock: parseInt(product.maxStock || product.stock_maximo) || 100,
-          category: product.category || product.categoria || 'Otros',
-          department: product.department || product.departamento || '',
-          profit: parseFloat(product.profit) || 0,
-          profitMargin: parseFloat(product.profitMargin) || 0,
-          tags: product.tags || [],
-          photo: product.photo || product.imageUrl || product.imagen || '',
-          description: product.description || product.descripcion || '',
-          location: product.location || product.ubicacion || '',
-          supplier: product.supplier || product.proveedor || '',
-          active: product.active !== false,
-          createdAt: product.created_at || product.createdAt || new Date().toISOString(),
-          updatedAt: product.updated_at || product.updatedAt || new Date().toISOString()
-        }));
+      const processedData = data.map(product => ({
+        id: product._id || product.id,
+        _id: product._id || product.id,
+        name: product.name || product.nombre || 'Producto sin nombre',
+        code: product.code || product.codigo || '',
+        barcode: product.barcode || '',
+        price: parseFloat(product.price || product.precio) || 0,
+        cost: parseFloat(product.cost || product.costo) || 0,
+        quantity: parseInt(product.quantity || product.cantidad || 0), // Stock específico de sucursal
+        minStock: parseInt(product.min_stock || product.stock_minimo) || 5, // Config específica
+        category: product.category || product.categoria || 'Otros',
+        department: product.department || product.departamento || '',
+        photo: product.photo || product.imageUrl || product.imagen || '',
+        description: product.description || product.descripcion || '',
+        location: product.ubicacion_en_sucursal || product.ubicacion || '',
+        supplier: product.supplier || product.proveedor || '',
+        active: product.active !== false,
+        createdAt: product.created_at || product.createdAt || new Date().toISOString(),
+        updatedAt: product.updated_at || product.updatedAt || new Date().toISOString()
+      }));
 
-      console.log("Productos procesados:", processedData);
       setProducts(processedData);
 
       // Calcular estadísticas
@@ -194,14 +202,13 @@ const Inventory = () => {
 
       setStats(stats);
 
-      // Extraer categorías únicas
       const uniqueCategories = [...new Set(processedData.map(p => p.category).filter(Boolean))];
       setCategories(uniqueCategories);
 
       if (showMessage) {
         setSnackbar({
           open: true,
-          message: 'Productos actualizados exitosamente',
+          message: 'Inventario actualizado exitosamente',
           severity: 'success'
         });
       }
@@ -212,20 +219,11 @@ const Inventory = () => {
         message: err.message || 'Error al cargar los productos',
         severity: 'error'
       });
-      setProducts([]);
-      setStats({
-        totalProducts: 0,
-        totalStock: 0,
-        lowStockCount: 0,
-        outOfStockCount: 0,
-        totalValue: 0
-      });
-      setCategories([]);
     } finally {
       setIsInitialLoading(false);
       setIsRefreshing(false);
     }
-  }, [getCollection, isInitialLoading]);
+  }, [activeBranch, isInitialLoading]);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -526,35 +524,16 @@ const Inventory = () => {
 
   const handleSaveStock = async (productId, quantity, operation, reason) => {
     try {
-      const product = products.find(p => p.id === productId);
-      if (!product) return;
+      // operation: 'add' (entrada) | 'subtract' (salida)
+      // inventoryService.adjustStock espera: tipo: 'ajuste_entrada' | 'ajuste_salida'
+      const tipo = operation === 'add' ? 'ajuste_entrada' : 'ajuste_salida';
 
-      const newQuantity = operation === 'add'
-        ? product.quantity + quantity
-        : product.quantity - quantity;
-
-      if (newQuantity < 0) {
-        throw new Error('No hay suficiente stock disponible');
-      }
-
-      // Cerrar diálogo primero
-      setOpenStockManager(false);
-
-      await updateDocument(COLLECTIONS.PRODUCTS, productId, {
-        quantity: newQuantity,
-        updatedAt: new Date().toISOString()
-      });
-
-      // Registrar movimiento de stock
-      await addDocument(COLLECTIONS.INVENTORY, {
-        productId,
-        productName: product.name,
-        quantity,
-        operation,
-        reason,
-        previousStock: product.quantity,
-        newStock: newQuantity,
-        timestamp: new Date().toISOString()
+      await inventoryService.adjustStock({
+        product_id: productId,
+        branch_id: activeBranch.id,
+        cantidad: quantity,
+        tipo,
+        motivo: reason
       });
 
       setSnackbar({
@@ -563,12 +542,17 @@ const Inventory = () => {
         severity: 'success'
       });
 
-      // Recargar productos sin mostrar mensaje
+      // Cerrar diálogo
+      setOpenStockManager(false);
+
+      // Recargar inventario
       await loadProducts(false);
+
     } catch (err) {
+      console.error('Error ajustando stock:', err);
       setSnackbar({
         open: true,
-        message: err.message || 'Error al actualizar el stock',
+        message: err.message || err.response?.data?.message || 'Error al actualizar el stock',
         severity: 'error'
       });
     }
@@ -701,6 +685,28 @@ const Inventory = () => {
               <InventoryIcon fontSize="small" />
             </IconButton>
           </Tooltip>
+          <Tooltip title="Transferir a otra sucursal">
+            <IconButton
+              size="small"
+              onClick={() => {
+                setSelectedProduct(product);
+                setOpenTransferModal(true);
+              }}
+            >
+              <TransferIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Ver Historial (Kardex)">
+            <IconButton
+              size="small"
+              onClick={() => {
+                setSelectedProduct(product);
+                setOpenHistoryModal(true);
+              }}
+            >
+              <HistoryIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Imprimir Etiqueta">
             <IconButton
               size="small"
@@ -774,9 +780,9 @@ const Inventory = () => {
             </Box>
           ) : (
             <>
-              <Box sx={{ mb: 3 }}>
+              <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
                 <TextField
-                  fullWidth
+                  sx={{ flexGrow: 1 }}
                   variant="outlined"
                   placeholder="Buscar productos..."
                   value={searchTerm}
@@ -789,42 +795,66 @@ const Inventory = () => {
                     )
                   }}
                 />
-              </Box>
 
-              <TableContainer sx={tableStyles.root}>
-                <Table sx={tableStyles.table}>
-                  {renderTableHeader()}
-                  <TableBody>
-                    {filteredProducts.length > 0 ? (
-                      filteredProducts.map((product) => renderTableRow(product))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                          <Typography variant="body1" color="text.secondary">
-                            No se encontraron productos
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                {/* Selector de Sucursal */}
+                {branches.length > 1 && (
+                  <TextField
+                    select
+                    label="Sucursal"
+                    value={activeBranch?.id || ''}
+                    onChange={(e) => changeBranch(e.target.value)}
+                    variant="outlined"
+                    sx={{ minWidth: 200 }}
+                    size="small"
+                  >
+                    {branches.map((branch) => (
+                      <MenuItem key={branch.id} value={branch.id}>
+                        {branch.nombre}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
 
-              <TablePagination
-                component="div"
-                count={filteredAndSortedProducts.length}
-                page={page}
-                onPageChange={handleChangePage}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                labelRowsPerPage="Productos por página"
-                labelDisplayedRows={({ from, to, count }) =>
-                  `${from}-${to} de ${count}`
-                }
-              />
-            </>
+                <Tooltip title="Filtros">
+                  <IconButton onClick={(e) => setFilterAnchorEl(e.currentTarget)}>
+                    <FilterIcon color={Object.values(activeFilters).some(Boolean) ? 'primary' : 'inherit'} />
+                  </IconButton>
+                </Tooltip>
+
+                <TableContainer sx={tableStyles.root}>
+                  <Table sx={tableStyles.table}>
+                    {renderTableHeader()}
+                    <TableBody>
+                      {filteredProducts.length > 0 ? (
+                        filteredProducts.map((product) => renderTableRow(product))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                            <Typography variant="body1" color="text.secondary">
+                              No se encontraron productos
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                <TablePagination
+                  component="div"
+                  count={filteredAndSortedProducts.length}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  labelRowsPerPage="Productos por página"
+                  labelDisplayedRows={({ from, to, count }) =>
+                    `${from}-${to} de ${count}`
+                  }
+                />
+              </>
           )}
-        </ContentCard>
+            </ContentCard>
       </ContentSection>
 
       {/* Diálogos */}
@@ -910,6 +940,19 @@ const Inventory = () => {
           />
         </DialogContent>
       </Dialog>
+
+      <TransferStockModal
+        open={openTransferModal}
+        onClose={() => setOpenTransferModal(false)}
+        product={selectedProduct}
+        onSuccess={() => loadProducts(true)}
+      />
+
+      <MovementHistoryModal
+        open={openHistoryModal}
+        onClose={() => setOpenHistoryModal(false)}
+        product={selectedProduct}
+      />
 
       <Dialog
         open={openProductLabel}

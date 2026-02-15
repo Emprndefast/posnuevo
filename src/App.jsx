@@ -47,6 +47,7 @@ import { VentasProvider } from './context/VentasContext';
 import { ClientesProvider } from './context/ClientesContext';
 import { CrmProvider } from './context/CrmContext';
 import { CartProvider } from './context/CartContext';
+import { BranchProvider } from './context/BranchContext';
 
 // Configurar goober
 setup(createElement);
@@ -151,13 +152,13 @@ function TestTrial() {
 
       await testUtils.modifySubscriptionToExpired(targetUserId);
       await testUtils.disableFreePlan(targetUserId);
-      
+
       // Forzar cierre de sesión
       await auth.signOut();
-      
-      setMessage({ 
-        type: 'success', 
-        text: 'Suscripción modificada para simular vencimiento y plan gratuito desactivado. Serás redirigido al login...' 
+
+      setMessage({
+        type: 'success',
+        text: 'Suscripción modificada para simular vencimiento y plan gratuito desactivado. Serás redirigido al login...'
       });
 
       // Redirigir al login después de 2 segundos
@@ -193,7 +194,7 @@ function TestTrial() {
           <Typography variant="h5" gutterBottom>
             Prueba de Período de Prueba
           </Typography>
-          
+
           {message.text && (
             <Alert severity={message.type} sx={{ mb: 2 }}>
               {message.text}
@@ -299,7 +300,7 @@ const AppContent = () => {
     } else if (localStorage.getItem('protectorPantalla')) {
       try {
         config = JSON.parse(localStorage.getItem('protectorPantalla'));
-      } catch {}
+      } catch { }
     }
     setConfigProtector(config);
   }, [settings]);
@@ -312,10 +313,10 @@ const AppContent = () => {
       if (inactividadTimer.current) {
         clearTimeout(inactividadTimer.current);
       }
-      
+
       // Convertir minutos a milisegundos
       const timeoutMs = (configProtector.timeout || 5) * 60 * 1000;
-      
+
       inactividadTimer.current = setTimeout(() => {
         console.log('Activando bloqueo por inactividad');
         setBloqueado(true);
@@ -471,10 +472,12 @@ function App() {
                                 <VentasProvider>
                                   <ClientesProvider>
                                     <CrmProvider>
-                                      <SnackbarProvider maxSnack={3}>
-                                        <CssBaseline />
-                                        <AppContent />
-                                      </SnackbarProvider>
+                                      <BranchProvider>
+                                        <SnackbarProvider maxSnack={3}>
+                                          <CssBaseline />
+                                          <AppContent />
+                                        </SnackbarProvider>
+                                      </BranchProvider>
                                     </CrmProvider>
                                   </ClientesProvider>
                                 </VentasProvider>
