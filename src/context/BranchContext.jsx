@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContextMongo';
-import axios from '../config/axios';
+import api from '../api/api';
 
 const BranchContext = createContext();
 
@@ -34,7 +34,7 @@ export const BranchProvider = ({ children }) => {
             // Si el usuario tiene sucursales embebidas, usarlas, sino buscar
             // Idealmente buscar detalles completos de las sucursales asignadas
             // Endpoint sugerido: GET /branches/my-branches
-            const response = await axios.get('/branches/my-branches');
+            const response = await api.get('/branches/my-branches');
             if (response.data.success) {
                 const branchesList = response.data.data;
                 setBranches(branchesList);
@@ -87,7 +87,7 @@ export const BranchProvider = ({ children }) => {
 
     const apiUpdateActiveBranch = async (branchId) => {
         try {
-            await axios.put('/auth/switch-branch', { branch_id: branchId });
+            await api.put('/auth/switch-branch', { branch_id: branchId });
             // updateUser({ active_branch_id: branchId }); // Actualizar contexto Auth si tiene update parcial
         } catch (error) {
             console.error('Error sincronizando sucursal activa:', error);
