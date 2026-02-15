@@ -55,6 +55,7 @@ import {
   PointOfSale,
   Warning,
   CalendarMonth,
+  MoneyOff,
 } from '@mui/icons-material';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
@@ -803,10 +804,10 @@ const ModernDashboard = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             <Chip
               label={`Rol: ${userRole?.toLowerCase() === 'admin' ? 'ADMINISTRADOR' :
-                  userRole?.toLowerCase() === 'owner' ? 'PROPIETARIO' :
-                    userRole?.toLowerCase() === 'manager' ? 'GERENTE' :
-                      userRole?.toLowerCase() === 'staff' ? 'EMPLEADO' :
-                        userRole?.toUpperCase() || 'No asignado'
+                userRole?.toLowerCase() === 'owner' ? 'PROPIETARIO' :
+                  userRole?.toLowerCase() === 'manager' ? 'GERENTE' :
+                    userRole?.toLowerCase() === 'staff' ? 'EMPLEADO' :
+                      userRole?.toUpperCase() || 'No asignado'
                 }`}
               color={isAdmin() || isOwner() ? 'primary' : 'default'}
               sx={{ fontWeight: 500, mb: 1, px: 2, py: 0.5 }}
@@ -923,6 +924,26 @@ const ModernDashboard = () => {
             }}
           >
             Registrar Cliente
+          </Button>
+
+          <Button
+            variant="contained"
+            startIcon={<MoneyOff />}
+            onClick={() => handleNavigate('/expenses')}
+            sx={{
+              bgcolor: 'error.main',
+              color: 'white',
+              '&:hover': { bgcolor: 'error.dark' },
+              height: { xs: 56, md: 48 },
+              borderRadius: 2,
+              px: 3,
+              flex: { md: '1 1 calc(33.333% - 16px)', lg: '1 1 calc(25% - 16px)' },
+              maxWidth: { md: 'calc(33.333% - 16px)', lg: 'calc(25% - 16px)' },
+              minWidth: { xs: '100%', md: '200px' },
+              fontSize: { xs: '1rem', md: '0.875rem' }
+            }}
+          >
+            Registrar Gasto
           </Button>
 
           <Button

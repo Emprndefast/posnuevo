@@ -114,17 +114,32 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
 
   useEffect(() => {
     const fetchBusinessInfo = async () => {
-      if (!user?.uid) return;
+      if (!user?.uid && !user?._id && !user?.id) return;
 
       try {
-        const businessRef = doc(db, 'business', user.uid);
-        const businessDoc = await getDoc(businessRef);
-        if (businessDoc.exists()) {
-          setBusinessInfo(businessDoc.data());
+        // Obtener configuración empresarial desde MongoDB
+        const response = await api.get('/settings/business');
+        if (response.data.success && response.data.data) {
+          setBusinessInfo(response.data.data);
+        } else {
+          // Si no hay configuración, usar valores por defecto
+          setBusinessInfo({
+            name: 'POSENT PRO',
+            address: 'Dirección no disponible',
+            phone: 'N/A',
+            ruc: 'N/A'
+          });
         }
       } catch (err) {
         console.error('Error al cargar información del negocio:', err);
         setError('Error al cargar información del negocio');
+        // Usar valores por defecto en caso de error
+        setBusinessInfo({
+          name: 'POSENT PRO',
+          address: 'Dirección no disponible',
+          phone: 'N/A',
+          ruc: 'N/A'
+        });
       }
     };
 

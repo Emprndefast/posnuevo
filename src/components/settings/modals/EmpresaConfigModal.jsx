@@ -8,16 +8,22 @@ import {
   CircularProgress,
   Alert,
   Snackbar,
-  Grid
+  Grid,
+  Avatar,
+  IconButton,
+  Card,
+  CardContent
 } from '@mui/material';
+import { CloudUpload, Delete } from '@mui/icons-material';
 import api from '../../../api/api';
 
-// Modal de configuración de empresa
 const EmpresaConfigModal = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoPreview, setLogoPreview] = useState(null);
 
   const [formData, setFormData] = useState({
     nombre: '',
@@ -26,6 +32,7 @@ const EmpresaConfigModal = ({ onClose }) => {
     telefono: '',
     email: '',
     website: '',
+    logo: '',
     moneda: 'DOP',
     impuesto: 18
   });
@@ -39,10 +46,15 @@ const EmpresaConfigModal = ({ onClose }) => {
       setLoading(true);
       const response = await api.get('/settings/business');
       if (response.data && response.data.data) {
+        const businessData = response.data.data;
         setFormData(prev => ({
           ...prev,
-          ...response.data.data
+          ...businessData
         }));
+        // Si hay logo, setear preview
+        if (businessData.logo) {
+          setLogoPreview(businessData.logo);
+        }
       }
       setLoading(false);
     } catch (err) {
@@ -58,6 +70,65 @@ const EmpresaConfigModal = ({ onClose }) => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      setSnackbar({ open: true, message: 'Por favor selecciona una imagen válida', severity: 'error' });
+      return;
+    }
+
+    // Validar tamaño (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setSnackbar({ open: true, message: 'La imagen no debe superar 5MB', severity: 'error' });
+      return;
+    }
+
+    try {
+      setUploadingLogo(true);
+
+      // Crear preview local
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Subir a Cloudinary
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await api.post('/upload', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data && response.data.url) {
+        setFormData(prev => ({
+          ...prev,
+          logo: response.data.url
+        }));
+        setSnackbar({ open: true, message: 'Logo cargado exitosamente', severity: 'success' });
+      }
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+      setSnackbar({ open: true, message: 'Error al cargar el logo', severity: 'error' });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData(prev => ({
+      ...prev,
+      logo: ''
+    }));
+    setLogoPreview(null);
   };
 
   const handleSave = async () => {
@@ -91,6 +162,67 @@ const EmpresaConfigModal = ({ onClose }) => {
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      {/* Sección de Logo */}
+      <Card sx={{ mb: 3, backgroundColor: 'rgba(0,0,0,0.02)' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+            Logo de la Empresa
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+            {/* Preview del logo */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Avatar
+                src={logoPreview || formData.logo}
+                alt="Logo"
+                sx={{
+                  width: 120,
+                  height: 120,
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+                variant="rounded"
+              >
+                {!logoPreview && !formData.logo && 'LOGO'}
+              </Avatar>
+            </Box>
+
+            {/* Botones de acción */}
+            <Box sx={{ flex: 1 }}>
+              <Stack spacing={2}>
+                <Button
+                  variant="contained"
+                  component="label"
+                  startIcon={uploadingLogo ? <CircularProgress size={20} /> : <CloudUpload />}
+                  disabled={uploadingLogo}
+                >
+                  {uploadingLogo ? 'Subiendo...' : (formData.logo ? 'Cambiar Logo' : 'Subir Logo')}
+                  <input
+                    type="file"
+                    hidden
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                </Button>
+                {(logoPreview || formData.logo) && (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<Delete />}
+                    onClick={handleRemoveLogo}
+                  >
+                    Eliminar Logo
+                  </Button>
+                )}
+                <Typography variant="caption" color="text.secondary">
+                  Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                </Typography>
+              </Stack>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
 
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
