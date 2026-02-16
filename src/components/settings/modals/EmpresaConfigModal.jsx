@@ -87,7 +87,7 @@ const EmpresaConfigModal = ({ onClose }) => {
 
       // Subir a Cloudinary
       const formDataUpload = new FormData();
-      formDataUpload.append('file', file);
+      formDataUpload.append('image', file);
 
       const response = await api.post('/upload/file', formDataUpload, {
         headers: {
