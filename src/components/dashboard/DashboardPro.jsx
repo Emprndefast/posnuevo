@@ -798,8 +798,8 @@ const DashboardPro = () => {
                       }
                     }}
                   >
-                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: '#ecfdf5', mb: 0.75 }}>
-                      <ShoppingCart sx={{ fontSize: 22, color: '#10b981' }} />
+                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.success.main, 0.1), mb: 0.75 }}>
+                      <ShoppingCart sx={{ fontSize: 22, color: 'success.main' }} />
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25, fontSize: '1.1rem' }}>
                       ${dashboardData.cajaActual.toLocaleString()}
@@ -815,16 +815,16 @@ const DashboardPro = () => {
                       textAlign: 'center',
                       p: 1.5,
                       borderRadius: 1.5,
-                      border: '1px solid #e5e7eb',
+                      border: `1px solid ${theme.palette.divider}`,
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        borderColor: '#f59e0b',
-                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.12)',
+                        borderColor: theme.palette.warning.main,
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.warning.main, 0.12)}`,
                       }
                     }}
                   >
-                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: '#fffbeb', mb: 0.75 }}>
-                      <InventoryIcon sx={{ fontSize: 22, color: '#f59e0b' }} />
+                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.warning.main, 0.1), mb: 0.75 }}>
+                      <InventoryIcon sx={{ fontSize: 22, color: 'warning.main' }} />
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25, fontSize: '1.1rem' }}>
                       {dashboardData.stockBajo}
@@ -840,11 +840,11 @@ const DashboardPro = () => {
                       textAlign: 'center',
                       p: 1.5,
                       borderRadius: 1.5,
-                      border: '1px solid #e5e7eb',
+                      border: `1px solid ${theme.palette.divider}`,
                       transition: 'all 0.2s ease',
                       '&:hover': {
-                        borderColor: '#3b82f6',
-                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.12)',
+                        borderColor: theme.palette.info.main,
+                        boxShadow: `0 2px 8px ${alpha(theme.palette.info.main, 0.12)}`,
                       }
                     }}
                   >
@@ -877,8 +877,8 @@ const DashboardPro = () => {
                       }
                     }}
                   >
-                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: '#f5f3ff', mb: 0.75 }}>
-                      <Speed sx={{ fontSize: 22, color: '#8b5cf6' }} />
+                    <Box sx={{ display: 'inline-flex', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.secondary.main, 0.1), mb: 0.75 }}>
+                      <Speed sx={{ fontSize: 22, color: 'secondary.main' }} />
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.25, fontSize: '1.1rem' }}>
                       ${dashboardData.promedioHora.toFixed(0)}
@@ -895,8 +895,8 @@ const DashboardPro = () => {
                 mt: 1.5,
                 p: 1.5,
                 borderRadius: 1.5,
-                bgcolor: '#f9fafb',
-                border: '1px solid #e5e7eb'
+                bgcolor: theme.palette.action.hover,
+                border: `1px solid ${theme.palette.divider}`
               }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.75rem' }}>
@@ -912,7 +912,7 @@ const DashboardPro = () => {
                   sx={{
                     height: 6,
                     borderRadius: 3,
-                    bgcolor: '#e5e7eb',
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
                     '& .MuiLinearProgress-bar': {
                       background: 'linear-gradient(90deg, #667eea, #764ba2)',
                       borderRadius: 3,
@@ -934,8 +934,8 @@ const DashboardPro = () => {
                 py: 1.5,
                 pl: '145px',
                 pr: '151px',
-                background: 'white',
-                border: '2px dashed #e5e7eb',
+                background: theme.palette.background.paper,
+                border: `2px dashed ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1411,7 +1411,7 @@ const DashboardPro = () => {
           // Por ahora solo cerramos
         }}
       />
-    </Box>
+    </Box >
   );
 };
 
