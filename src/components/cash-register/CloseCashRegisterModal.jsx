@@ -21,6 +21,7 @@ import {
     TableRow
 } from '@mui/material';
 import { AttachMoney, Description, Calculate } from '@mui/icons-material';
+import cashRegisterService from '../../services/cashRegisterService';
 
 const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
     const [loading, setLoading] = useState(false);
@@ -106,8 +107,7 @@ const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
             setLoading(true);
             setError('');
 
-            const { closeCashRegister } = await import('../../services/cashRegisterService');
-            await closeCashRegister.default.closeCashRegister(cashRegister._id || cashRegister.id, {
+            await cashRegisterService.closeCashRegister(cashRegister._id || cashRegister.id, {
                 cash_breakdown: breakdown,
                 closing_notes: closingNotes
             });
