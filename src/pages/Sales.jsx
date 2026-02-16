@@ -74,7 +74,8 @@ const Sales = () => {
         quantity: i.cantidad || i.quantity || 1
       })),
       status: sale.estado || sale.status || 'completed',
-      ticketNumber: sale.numero_venta || sale._id || sale.id
+      ticketNumber: sale.numero_venta || sale._id || sale.id,
+      branchName: sale.branch_id?.nombre || sale.sucursal?.nombre || (sale.branch ? sale.branch.nombre : 'General')
     };
   };
 
@@ -118,7 +119,7 @@ const Sales = () => {
 
       // Usar el servicio de impresión
       await print('sale', printData);
-      
+
       setSnackbar({
         open: true,
         message: 'Ticket impreso correctamente',
@@ -141,18 +142,18 @@ const Sales = () => {
         const end = new Date(date);
         switch (period) {
           case 'day':
-            start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+            start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999);
             break;
           case 'week':
-            start.setDate(start.getDate() - start.getDay()); start.setHours(0,0,0,0);
-            end.setDate(end.getDate() + (6 - end.getDay())); end.setHours(23,59,59,999);
+            start.setDate(start.getDate() - start.getDay()); start.setHours(0, 0, 0, 0);
+            end.setDate(end.getDate() + (6 - end.getDay())); end.setHours(23, 59, 59, 999);
             break;
           case 'month':
-            start.setDate(1); start.setHours(0,0,0,0);
-            end = new Date(start.getFullYear(), start.getMonth()+1, 0); end.setHours(23,59,59,999);
+            start.setDate(1); start.setHours(0, 0, 0, 0);
+            end = new Date(start.getFullYear(), start.getMonth() + 1, 0); end.setHours(23, 59, 59, 999);
             break;
           default:
-            start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+            start.setHours(0, 0, 0, 0); end.setHours(23, 59, 59, 999);
         }
         return { start, end };
       };
@@ -185,7 +186,7 @@ const Sales = () => {
 
       // Resumen
       const total = salesInPeriod.reduce((sum, sale) => sum + sale.total, 0);
-      const totalItems = salesInPeriod.reduce((sum, sale) => 
+      const totalItems = salesInPeriod.reduce((sum, sale) =>
         sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0);
 
       page.drawText(`Total Ventas: $${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}`, {
@@ -267,7 +268,7 @@ const Sales = () => {
 
         // Usar el servicio de impresión
         await print('sale', printData);
-        
+
         setSnackbar({
           open: true,
           message: 'Ticket impreso correctamente',
@@ -285,8 +286,8 @@ const Sales = () => {
     if (!sale) return null;
 
     return (
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={onClose}
         maxWidth="md"
         fullWidth
@@ -297,8 +298,8 @@ const Sales = () => {
           }
         }}
       >
-        <DialogTitle sx={{ 
-          borderBottom: 1, 
+        <DialogTitle sx={{
+          borderBottom: 1,
           borderColor: 'divider',
           display: 'flex',
           justifyContent: 'space-between',
@@ -510,6 +511,7 @@ const Sales = () => {
           <TableHead>
             <TableRow>
               <TableCell>Fecha</TableCell>
+              <TableCell>Sucursal / Caja</TableCell>
               <TableCell>Cliente</TableCell>
               <TableCell>Total</TableCell>
               <TableCell>Estado</TableCell>
@@ -520,6 +522,11 @@ const Sales = () => {
             {sales.map((sale) => (
               <TableRow key={sale.id}>
                 <TableCell>{saleService.formatDate(sale.date)}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                    {sale.branchName}
+                  </Typography>
+                </TableCell>
                 <TableCell>{sale.customerName || 'Cliente General'}</TableCell>
                 <TableCell>{sale.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</TableCell>
                 <TableCell>

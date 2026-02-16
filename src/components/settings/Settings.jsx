@@ -41,6 +41,7 @@ import ProCard from '../common/ui/ProCard';
 
 // Lazy load modals
 const EmpresaConfigModal = lazy(() => import('./modals/EmpresaConfigModal'));
+const SucursalesConfigModal = lazy(() => import('./modals/SucursalesConfigModal'));
 const ImpresoraConfigModal = lazy(() => import('./modals/ImpresoraConfigModal'));
 const NotificacionesConfigModal = lazy(() => import('./modals/NotificacionesConfigModal'));
 const SeguridadConfigModal = lazy(() => import('./modals/SeguridadConfigModal'));
@@ -187,6 +188,14 @@ const Settings = () => {
           icon: Business,
           color: '#7C3AED',
           modal: EmpresaConfigModal,
+        },
+        {
+          id: 'sucursales',
+          title: 'Gestión de Sucursales',
+          description: 'Tiendas, almacenes y puntos de venta',
+          icon: Storefront,
+          color: '#E11D48',
+          modal: SucursalesConfigModal,
         },
         {
           id: 'facturacion',
