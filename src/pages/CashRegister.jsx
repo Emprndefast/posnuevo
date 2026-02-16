@@ -34,10 +34,10 @@ import {
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import cashRegisterService from '../../services/cashRegisterService';
-import { useBranch } from '../../context/BranchContext';
-import OpenCashRegisterModal from './OpenCashRegisterModal';
-import CloseCashRegisterModal from './CloseCashRegisterModal';
+import cashRegisterService from '../services/cashRegisterService';
+import { useBranch } from '../context/BranchContext';
+import OpenCashRegisterModal from '../components/cash-register/OpenCashRegisterModal';
+import CloseCashRegisterModal from '../components/cash-register/CloseCashRegisterModal';
 
 const CashRegisterPage = () => {
     const theme = useTheme();
