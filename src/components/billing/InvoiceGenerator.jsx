@@ -30,9 +30,8 @@ import {
 } from '@mui/icons-material';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
-import { db } from '../../firebase/config';
-import { collection, addDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../../context/AuthContextMongo';
+import api from '../../api/api';
 
 export const InvoiceGenerator = () => {
   const [invoiceData, setInvoiceData] = useState({
@@ -69,12 +68,11 @@ export const InvoiceGenerator = () => {
 
   const loadBusinessInfo = async () => {
     try {
-      const q = query(collection(db, 'business_info'), where('userId', '==', user.uid));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
+      const response = await api.get('/settings/business');
+      if (response.data && response.data.data) {
         setInvoiceData(prevData => ({
           ...prevData,
-          businessInfo: snapshot.docs[0].data()
+          businessInfo: response.data.data
         }));
       }
     } catch (err) {
@@ -113,17 +111,28 @@ export const InvoiceGenerator = () => {
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    
+
     // Encabezado
     doc.setFontSize(20);
     doc.text('Factura', 105, 20, { align: 'center' });
-    
+
     // Información de la empresa
     doc.setFontSize(12);
-    doc.text(invoiceData.businessInfo?.name || 'Tu Empresa', 20, 40);
-    doc.text(invoiceData.businessInfo?.address || 'Dirección', 20, 50);
-    doc.text(invoiceData.businessInfo?.phone || 'Teléfono', 20, 60);
-    doc.text(invoiceData.businessInfo?.email || 'Email', 20, 70);
+
+    // Si hay logo, intentar agregarlo
+    if (invoiceData.businessInfo?.logo) {
+      try {
+        // Nota: Para imágenes remotas en jsPDF a veces se requiere proxy o convertir a base64
+        doc.addImage(invoiceData.businessInfo.logo, 'JPEG', 20, 10, 30, 30);
+      } catch (e) {
+        console.error('Error agregando logo al PDF:', e);
+      }
+    }
+
+    doc.text(invoiceData.businessInfo?.nombre || invoiceData.businessInfo?.name || 'Tu Empresa', 20, 50);
+    doc.text(invoiceData.businessInfo?.direccion || invoiceData.businessInfo?.address || 'Dirección', 20, 60);
+    doc.text(invoiceData.businessInfo?.telefono || invoiceData.businessInfo?.phone || 'Teléfono', 20, 70);
+    doc.text(invoiceData.businessInfo?.email || 'Email', 20, 80);
 
     // Información de la factura
     doc.text(`Factura #: ${invoiceData.invoiceNumber}`, 20, 90);
@@ -165,16 +174,14 @@ export const InvoiceGenerator = () => {
     setError(null);
 
     try {
-      const invoiceRef = await addDoc(collection(db, 'invoices'), {
+      const response = await api.post('/invoices', {
         ...invoiceData,
         subtotal,
         vat,
         total,
-        createdAt: serverTimestamp(),
-        userId: user.uid,
         status: 'generated'
       });
-      console.log('Factura guardada con ID:', invoiceRef.id);
+      console.log('Factura guardada:', response.data);
       // Aquí podrías mostrar un mensaje de éxito
     } catch (error) {
       console.error('Error al guardar la factura:', error);

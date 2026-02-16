@@ -1,12 +1,13 @@
 import { db } from '../firebase/config';
 import { doc, getDoc, updateDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { usePermissions } from '../context/PermissionsContext';
+import api from '../api/api';
 
 export const fiscalPrinterService = {
   // Validar configuración de impresora
   validatePrinterConfig: (printerConfig) => {
     const requiredFields = ['id', 'model', 'port', 'brand'];
-    
+
     for (const field of requiredFields) {
       if (!printerConfig[field]) {
         throw new Error(`Campo requerido faltante: ${field}`);
@@ -71,7 +72,7 @@ export const fiscalPrinterService = {
       }
 
       const printer = printerDoc.data();
-      
+
       // Validar estado de la impresora
       if (printer.status !== 'active') {
         throw new Error('Impresora no está activa');
@@ -115,14 +116,11 @@ export const fiscalPrinterService = {
   // Obtener datos del negocio
   getBusinessData: async () => {
     try {
-      const configRef = doc(db, 'config', 'business');
-      const configDoc = await getDoc(configRef);
-      
-      if (!configDoc.exists()) {
-        throw new Error('Configuración del negocio no encontrada');
+      const response = await api.get('/settings/business');
+      if (response.data && response.data.data) {
+        return response.data.data;
       }
-
-      return configDoc.data();
+      throw new Error('Configuración del negocio no encontrada');
     } catch (error) {
       console.error('Error al obtener datos del negocio:', error);
       throw error;
@@ -134,7 +132,7 @@ export const fiscalPrinterService = {
     try {
       const printerRef = doc(db, 'fiscalPrinters', printerId);
       const printerDoc = await getDoc(printerRef);
-      
+
       if (!printerDoc.exists()) {
         throw new Error('Impresora no encontrada');
       }
