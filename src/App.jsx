@@ -100,6 +100,7 @@ const EInvoicing = React.lazy(() => import('./pages/EInvoicing'));
 const Suppliers = React.lazy(() => import('./pages/Suppliers'));
 const Promotions = React.lazy(() => import('./pages/Promotions'));
 const CrmRoutes = React.lazy(() => import('./routes/CrmRoutes'));
+const CashRegister = React.lazy(() => import('./pages/CashRegister'));
 
 function TestTrial() {
   const [userId, setUserId] = useState('');
@@ -435,6 +436,7 @@ const AppContent = () => {
                   <Route path="/e-invoicing" element={<EInvoicing />} />
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/promotions" element={<Promotions />} />
+                  <Route path="/cash-register" element={<CashRegister />} />
                   <Route path="/test-trial" element={<TestTrial />} />
                   <Route path="/test-huggingface" element={<HuggingFaceTest />} />
                   {/* Rutas CRM */}

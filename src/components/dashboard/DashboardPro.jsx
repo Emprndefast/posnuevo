@@ -48,6 +48,7 @@ import api from '../../api/api';
 import ProCard from '../common/ui/ProCard';
 import ProButton from '../common/ui/ProButton';
 import QuickExpenseModal from '../expenses/QuickExpenseModal';
+import CashRegisterWidget from '../cash-register/CashRegisterWidget';
 
 const DashboardPro = () => {
   const theme = useTheme();
@@ -780,6 +781,9 @@ const DashboardPro = () => {
               </Box>
 
               <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <CashRegisterWidget />
+                </Grid>
                 <Grid item xs={6} sm={3}>
                   <Box
                     sx={{

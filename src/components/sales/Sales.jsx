@@ -91,6 +91,9 @@ const MotionPaper = motion(Paper);
 const MotionCard = motion(Card);
 const MotionButton = motion(Button);
 import QuickExpenseModal from '../expenses/QuickExpenseModal';
+import cashRegisterService from '../../services/cashRegisterService';
+import OpenCashRegisterModal from '../cash-register/OpenCashRegisterModal';
+import { useBranch } from '../../context/BranchContext';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -113,6 +116,9 @@ const Sales = () => {
   const [isListOpen, setIsListOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
+  const [openCashRegisterModal, setOpenCashRegisterModal] = useState(false);
+  const [cashRegisterStatus, setCashRegisterStatus] = useState(null);
+  const { activeBranch } = useBranch();
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [{
@@ -161,11 +167,22 @@ const Sales = () => {
     }
   };
 
+  const checkCashRegister = async () => {
+    try {
+      const response = await cashRegisterService.getActiveCashRegister(activeBranch?.id);
+      setCashRegisterStatus(response.success ? response.data : null);
+    } catch (error) {
+      setCashRegisterStatus(null);
+    }
+  };
+
   const fetchSales = async () => {
     if (!user) return;
 
     try {
       setLoading(true);
+      // Check cash register status
+      await checkCashRegister();
       const { start, end } = getDateRange();
 
       // Usar la API de MongoDB backend
@@ -747,6 +764,25 @@ const Sales = () => {
             Administra y monitorea tus ventas en tiempo real
           </Typography>
         </Box>
+
+        {/* Alerta de caja cerrada */}
+        {!cashRegisterStatus && (
+          <Alert
+            severity="warning"
+            sx={{ mb: 3, maxWidth: '600px', mx: 'auto' }}
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => setOpenCashRegisterModal(true)}
+              >
+                Abrir Caja
+              </Button>
+            }
+          >
+            <strong>Caja Cerrada:</strong> Debe abrir caja antes de registrar ventas.
+          </Alert>
+        )}
 
         {/* Botones de acción */}
         <Box sx={{
@@ -1415,6 +1451,11 @@ const Sales = () => {
       <QuickExpenseModal
         open={openExpenseModal}
         onClose={() => setOpenExpenseModal(false)}
+      />
+      <OpenCashRegisterModal
+        open={openCashRegisterModal}
+        onClose={() => setOpenCashRegisterModal(false)}
+        onSuccess={() => checkCashRegister()}
       />
     </Box>
   );
