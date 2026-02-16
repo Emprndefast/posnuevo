@@ -31,9 +31,6 @@ export const BranchProvider = ({ children }) => {
 
     const fetchBranches = async () => {
         try {
-            // Si el usuario tiene sucursales embebidas, usarlas, sino buscar
-            // Idealmente buscar detalles completos de las sucursales asignadas
-            // Endpoint sugerido: GET /branches/my-branches
             const response = await api.get('/branches');
             if (response.data.success) {
                 const branchesList = response.data.data;
@@ -43,7 +40,11 @@ export const BranchProvider = ({ children }) => {
                 const storedBranchId = localStorage.getItem('activeBranchId');
                 const userActiveId = user.active_branch_id;
 
-                let selected = branchesList.find(b => b.id === (userActiveId || storedBranchId));
+                // Buscar usando _id o id (MongoDB usa _id)
+                let selected = branchesList.find(b => {
+                    const branchId = b._id || b.id;
+                    return branchId === userActiveId || branchId === storedBranchId;
+                });
 
                 // Fallback: primera sucursal
                 if (!selected && branchesList.length > 0) {
@@ -51,13 +52,16 @@ export const BranchProvider = ({ children }) => {
                 }
 
                 if (selected) {
+                    const branchId = selected._id || selected.id;
                     setActiveBranch(selected);
-                    localStorage.setItem('activeBranchId', selected.id);
+                    localStorage.setItem('activeBranchId', branchId);
                     // Sincronizar con backend si es diferente
-                    if (selected.id !== userActiveId) {
+                    if (branchId !== userActiveId) {
                         // Actualizar en background
-                        apiUpdateActiveBranch(selected.id);
+                        apiUpdateActiveBranch(branchId);
                     }
+                } else if (branchesList.length === 0) {
+                    console.warn('No hay sucursales disponibles. Por favor crea una sucursal primero.');
                 }
             }
         } catch (error) {
@@ -65,7 +69,12 @@ export const BranchProvider = ({ children }) => {
             // Fallback a info en token/user si falla API
             if (user.sucursales && user.sucursales.length > 0) {
                 setBranches(user.sucursales);
-                setActiveBranch(user.sucursales[0]);
+                const firstBranch = user.sucursales[0];
+                setActiveBranch(firstBranch);
+                const branchId = firstBranch._id || firstBranch.id || firstBranch.branch_id;
+                if (branchId) {
+                    localStorage.setItem('activeBranchId', branchId);
+                }
             }
         } finally {
             setLoading(false);
@@ -73,11 +82,12 @@ export const BranchProvider = ({ children }) => {
     };
 
     const changeBranch = async (branchId) => {
-        const branch = branches.find(b => b.id === branchId);
+        const branch = branches.find(b => (b._id || b.id) === branchId);
         if (branch) {
+            const id = branch._id || branch.id;
             setActiveBranch(branch);
-            localStorage.setItem('activeBranchId', branch.id);
-            await apiUpdateActiveBranch(branch.id);
+            localStorage.setItem('activeBranchId', id);
+            await apiUpdateActiveBranch(id);
             // Recargar página o invalidar queries podría ser necesario
             // window.location.reload(); // Opcional, pero drástico
             return true;
@@ -87,8 +97,11 @@ export const BranchProvider = ({ children }) => {
 
     const apiUpdateActiveBranch = async (branchId) => {
         try {
-            await api.put('/auth/switch-branch', { branch_id: branchId });
-            // updateUser({ active_branch_id: branchId }); // Actualizar contexto Auth si tiene update parcial
+            const response = await api.put('/auth/switch-branch', { branch_id: branchId });
+            // Si el backend devuelve un nuevo token, actualizarlo
+            if (response.data.success && response.data.token) {
+                localStorage.setItem('token', response.data.token);
+            }
         } catch (error) {
             console.error('Error sincronizando sucursal activa:', error);
         }

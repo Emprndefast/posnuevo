@@ -50,6 +50,18 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
             return;
         }
 
+        // Validar que haya una sucursal activa
+        if (!activeBranch) {
+            setError('No hay una sucursal activa. Por favor selecciona una sucursal antes de abrir caja.');
+            return;
+        }
+
+        const branchId = activeBranch._id || activeBranch.id;
+        if (!branchId) {
+            setError('Error: No se pudo identificar la sucursal. Por favor recarga la página.');
+            return;
+        }
+
         try {
             setLoading(true);
             setError('');
@@ -57,14 +69,15 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
             await cashRegisterService.openCashRegister({
                 opening_amount: parseFloat(formData.opening_amount),
                 opening_notes: formData.opening_notes,
-                branch_id: activeBranch?._id || activeBranch?.id
+                branch_id: branchId
             });
 
             if (onSuccess) onSuccess();
             onClose();
         } catch (err) {
             console.error('Error opening cash register:', err);
-            setError(err.response?.data?.message || 'Error al abrir caja. Intente nuevamente.');
+            const errorMessage = err.response?.data?.message || 'Error al abrir caja. Intente nuevamente.';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -77,6 +90,20 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
             </DialogTitle>
             <DialogContent sx={{ pt: 3 }}>
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+                {activeBranch && (
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        <Typography variant="body2">
+                            <strong>Sucursal:</strong> {activeBranch.nombre || activeBranch.name || 'Sin nombre'}
+                        </Typography>
+                    </Alert>
+                )}
+
+                {!activeBranch && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                        No hay una sucursal activa seleccionada. Por favor selecciona una sucursal antes de continuar.
+                    </Alert>
+                )}
 
                 <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
