@@ -308,7 +308,7 @@ const DashboardPro = () => {
         position: 'fixed',
         top: 80,
         right: 16,
-        bgcolor: 'white',
+        bgcolor: 'background.paper',
         color: 'text.primary',
         py: 1.5,
         px: 2.5,
@@ -756,8 +756,8 @@ const DashboardPro = () => {
                 borderRadius: 2,
                 boxShadow: 1,
                 p: 1.5,
-                background: 'white',
-                border: '1px solid #e5e7eb',
+                background: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
@@ -790,7 +790,7 @@ const DashboardPro = () => {
                       textAlign: 'center',
                       p: 1.5,
                       borderRadius: 1.5,
-                      border: '1px solid #e5e7eb',
+                      border: `1px solid ${theme.palette.divider}`,
                       transition: 'all 0.2s ease',
                       '&:hover': {
                         borderColor: '#10b981',
