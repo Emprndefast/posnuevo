@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Link } from 'react-router-dom';
+import { useBusiness } from '../../context/BusinessContext';
 
 // Grouped menu items similar to Whabot
 const menuGroups = [
@@ -81,6 +82,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [expandedGroups, setExpandedGroups] = React.useState({});
+  const { businessData } = useBusiness();
 
   const handleNavigation = (path) => {
     if (location.pathname !== path) {
@@ -130,11 +132,12 @@ export const Navigation = ({ mobileOpen, onClose }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
           <Box
             component="img"
-            src="/Posent-logo.png"
-            alt="POSENT Logo"
+            src={businessData?.logo || "/Posent-logo.png"}
+            alt={businessData?.name || "POSENT Logo"}
             sx={{
               height: 45,
               width: 'auto',
+              maxWidth: 180,
               objectFit: 'contain',
               display: 'block'
             }}

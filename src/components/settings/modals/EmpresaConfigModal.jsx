@@ -16,9 +16,11 @@ import {
 } from '@mui/material';
 import { CloudUpload, Delete } from '@mui/icons-material';
 import api from '../../../api/api';
+import { useBusiness } from '../../../context/BusinessContext';
 
 const EmpresaConfigModal = ({ onClose }) => {
-  const [loading, setLoading] = useState(true);
+  const { businessData, saveBusinessData } = useBusiness();
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
@@ -38,31 +40,16 @@ const EmpresaConfigModal = ({ onClose }) => {
   });
 
   useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/settings/business');
-      if (response.data && response.data.data) {
-        const businessData = response.data.data;
-        setFormData(prev => ({
-          ...prev,
-          ...businessData
-        }));
-        // Si hay logo, setear preview
-        if (businessData.logo) {
-          setLogoPreview(businessData.logo);
-        }
+    if (businessData) {
+      setFormData(prev => ({
+        ...prev,
+        ...businessData
+      }));
+      if (businessData.logo) {
+        setLogoPreview(businessData.logo);
       }
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching business settings:', err);
-      // No mostrar error si es porque no existe configuración aún
-      setLoading(false);
     }
-  };
+  }, [businessData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,11 +122,16 @@ const EmpresaConfigModal = ({ onClose }) => {
     try {
       setSaving(true);
       setError(null);
-      await api.post('/settings/business', formData);
-      setSnackbar({ open: true, message: 'Configuración guardada correctamente', severity: 'success' });
+
+      const success = await saveBusinessData(formData);
+
+      if (success) {
+        setSnackbar({ open: true, message: 'Configuración guardada correctamente', severity: 'success' });
+      } else {
+        setError('Error al guardar la configuración');
+      }
+
       setSaving(false);
-      // Cerrar después de guardar (opcional, o dejar abierto para ver cambios)
-      // setTimeout(onClose, 1500); 
     } catch (err) {
       console.error('Error saving settings:', err);
       setError('Error al guardar la configuración');

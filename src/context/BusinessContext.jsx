@@ -16,7 +16,7 @@ export const BusinessProvider = ({ children }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Estado para los datos del negocio
   const [businessData, setBusinessData] = useState({
     name: '',
@@ -38,7 +38,7 @@ export const BusinessProvider = ({ children }) => {
 
   // Cargar datos del negocio
   const loadBusinessData = useCallback(async () => {
-    if (!user?.id && !user?._id) {
+    if (!user?.uid) {
       console.log('No hay usuario autenticado para cargar datos');
       setLoading(false);
       return;
@@ -61,7 +61,7 @@ export const BusinessProvider = ({ children }) => {
           data.email
         );
         console.log('Estado de configuración:', isConfigured);
-        
+
         setBusinessData({
           ...data,
           isConfigured
@@ -79,7 +79,7 @@ export const BusinessProvider = ({ children }) => {
 
   // Guardar datos del negocio
   const saveBusinessData = async (data) => {
-    if (!user?.id && !user?._id) {
+    if (!user?.uid) {
       console.log('No hay usuario autenticado para guardar datos');
       return false;
     }
@@ -87,14 +87,14 @@ export const BusinessProvider = ({ children }) => {
     try {
       setError(null);
       console.log('Intentando guardar datos del negocio:', data);
-      
+
       const isConfigured = Boolean(
         data.name &&
         data.address &&
         data.phone &&
         data.email
       );
-      
+
       const updatedData = {
         ...data,
         updatedAt: new Date(),
@@ -104,7 +104,7 @@ export const BusinessProvider = ({ children }) => {
       console.log('Guardando datos actualizados:', updatedData);
       await api.post('/settings/business', updatedData);
       console.log('Datos guardados exitosamente');
-      
+
       setBusinessData(updatedData);
       return true;
     } catch (err) {
@@ -125,7 +125,7 @@ export const BusinessProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log('BusinessProvider: useEffect - Usuario actual:', user?.id || user?._id);
+    console.log('BusinessProvider: useEffect - Usuario actual:', user?.uid);
     loadBusinessData();
   }, [loadBusinessData]);
 
