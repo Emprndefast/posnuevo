@@ -101,7 +101,26 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
 
                 {!activeBranch && (
                     <Alert severity="warning" sx={{ mb: 2 }}>
-                        No hay una sucursal activa seleccionada. Por favor selecciona una sucursal antes de continuar.
+                        <Typography variant="body2" gutterBottom>
+                            <strong>Atención:</strong> No tienes una sucursal activa configurada.
+                        </Typography>
+                        <Typography variant="body2">
+                            El sistema ha detectado que es necesario configurar tu cuenta.
+                            <strong> Por favor, cierra sesión y vuelve a ingresar</strong> para que configuremos tu "Sucursal Principal" automáticamente.
+                        </Typography>
+                        <Button
+                            variant="outlined"
+                            color="warning"
+                            size="small"
+                            onClick={() => {
+                                onClose();
+                                localStorage.removeItem('token');
+                                window.location.reload();
+                            }}
+                            sx={{ mt: 1 }}
+                        >
+                            Cerrar Sesión y Reparar
+                        </Button>
                     </Alert>
                 )}
 
