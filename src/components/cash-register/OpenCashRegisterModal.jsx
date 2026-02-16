@@ -15,8 +15,10 @@ import {
 } from '@mui/material';
 import { AttachMoney, Description } from '@mui/icons-material';
 import cashRegisterService from '../../services/cashRegisterService';
+import { useBranch } from '../../context/BranchContext';
 
 const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
+    const { activeBranch } = useBranch();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
@@ -54,7 +56,8 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
 
             await cashRegisterService.openCashRegister({
                 opening_amount: parseFloat(formData.opening_amount),
-                opening_notes: formData.opening_notes
+                opening_notes: formData.opening_notes,
+                branch_id: activeBranch?._id || activeBranch?.id
             });
 
             if (onSuccess) onSuccess();

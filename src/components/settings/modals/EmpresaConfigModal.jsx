@@ -89,7 +89,7 @@ const EmpresaConfigModal = ({ onClose }) => {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const response = await api.post('/upload', formDataUpload, {
+      const response = await api.post('/upload/file', formDataUpload, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
