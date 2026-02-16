@@ -113,8 +113,8 @@ export const Navigation = ({ mobileOpen, onClose }) => {
         '& .MuiDrawer-paper': {
           width: 280,
           boxSizing: 'border-box',
-          bgcolor: 'white',
-          borderRight: '1px solid #e5e7eb',
+          bgcolor: 'background.paper',
+          borderRight: `1px solid ${theme.palette.divider}`,
           ...(isMobile && {
             maxWidth: '85vw',
           }),
@@ -126,7 +126,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
         sx={{
           p: 3,
           textAlign: 'center',
-          borderBottom: '1px solid #e5e7eb'
+          borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
@@ -168,7 +168,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 '&:hover': {
-                  bgcolor: 'gray.50'
+                  bgcolor: 'action.hover'
                 }
               }}
             >
@@ -197,24 +197,24 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                       borderRadius: '12px',
                       minHeight: 48,
                       '&.Mui-selected': {
-                        backgroundColor: 'purple.50',
-                        color: 'purple.600',
+                        backgroundColor: 'primary.main', // Usar color primario del tema
+                        color: 'primary.contrastText',
                         fontWeight: 600,
                         '&:hover': {
-                          backgroundColor: 'purple.100',
+                          backgroundColor: 'primary.dark',
                         },
                         '& .MuiListItemIcon-root': {
-                          color: 'purple.600',
+                          color: 'inherit',
                         },
                       },
                       '&:hover': {
-                        backgroundColor: 'gray.50',
+                        backgroundColor: 'action.hover',
                       },
                     }}
                   >
                     <ListItemIcon
                       sx={{
-                        color: location.pathname === item.path ? 'primary.main' : 'gray.600',
+                        color: location.pathname === item.path ? 'inherit' : 'text.secondary',
                         minWidth: 40
                       }}
                     >
@@ -225,6 +225,7 @@ export const Navigation = ({ mobileOpen, onClose }) => {
                       primaryTypographyProps={{
                         fontSize: '0.875rem',
                         fontWeight: location.pathname === item.path ? 600 : 400,
+                        color: 'inherit'
                       }}
                     />
                   </ListItemButton>
@@ -239,23 +240,23 @@ export const Navigation = ({ mobileOpen, onClose }) => {
         ))}
       </Box>
 
-      {/* Footer Section */}
-      <Box sx={{ p: 2, borderTop: '1px solid #e5e7eb' }}>
-        <Link to="/manual" style={{ textDecoration: 'none' }}>
+      <Box sx={{ p: 2, borderTop: `1px solid ${theme.palette.divider}` }}>
+        <Link to="/manual" style={{ textDecoration: 'none', color: 'inherit' }}>
           <Box
             sx={{
               p: 1.5,
               borderRadius: '12px',
-              bgcolor: 'gray.50',
+              bgcolor: 'action.hover',
               display: 'flex',
               alignItems: 'center',
               gap: 1.5,
               cursor: 'pointer',
               transition: 'all 0.2s',
+              color: 'text.primary',
               '&:hover': {
-                bgcolor: 'gray.100',
+                bgcolor: 'action.selected',
                 transform: 'translateY(-1px)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                boxShadow: 2
               }
             }}
           >

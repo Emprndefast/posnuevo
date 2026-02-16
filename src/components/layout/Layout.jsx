@@ -102,7 +102,8 @@ const Layout = ({ children }) => {
       display: 'flex',
       minHeight: '100vh',
       flexDirection: isMobile ? 'column' : 'row',
-      bgcolor: '#f5f5f5'
+      bgcolor: 'background.default',
+      transition: 'background-color 0.3s ease'
     }}>
       <AppBar
         position="fixed"
@@ -110,10 +111,11 @@ const Layout = ({ children }) => {
           width: { xs: '100%', md: `calc(100% - ${drawerWidth})` },
           ml: { xs: 0, md: drawerWidth },
           zIndex: theme.zIndex.drawer + 1,
-          background: 'white',
-          color: 'gray.900',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-          borderBottom: '1px solid #e5e7eb'
+          background: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          boxShadow: theme.shadows[1],
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          transition: 'background-color 0.3s ease, color 0.3s ease'
         }}
       >
         <Toolbar sx={{ minHeight: { xs: '64px', md: '64px' }, px: 2 }}>
@@ -124,10 +126,10 @@ const Layout = ({ children }) => {
               onClick={handleDrawerToggle}
               sx={{
                 mr: 1,
-                color: '#1f2937', // Gray 800 explícito para asegurar contraste
-                backgroundColor: 'rgba(0,0,0,0.04)', // Fondo sutil para que se note que es un botón
+                color: 'inherit',
+                backgroundColor: 'action.hover',
                 '&:hover': {
-                  bgcolor: 'rgba(0,0,0,0.08)'
+                  bgcolor: 'action.selected'
                 }
               }}
             >
@@ -154,21 +156,23 @@ const Layout = ({ children }) => {
                 </InputAdornment>
               }
               sx={{
-                bgcolor: 'white',
+                bgcolor: 'background.paper',
                 borderRadius: '12px',
                 px: 2,
                 py: 0.5,
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${theme.palette.divider}`,
+                color: 'text.primary',
                 '&:hover': {
-                  borderColor: '#805AD5'
+                  borderColor: 'primary.main'
                 },
                 '&:focus-within': {
-                  borderColor: '#805AD5',
-                  boxShadow: '0 0 0 2px rgba(128, 90, 213, 0.2)'
+                  borderColor: 'primary.main',
+                  boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}33`
                 },
                 '& .MuiInput-input': {
                   fontSize: '0.875rem',
-                  py: 1
+                  py: 1,
+                  color: 'text.primary'
                 }
               }}
             />
@@ -344,7 +348,8 @@ const Layout = ({ children }) => {
           },
           overflow: 'auto',
           maxWidth: '100%',
-          bgcolor: '#f5f5f5'
+          bgcolor: 'background.default',
+          transition: 'background-color 0.3s ease'
         }}
       >
         <Routes>
