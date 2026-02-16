@@ -34,7 +34,7 @@ export const BranchProvider = ({ children }) => {
             // Si el usuario tiene sucursales embebidas, usarlas, sino buscar
             // Idealmente buscar detalles completos de las sucursales asignadas
             // Endpoint sugerido: GET /branches/my-branches
-            const response = await api.get('/branches/my-branches');
+            const response = await api.get('/branches');
             if (response.data.success) {
                 const branchesList = response.data.data;
                 setBranches(branchesList);
