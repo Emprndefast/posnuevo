@@ -5,7 +5,14 @@ import { Brightness4, Brightness7 } from '@mui/icons-material';
 
 // Modal de configuración de apariencia
 const AparienciaConfigModal = ({ onClose }) => {
-  const { darkMode, toggleDarkMode } = useTheme();
+  const {
+    darkMode,
+    toggleDarkMode,
+    primaryColor,
+    changePrimaryColor,
+    secondaryColor,
+    changeSecondaryColor
+  } = useTheme();
 
   return (
     <Box sx={{ p: 3 }}>
@@ -13,37 +20,45 @@ const AparienciaConfigModal = ({ onClose }) => {
         Configuración de Apariencia
       </Typography>
       <Stack spacing={2}>
-        <FormControlLabel 
-          control={<Switch checked={darkMode} onChange={toggleDarkMode} />} 
-          label="Modo oscuro" 
+        <FormControlLabel
+          control={<Switch checked={darkMode} onChange={toggleDarkMode} />}
+          label="Modo oscuro"
           labelPlacement="start"
           sx={{ justifyContent: 'space-between', ml: 0 }}
         />
         <Divider />
         <FormControl fullWidth size="small">
           <InputLabel>Tema</InputLabel>
-          <Select label="Tema" defaultValue="default">
+          <Select label="Tema" defaultValue="default" disabled>
             <MenuItem value="default">Predeterminado</MenuItem>
-            <MenuItem value="light">Claro</MenuItem>
-            <MenuItem value="dark">Oscuro</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth size="small">
           <InputLabel>Color primario</InputLabel>
-          <Select label="Color primario" defaultValue="blue">
+          <Select
+            label="Color primario"
+            value={primaryColor}
+            onChange={(e) => changePrimaryColor(e.target.value)}
+          >
             <MenuItem value="blue">Azul</MenuItem>
             <MenuItem value="green">Verde</MenuItem>
             <MenuItem value="red">Rojo</MenuItem>
             <MenuItem value="purple">Púrpura</MenuItem>
+            <MenuItem value="orange">Naranja</MenuItem>
           </Select>
         </FormControl>
         <FormControl fullWidth size="small">
           <InputLabel>Color secundario</InputLabel>
-          <Select label="Color secundario" defaultValue="green">
+          <Select
+            label="Color secundario"
+            value={secondaryColor}
+            onChange={(e) => changeSecondaryColor(e.target.value)}
+          >
             <MenuItem value="blue">Azul</MenuItem>
             <MenuItem value="green">Verde</MenuItem>
             <MenuItem value="red">Rojo</MenuItem>
             <MenuItem value="purple">Púrpura</MenuItem>
+            <MenuItem value="orange">Naranja</MenuItem>
           </Select>
         </FormControl>
         <Divider />

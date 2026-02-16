@@ -462,36 +462,34 @@ function App() {
         <LanguageProvider>
           <PermissionsProvider>
             <CustomThemeProvider>
-              <ThemeProvider theme={theme}>
-                <SubscriptionProvider>
-                  <BusinessProvider>
-                    <ConfigProvider>
-                      <TelegramProvider>
-                        <PrinterProvider>
-                          <PrintProvider>
-                            <CartProvider>
-                              <ProductosProvider>
-                                <VentasProvider>
-                                  <ClientesProvider>
-                                    <CrmProvider>
-                                      <BranchProvider>
-                                        <SnackbarProvider maxSnack={3}>
-                                          <CssBaseline />
-                                          <AppContent />
-                                        </SnackbarProvider>
-                                      </BranchProvider>
-                                    </CrmProvider>
-                                  </ClientesProvider>
-                                </VentasProvider>
-                              </ProductosProvider>
-                            </CartProvider>
-                          </PrintProvider>
-                        </PrinterProvider>
-                      </TelegramProvider>
-                    </ConfigProvider>
-                  </BusinessProvider>
-                </SubscriptionProvider>
-              </ThemeProvider>
+              <SubscriptionProvider>
+                <BusinessProvider>
+                  <ConfigProvider>
+                    <TelegramProvider>
+                      <PrinterProvider>
+                        <PrintProvider>
+                          <CartProvider>
+                            <ProductosProvider>
+                              <VentasProvider>
+                                <ClientesProvider>
+                                  <CrmProvider>
+                                    <BranchProvider>
+                                      <SnackbarProvider maxSnack={3}>
+                                        <CssBaseline />
+                                        <AppContent />
+                                      </SnackbarProvider>
+                                    </BranchProvider>
+                                  </CrmProvider>
+                                </ClientesProvider>
+                              </VentasProvider>
+                            </ProductosProvider>
+                          </CartProvider>
+                        </PrintProvider>
+                      </PrinterProvider>
+                    </TelegramProvider>
+                  </ConfigProvider>
+                </BusinessProvider>
+              </SubscriptionProvider>
             </CustomThemeProvider>
           </PermissionsProvider>
         </LanguageProvider>

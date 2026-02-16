@@ -1,21 +1,26 @@
 import { createTheme } from '@mui/material/styles';
 import appConfig from '../settings/appConfig';
 
-const getDesignTokens = (mode) => ({
+export const themeColors = {
+  blue: '#1976d2',
+  green: '#2e7d32',
+  red: '#d32f2f',
+  purple: '#9c27b0',
+  orange: '#ed6c02',
+};
+
+const getDesignTokens = (mode, primaryColor, secondaryColor) => ({
   palette: {
     mode,
     primary: {
-      main: appConfig.branding.primaryColor || '#1976d2',
-      light: '#4dabf5',
-      dark: '#1769aa',
+      main: primaryColor || appConfig.branding.primaryColor || '#1976d2',
       contrastText: '#fff',
     },
     secondary: {
-      main: appConfig.branding.secondaryColor || '#9c27b0',
-      light: '#ff4081',
-      dark: '#c51162',
+      main: secondaryColor || appConfig.branding.secondaryColor || '#9c27b0',
       contrastText: '#fff',
     },
+    // ... rest of palette
     success: {
       main: '#2e7d32',
       light: '#4caf50',
@@ -47,30 +52,7 @@ const getDesignTokens = (mode) => ({
   },
   typography: {
     fontFamily: appConfig.branding.fontFamily,
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 500,
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 500,
-    },
-    h3: {
-      fontSize: '1.75rem',
-      fontWeight: 500,
-    },
-    h4: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-    },
-    h5: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-    },
-    h6: {
-      fontSize: '1rem',
-      fontWeight: 500,
-    },
+    // ... rest
   },
   shape: {
     borderRadius: appConfig.branding.borderRadius,
@@ -101,6 +83,6 @@ const getDesignTokens = (mode) => ({
   },
 });
 
-export const createAppTheme = (mode) => {
-  return createTheme(getDesignTokens(mode));
+export const createAppTheme = (mode, primaryColor, secondaryColor) => {
+  return createTheme(getDesignTokens(mode, primaryColor, secondaryColor));
 }; 
