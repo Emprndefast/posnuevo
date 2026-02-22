@@ -29,9 +29,20 @@ import SearchIcon from '@mui/icons-material/Search';
 import { useAuth } from '../../context/AuthContextMongo';
 import SoporteTecnicoModal from '../SoporteTecnicoModal';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import { Notifications as NotificationsIcon } from '@mui/icons-material';
+import {
+  Notifications as NotificationsIcon,
+  People as PeopleIcon,
+  ShoppingCart as ShoppingCartIcon,
+  Build as BuildIcon,
+  Receipt as ReceiptIcon,
+  Inventory as InventoryIcon,
+  Assessment as AssessmentIcon,
+  AccountBalance as AccountBalanceIcon,
+  Dashboard as DashboardIcon
+} from '@mui/icons-material';
 import NotificacionesModal from '../common/NotificacionesModal';
 import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
+import api from '../../config/api';
 // Firebase imports - Mocked for backward compatibility
 import { db, collection, query, where, onSnapshot } from '../../firebase/config';
 
@@ -42,6 +53,10 @@ const Layout = ({ children }) => {
   const [openNotificaciones, setOpenNotificaciones] = useState(false);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ products: [], customers: [], repairs: [], sales: [] });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchAnchorEl, setSearchAnchorEl] = useState(null);
+  const [navigationResults, setNavigationResults] = useState([]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -60,6 +75,20 @@ const Layout = ({ children }) => {
     });
     return () => unsub();
   }, [user]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[placeholder*="Buscar"]');
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -90,9 +119,49 @@ const Layout = ({ children }) => {
     handleMenuClose();
   };
 
-  const handleSearch = () => {
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchQuery);
+  const handleSearch = async (val) => {
+    setSearchQuery(val);
+    if (val.length < 2) {
+      setSearchResults({ products: [], customers: [], repairs: [], sales: [] });
+      setNavigationResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      // Local Navigation Search
+      const navMatches = [
+        { title: 'Nueva Venta', path: '/quick-sale', icon: <ShoppingCartIcon />, type: 'ACCION' },
+        { title: 'Productos / Inventario', path: '/products', icon: <InventoryIcon />, type: 'SECCION' },
+        { title: 'Lista de Ventas', path: '/sales', icon: <ReceiptIcon />, type: 'SECCION' },
+        { title: 'Clientes', path: '/customers', icon: <PeopleIcon />, type: 'SECCION' },
+        { title: 'Reparaciones', path: '/repairs', icon: <BuildIcon />, type: 'SECCION' },
+        { title: 'Configuración / Ajustes', path: '/settings', icon: <SettingsIcon />, type: 'SECCION' },
+        { title: 'Reportes y Análisis', path: '/reports', icon: <AssessmentIcon />, type: 'SECCION' },
+        { title: 'Dashboard / Inicio', path: '/dashboard', icon: <DashboardIcon />, type: 'SECCION' },
+        { title: 'Caja / Arqueo', path: '/dashboard', icon: <AccountBalanceIcon />, type: 'SECCION' }
+      ].filter(item => item.title.toLowerCase().includes(val.toLowerCase()));
+      setNavigationResults(navMatches);
+
+      const response = await api.get(`/api/search/global?q=${val}`);
+      if (response.data.success) {
+        setSearchResults(response.data.data);
+      }
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleResultClick = (path) => {
+    startTransition(() => {
+      navigate(path);
+    });
+    setSearchQuery('');
+    setSearchResults({ products: [], customers: [], repairs: [], sales: [] });
+    setNavigationResults([]);
+    setSearchAnchorEl(null);
   };
 
   const drawerWidth = isMobile ? '100%' : '280px';
@@ -142,40 +211,166 @@ const Layout = ({ children }) => {
             sx={{
               flex: 1,
               mx: { xs: 1, md: 4 },
-              display: { xs: 'none', md: 'block' }
+              display: { xs: 'none', md: 'block' },
+              position: 'relative'
             }}
           >
             <Input
-              placeholder="Buscar productos, clientes, ventas..."
+              placeholder="Buscar productos, clientes, ventas, configuración... (Ctrl+K)"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onChange={(e) => {
+                handleSearch(e.target.value);
+                setSearchAnchorEl(e.currentTarget);
+              }}
+              onFocus={(e) => {
+                if (searchQuery.length >= 2) setSearchAnchorEl(e.currentTarget);
+              }}
               startAdornment={
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'gray.400' }} />
+                  <SearchIcon sx={{ color: 'primary.main', mr: 1 }} />
                 </InputAdornment>
               }
+              endAdornment={
+                <InputAdornment position="end">
+                  <Box sx={{
+                    px: 0.8,
+                    py: 0.2,
+                    borderRadius: 1,
+                    bgcolor: 'action.hover',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    display: { xs: 'none', lg: 'block' }
+                  }}>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>⌘K</Typography>
+                  </Box>
+                </InputAdornment>
+              }
+              disableUnderline
               sx={{
-                bgcolor: 'background.paper',
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f3f4f6',
                 borderRadius: '12px',
                 px: 2,
                 py: 0.5,
+                width: '100%',
+                maxWidth: '600px',
                 border: `1px solid ${theme.palette.divider}`,
-                color: 'text.primary',
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  borderColor: 'primary.main'
+                  borderColor: 'primary.main',
+                  bgcolor: 'action.hover'
                 },
                 '&:focus-within': {
                   borderColor: 'primary.main',
-                  boxShadow: (theme) => `0 0 0 2px ${theme.palette.primary.main}33`
-                },
-                '& .MuiInput-input': {
-                  fontSize: '0.875rem',
-                  py: 1,
-                  color: 'text.primary'
+                  boxShadow: `0 0 0 2px ${theme.palette.primary.main}22`,
+                  bgcolor: 'background.paper'
                 }
               }}
             />
+
+            {/* Dropdown de Resultados */}
+            <Menu
+              anchorEl={searchAnchorEl}
+              open={Boolean(searchAnchorEl) && (navigationResults.length > 0 || searchResults.products?.length > 0 || searchResults.customers?.length > 0 || searchResults.sales?.length > 0 || searchResults.repairs?.length > 0 || isSearching)}
+              onClose={() => setSearchAnchorEl(null)}
+              autoFocus={false}
+              disableAutoFocusItem
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  width: searchAnchorEl?.offsetWidth || 600,
+                  maxHeight: 500,
+                  borderRadius: 2,
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                  border: `1px solid ${theme.palette.divider}`,
+                }
+              }}
+            >
+              {isSearching && (
+                <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                  <CircularProgress size={24} />
+                </Box>
+              )}
+
+              {!isSearching && navigationResults.length > 0 && (
+                <>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'primary.main' }}>
+                    ACCIONES Y SECCIONES
+                  </Typography>
+                  {navigationResults.map((item, idx) => (
+                    <MenuItem key={idx} onClick={() => handleResultClick(item.path)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.title} secondary={item.type} />
+                    </MenuItem>
+                  ))}
+                  <Divider />
+                </>
+              )}
+
+              {searchResults.products?.length > 0 && (
+                <>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'success.main' }}>
+                    PRODUCTOS
+                  </Typography>
+                  {searchResults.products.map((p) => (
+                    <MenuItem key={p._id} onClick={() => handleResultClick(`/productos`)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
+                      <ListItemText primary={p.nombre} secondary={`Stock: ${p.stock} | RD$ ${p.precio}`} />
+                    </MenuItem>
+                  ))}
+                  <Divider />
+                </>
+              )}
+
+              {searchResults.customers?.length > 0 && (
+                <>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'info.main' }}>
+                    CLIENTES
+                  </Typography>
+                  {searchResults.customers.map((c) => (
+                    <MenuItem key={c._id} onClick={() => handleResultClick(`/clientes`)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}><PeopleIcon fontSize="small" color="info" /></ListItemIcon>
+                      <ListItemText primary={c.nombre} secondary={c.email || c.telefono} />
+                    </MenuItem>
+                  ))}
+                  <Divider />
+                </>
+              )}
+
+              {searchResults.sales?.length > 0 && (
+                <>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'warning.main' }}>
+                    VENTAS
+                  </Typography>
+                  {searchResults.sales.map((s) => (
+                    <MenuItem key={s._id} onClick={() => handleResultClick(`/sales`)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}><ReceiptIcon fontSize="small" color="warning" /></ListItemIcon>
+                      <ListItemText primary={`Venta ${s.numero_venta}`} secondary={`Total: RD$ ${s.total} | ${s.estado}`} />
+                    </MenuItem>
+                  ))}
+                  <Divider />
+                </>
+              )}
+
+              {searchResults.repairs?.length > 0 && (
+                <>
+                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'error.main' }}>
+                    REPARACIONES
+                  </Typography>
+                  {searchResults.repairs.map((r) => (
+                    <MenuItem key={r._id} onClick={() => handleResultClick(`/repairs`)}>
+                      <ListItemIcon sx={{ minWidth: 36 }}><BuildIcon fontSize="small" color="error" /></ListItemIcon>
+                      <ListItemText primary={`${r.brand} ${r.device}`} secondary={`Cliente: ${r.customer_name} | ${r.status}`} />
+                    </MenuItem>
+                  ))}
+                </>
+              )}
+
+              {!isSearching && navigationResults.length === 0 && searchResults.products?.length === 0 && searchResults.customers?.length === 0 && searchResults.sales?.length === 0 && searchResults.repairs?.length === 0 && (
+                <Box sx={{ p: 3, textAlign: 'center' }}>
+                  <Typography color="textSecondary">No se encontraron resultados para "{searchQuery}"</Typography>
+                </Box>
+              )}
+            </Menu>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />

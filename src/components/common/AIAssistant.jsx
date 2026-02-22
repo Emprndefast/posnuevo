@@ -84,7 +84,7 @@ const getSalesData = async (userId, days = 7) => {
       try {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
-        
+
         const q = query(
           collection(db, 'sales'),
           where('userId', '==', userId),
@@ -162,7 +162,7 @@ const getTopSellingProducts = async (userId, days = 7) => {
   try {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
+
     const q = query(
       collection(db, 'sales'),
       where('userId', '==', userId),
@@ -261,6 +261,14 @@ const FAQS = [
     answer: 'Para exportar datos, ve a "Reportes" o "Inventario" y haz clic en el botón de exportar (generalmente un ícono de descarga). Puedes elegir formato Excel o PDF.'
   },
   {
+    keywords: ['configuracion', 'ajustes', 'cambiar moneda', 'datos empresa', 'preferencias'],
+    answer: 'Para cambiar la configuración o los datos de tu empresa, ve al módulo "Configuración" (ícono de engranaje ⚙️). Allí podrás ajustar la moneda, los impuestos (ITBIS/IVA), los datos de contacto y el logo de tu negocio.'
+  },
+  {
+    keywords: ['reparacion', 'arreglo', 'servicio tecnico', 'celular', 'laptop'],
+    answer: 'El módulo de Reparaciones 🛠️ te permite gestionar equipos recibidos. Puedes registrar el ingreso de un dispositivo, indicar el problema, asignar un costo estimado y realizar el cobro una vez finalizado.'
+  },
+  {
     keywords: ['qué módulos tiene el sistema', 'módulos del sistema', 'funcionalidades'],
     answer: POS_CONTEXT
   },
@@ -280,7 +288,7 @@ function normalizeText(text) {
 
 const getLocalResponse = async (message, context, userId, followUpEntity = null) => {
   const command = normalizeText(message.trim());
-  
+
   try {
     // Respuestas automáticas para preguntas frecuentes
     for (const faq of FAQS) {
@@ -358,17 +366,17 @@ const getLocalResponse = async (message, context, userId, followUpEntity = null)
           ]
         };
       }
-      
+
       const totalProducts = inventory.length;
       const totalStock = inventory.reduce((sum, item) => sum + (item.stock || 0), 0);
       const totalValue = inventory.reduce((sum, item) => sum + ((item.price || 0) * (item.stock || 0)), 0);
-      
+
       return {
         text: `📊 Resumen del Inventario:\n\n` +
           `• Total de productos: ${totalProducts}\n` +
           `• Total de unidades: ${totalStock}\n` +
           `• Valor total del inventario: $${totalValue.toFixed(2)}\n\n` +
-          `Productos en inventario:\n${inventory.map(item => 
+          `Productos en inventario:\n${inventory.map(item =>
             `• ${item.name}: ${item.stock} unidades (${item.price ? `$${item.price}` : 'Precio no disponible'})`
           ).join('\n')}`,
         suggestions: [
@@ -391,7 +399,7 @@ const getLocalResponse = async (message, context, userId, followUpEntity = null)
           ]
         };
       }
-      
+
       const total = salesData.reduce((sum, sale) => sum + (sale.total || 0), 0);
       const averageSale = total / salesData.length;
       const todaySales = salesData.filter(sale => {
@@ -400,7 +408,7 @@ const getLocalResponse = async (message, context, userId, followUpEntity = null)
         return saleDate.toDateString() === today.toDateString();
       });
       const todayTotal = todaySales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-      
+
       return {
         text: `💰 Resumen de Ventas:\n\n` +
           `• Total de ventas (7 días): $${total.toFixed(2)}\n` +
@@ -516,8 +524,8 @@ const getLocalResponse = async (message, context, userId, followUpEntity = null)
   } catch (error) {
     console.error('Error en respuesta local:', error);
     throw new Error(
-      error.message === 'Tiempo de espera agotado' 
-        ? 'La consulta está tardando demasiado. Por favor, intenta nuevamente.' 
+      error.message === 'Tiempo de espera agotado'
+        ? 'La consulta está tardando demasiado. Por favor, intenta nuevamente.'
         : 'No se pudo procesar tu consulta. Por favor, intenta con un comando más simple como "hola", "inventario" o "ventas".'
     );
   }
@@ -857,16 +865,16 @@ const AIAssistant = () => {
           }
         }}
       >
-        <Box sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
           height: '100%',
           bgcolor: theme.palette.background.default
         }}>
           {/* Header */}
-          <Box sx={{ 
-            p: 2, 
-            borderBottom: 1, 
+          <Box sx={{
+            p: 2,
+            borderBottom: 1,
             borderColor: 'divider',
             display: 'flex',
             alignItems: 'center',
@@ -906,8 +914,8 @@ const AIAssistant = () => {
           </Box>
 
           {/* Chat Area */}
-          <Box sx={{ 
-            flexGrow: 1, 
+          <Box sx={{
+            flexGrow: 1,
             overflowY: 'auto',
             p: 2,
             display: 'flex',
@@ -919,40 +927,49 @@ const AIAssistant = () => {
                 {error}
               </Alert>
             )}
-            
+
             {messages.map((msg, index) => (
               <Box
                 key={index}
                 sx={{
                   alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '80%'
+                  maxWidth: '90%',
+                  mb: 1
                 }}
               >
                 <Paper
-                  elevation={1}
+                  elevation={0}
                   sx={{
-                    p: 2,
+                    p: 1.5,
                     bgcolor: msg.role === 'user' ? 'primary.main' : 'background.paper',
                     color: msg.role === 'user' ? 'primary.contrastText' : 'text.primary',
-                    borderRadius: 2
+                    borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                    border: msg.role === 'user' ? 'none' : `1px solid ${theme.palette.divider}`,
+                    boxShadow: msg.role === 'user' ? '0 4px 12px rgba(25, 118, 210, 0.2)' : '0 2px 8px rgba(0,0,0,0.05)',
                   }}
                 >
-                  <Typography>{msg.content}</Typography>
+                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                    {msg.content}
+                  </Typography>
                 </Paper>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', px: 1 }}>
+                  {msg.role === 'user' ? 'Tú' : 'Asistente'}
+                </Typography>
               </Box>
             ))}
             {isLoading && (
-              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                <CircularProgress size={24} />
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <CircularProgress size={16} />
+                <Typography variant="caption" color="text.secondary">Pensando...</Typography>
               </Box>
             )}
             <div ref={chatEndRef} />
           </Box>
 
           {/* Input Area */}
-          <Box sx={{ 
-            p: 2, 
-            borderTop: 1, 
+          <Box sx={{
+            p: 2,
+            borderTop: 1,
             borderColor: 'divider',
             bgcolor: 'background.paper'
           }}>
@@ -969,8 +986,8 @@ const AIAssistant = () => {
                 multiline
                 maxRows={4}
               />
-              <IconButton 
-                color="primary" 
+              <IconButton
+                color="primary"
                 onClick={handleSend}
                 disabled={!userInput.trim() || isLoading}
               >
