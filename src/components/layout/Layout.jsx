@@ -13,12 +13,12 @@ import {
   Menu,
   MenuItem,
   ListItemIcon,
-  Divider,
-  Badge,
-  Input,
-  InputAdornment,
   CircularProgress,
-  ListItemText
+  ListItemText,
+  Popper,
+  Paper,
+  ClickAwayListener,
+  List
 } from '@mui/material';
 import { Navigation } from './Navigation';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
@@ -269,110 +269,116 @@ const Layout = ({ children }) => {
               }}
             />
 
-            {/* Dropdown de Resultados */}
-            <Menu
+            {/* Dropdown de Resultados (Popper para evitar fritz y robo de foco) */}
+            <Popper
+              open={Boolean(searchAnchorEl) && searchQuery.length >= 2 && (navigationResults.length > 0 || searchResults.products?.length > 0 || searchResults.customers?.length > 0 || searchResults.sales?.length > 0 || searchResults.repairs?.length > 0 || isSearching)}
               anchorEl={searchAnchorEl}
-              open={Boolean(searchAnchorEl) && (navigationResults.length > 0 || searchResults.products?.length > 0 || searchResults.customers?.length > 0 || searchResults.sales?.length > 0 || searchResults.repairs?.length > 0 || isSearching)}
-              onClose={() => setSearchAnchorEl(null)}
-              autoFocus={false}
-              disableAutoFocusItem
-              PaperProps={{
-                sx: {
-                  mt: 1,
-                  width: searchAnchorEl?.offsetWidth || 600,
-                  maxHeight: 500,
-                  borderRadius: 2,
-                  boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                  border: `1px solid ${theme.palette.divider}`,
-                }
-              }}
+              placement="bottom-start"
+              style={{ zIndex: 1300, width: searchAnchorEl?.offsetWidth || 600 }}
             >
-              {isSearching && (
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                  <CircularProgress size={24} />
-                </Box>
-              )}
+              <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
+                <Paper
+                  elevation={8}
+                  sx={{
+                    mt: 1,
+                    maxHeight: 500,
+                    overflowY: 'auto',
+                    borderRadius: 2,
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    bgcolor: 'background.paper'
+                  }}
+                >
+                  <List sx={{ py: 0 }}>
+                    {isSearching && (
+                      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    )}
 
-              {!isSearching && navigationResults.length > 0 && (
-                <>
-                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'primary.main' }}>
-                    ACCIONES Y SECCIONES
-                  </Typography>
-                  {navigationResults.map((item, idx) => (
-                    <MenuItem key={idx} onClick={() => handleResultClick(item.path)}>
-                      <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                      <ListItemText primary={item.title} secondary={item.type} />
-                    </MenuItem>
-                  ))}
-                  <Divider />
-                </>
-              )}
+                    {!isSearching && navigationResults.length > 0 && (
+                      <>
+                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'primary.main', bgcolor: 'action.hover' }}>
+                          ACCIONES Y SECCIONES
+                        </Typography>
+                        {navigationResults.map((item, idx) => (
+                          <MenuItem key={idx} onClick={() => handleResultClick(item.path)}>
+                            <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
+                            <ListItemText primary={item.title} secondary={item.type} />
+                          </MenuItem>
+                        ))}
+                        <Divider />
+                      </>
+                    )}
 
-              {searchResults.products?.length > 0 && (
-                <>
-                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'success.main' }}>
-                    PRODUCTOS
-                  </Typography>
-                  {searchResults.products.map((p) => (
-                    <MenuItem key={p._id} onClick={() => handleResultClick(`/productos`)}>
-                      <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
-                      <ListItemText primary={p.nombre} secondary={`Stock: ${p.stock} | RD$ ${p.precio}`} />
-                    </MenuItem>
-                  ))}
-                  <Divider />
-                </>
-              )}
+                    {searchResults.products?.length > 0 && (
+                      <>
+                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'success.main', bgcolor: 'action.hover' }}>
+                          PRODUCTOS
+                        </Typography>
+                        {searchResults.products.map((p) => (
+                          <MenuItem key={p._id} onClick={() => handleResultClick(`/productos`)}>
+                            <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
+                            <ListItemText primary={p.nombre} secondary={`Stock: ${p.stock} | RD$ ${p.precio}`} />
+                          </MenuItem>
+                        ))}
+                        <Divider />
+                      </>
+                    )}
 
-              {searchResults.customers?.length > 0 && (
-                <>
-                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'info.main' }}>
-                    CLIENTES
-                  </Typography>
-                  {searchResults.customers.map((c) => (
-                    <MenuItem key={c._id} onClick={() => handleResultClick(`/clientes`)}>
-                      <ListItemIcon sx={{ minWidth: 36 }}><PeopleIcon fontSize="small" color="info" /></ListItemIcon>
-                      <ListItemText primary={c.nombre} secondary={c.email || c.telefono} />
-                    </MenuItem>
-                  ))}
-                  <Divider />
-                </>
-              )}
+                    {searchResults.customers?.length > 0 && (
+                      <>
+                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'info.main', bgcolor: 'action.hover' }}>
+                          CLIENTES
+                        </Typography>
+                        {searchResults.customers.map((c) => (
+                          <MenuItem key={c._id} onClick={() => handleResultClick(`/clientes`)}>
+                            <ListItemIcon sx={{ minWidth: 36 }}><PeopleIcon fontSize="small" color="info" /></ListItemIcon>
+                            <ListItemText primary={c.nombre} secondary={c.email || c.telefono} />
+                          </MenuItem>
+                        ))}
+                        <Divider />
+                      </>
+                    )}
 
-              {searchResults.sales?.length > 0 && (
-                <>
-                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'warning.main' }}>
-                    VENTAS
-                  </Typography>
-                  {searchResults.sales.map((s) => (
-                    <MenuItem key={s._id} onClick={() => handleResultClick(`/sales`)}>
-                      <ListItemIcon sx={{ minWidth: 36 }}><ReceiptIcon fontSize="small" color="warning" /></ListItemIcon>
-                      <ListItemText primary={`Venta ${s.numero_venta}`} secondary={`Total: RD$ ${s.total} | ${s.estado}`} />
-                    </MenuItem>
-                  ))}
-                  <Divider />
-                </>
-              )}
+                    {searchResults.sales?.length > 0 && (
+                      <>
+                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'warning.main', bgcolor: 'action.hover' }}>
+                          VENTAS
+                        </Typography>
+                        {searchResults.sales.map((s) => (
+                          <MenuItem key={s._id} onClick={() => handleResultClick(`/sales`)}>
+                            <ListItemIcon sx={{ minWidth: 36 }}><ReceiptIcon fontSize="small" color="warning" /></ListItemIcon>
+                            <ListItemText primary={`Venta ${s.numero_venta}`} secondary={`Total: RD$ ${s.total} | ${s.estado}`} />
+                          </MenuItem>
+                        ))}
+                        <Divider />
+                      </>
+                    )}
 
-              {searchResults.repairs?.length > 0 && (
-                <>
-                  <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'error.main' }}>
-                    REPARACIONES
-                  </Typography>
-                  {searchResults.repairs.map((r) => (
-                    <MenuItem key={r._id} onClick={() => handleResultClick(`/repairs`)}>
-                      <ListItemIcon sx={{ minWidth: 36 }}><BuildIcon fontSize="small" color="error" /></ListItemIcon>
-                      <ListItemText primary={`${r.brand} ${r.device}`} secondary={`Cliente: ${r.customer_name} | ${r.status}`} />
-                    </MenuItem>
-                  ))}
-                </>
-              )}
+                    {searchResults.repairs?.length > 0 && (
+                      <>
+                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'error.main', bgcolor: 'action.hover' }}>
+                          REPARACIONES
+                        </Typography>
+                        {searchResults.repairs.map((r) => (
+                          <MenuItem key={r._id} onClick={() => handleResultClick(`/repairs`)}>
+                            <ListItemIcon sx={{ minWidth: 36 }}><BuildIcon fontSize="small" color="error" /></ListItemIcon>
+                            <ListItemText primary={`${r.brand} ${r.device}`} secondary={`Cliente: ${r.customer_name} | ${r.status}`} />
+                          </MenuItem>
+                        ))}
+                      </>
+                    )}
 
-              {!isSearching && navigationResults.length === 0 && searchResults.products?.length === 0 && searchResults.customers?.length === 0 && searchResults.sales?.length === 0 && searchResults.repairs?.length === 0 && (
-                <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography color="textSecondary">No se encontraron resultados para "{searchQuery}"</Typography>
-                </Box>
-              )}
-            </Menu>
+                    {!isSearching && navigationResults.length === 0 && searchResults.products?.length === 0 && searchResults.customers?.length === 0 && searchResults.sales?.length === 0 && searchResults.repairs?.length === 0 && (
+                      <Box sx={{ p: 3, textAlign: 'center' }}>
+                        <Typography color="textSecondary">No se encontraron resultados para "{searchQuery}"</Typography>
+                      </Box>
+                    )}
+                  </List>
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
