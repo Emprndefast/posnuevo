@@ -16,7 +16,9 @@ import {
   Divider,
   Badge,
   Input,
-  InputAdornment
+  InputAdornment,
+  CircularProgress,
+  ListItemText
 } from '@mui/material';
 import { Navigation } from './Navigation';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
@@ -143,7 +145,7 @@ const Layout = ({ children }) => {
       ].filter(item => item.title.toLowerCase().includes(val.toLowerCase()));
       setNavigationResults(navMatches);
 
-      const response = await api.get(`/api/search/global?q=${val}`);
+      const response = await api.get(`/search/global?q=${val}`);
       if (response.data.success) {
         setSearchResults(response.data.data);
       }
