@@ -12,16 +12,21 @@ import {
     Alert,
     Box,
     Divider,
+    InputAdornment,
+    IconButton,
     Paper,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow
+    Stack
 } from '@mui/material';
-import { AttachMoney, Description, Calculate } from '@mui/icons-material';
+import {
+    AttachMoney,
+    Description,
+    RemoveCircleOutline,
+    AddCircleOutline,
+    AccountBalanceWallet,
+    AssignmentInd
+} from '@mui/icons-material';
 import cashRegisterService from '../../services/cashRegisterService';
+import { formatCurrency } from '../../utils/formatters';
 
 const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
     const [loading, setLoading] = useState(false);
@@ -61,48 +66,39 @@ const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
         }
     }, [open]);
 
-    const handleBreakdownChange = (denomination, value) => {
+    const handleBreakdownChange = (field, value) => {
+        const numValue = parseInt(value) || 0;
+        if (numValue < 0) return;
         setBreakdown(prev => ({
             ...prev,
-            [denomination]: parseInt(value) || 0
+            [field]: numValue
         }));
     };
 
     const calculateTotal = () => {
-        return (
-            breakdown.bills_2000 * 2000 +
-            breakdown.bills_1000 * 1000 +
-            breakdown.bills_500 * 500 +
-            breakdown.bills_200 * 200 +
-            breakdown.bills_100 * 100 +
-            breakdown.bills_50 * 50 +
-            breakdown.bills_20 * 20 +
-            breakdown.coins_25 * 25 +
-            breakdown.coins_10 * 10 +
-            breakdown.coins_5 * 5 +
-            breakdown.coins_1 * 1
-        );
+        return (breakdown.bills_2000 * 2000) +
+            (breakdown.bills_1000 * 1000) +
+            (breakdown.bills_500 * 500) +
+            (breakdown.bills_200 * 200) +
+            (breakdown.bills_100 * 100) +
+            (breakdown.bills_50 * 50) +
+            (breakdown.bills_20 * 20) +
+            (breakdown.coins_25 * 25) +
+            (breakdown.coins_10 * 10) +
+            (breakdown.coins_5 * 5) +
+            (breakdown.coins_1 * 1);
     };
 
-    const calculateExpected = () => {
-        if (!cashRegister) return 0;
-        return (
-            (cashRegister.opening_amount || 0) +
-            (cashRegister.summary?.cash_sales || 0) -
-            (cashRegister.summary?.total_expenses || 0)
-        );
-    };
+    const expectedAmount = cashRegister
+        ? (cashRegister.opening_amount || 0) +
+        (cashRegister.summary?.cash_sales || 0) -
+        (cashRegister.summary?.total_expenses || 0)
+        : 0;
 
-    const countedTotal = calculateTotal();
-    const expectedTotal = calculateExpected();
-    const difference = countedTotal - expectedTotal;
+    const totalCounted = calculateTotal();
+    const difference = totalCounted - expectedAmount;
 
     const handleSubmit = async () => {
-        if (!cashRegister) {
-            setError('No hay caja para cerrar');
-            return;
-        }
-
         try {
             setLoading(true);
             setError('');
@@ -116,158 +112,147 @@ const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
             onClose();
         } catch (err) {
             console.error('Error closing cash register:', err);
-            setError(err.response?.data?.message || 'Error al cerrar caja. Intente nuevamente.');
+            setError(err.response?.data?.message || 'Error al cerrar caja');
         } finally {
             setLoading(false);
         }
     };
 
     const denominations = [
-        { key: 'bills_2000', label: 'Billetes de $2,000', value: 2000 },
-        { key: 'bills_1000', label: 'Billetes de $1,000', value: 1000 },
-        { key: 'bills_500', label: 'Billetes de $500', value: 500 },
-        { key: 'bills_200', label: 'Billetes de $200', value: 200 },
-        { key: 'bills_100', label: 'Billetes de $100', value: 100 },
-        { key: 'bills_50', label: 'Billetes de $50', value: 50 },
-        { key: 'bills_20', label: 'Billetes de $20', value: 20 },
-        { key: 'coins_25', label: 'Monedas de $25', value: 25 },
-        { key: 'coins_10', label: 'Monedas de $10', value: 10 },
-        { key: 'coins_5', label: 'Monedas de $5', value: 5 },
-        { key: 'coins_1', label: 'Monedas de $1', value: 1 }
+        { label: 'RD$ 2,000', field: 'bills_2000', value: 2000 },
+        { label: 'RD$ 1,000', field: 'bills_1000', value: 1000 },
+        { label: 'RD$ 500', field: 'bills_500', value: 500 },
+        { label: 'RD$ 200', field: 'bills_200', value: 200 },
+        { label: 'RD$ 100', field: 'bills_100', value: 100 },
+        { label: 'RD$ 50', field: 'bills_50', value: 50 },
+        { label: 'RD$ 20', field: 'bills_20', value: 20 },
+        { label: 'RD$ 25', field: 'coins_25', value: 25 },
+        { label: 'RD$ 10', field: 'coins_10', value: 10 },
+        { label: 'RD$ 5', field: 'coins_5', value: 5 },
+        { label: 'RD$ 1', field: 'coins_1', value: 1 },
     ];
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-            <DialogTitle sx={{ bgcolor: 'error.main', color: 'white' }}>
-                Cierre de Caja
+            <DialogTitle sx={{ bgcolor: 'error.main', color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AccountBalanceWallet /> Cierre de Caja y Arqueo
             </DialogTitle>
             <DialogContent sx={{ pt: 3 }}>
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                {/* Resumen de la caja */}
-                <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>
-                    <Typography variant="h6" gutterBottom>Resumen del Día</Typography>
-                    <Grid container spacing={2}>
-                        <Grid item xs={6} sm={3}>
-                            <Typography variant="caption" color="text.secondary">Monto Inicial</Typography>
-                            <Typography variant="h6">${cashRegister?.opening_amount?.toFixed(2) || '0.00'}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Typography variant="caption" color="text.secondary">Ventas en Efectivo</Typography>
-                            <Typography variant="h6" color="success.main">
-                                +${cashRegister?.summary?.cash_sales?.toFixed(2) || '0.00'}
+                <Grid container spacing={3}>
+                    {/* Resumen Informativo */}
+                    <Grid item xs={12} md={5}>
+                        <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
+                            <Typography variant="subtitle2" gutterBottom fontWeight="bold">
+                                Resumen del Turno
                             </Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Typography variant="caption" color="text.secondary">Gastos</Typography>
-                            <Typography variant="h6" color="error.main">
-                                -${cashRegister?.summary?.total_expenses?.toFixed(2) || '0.00'}
-                            </Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={3}>
-                            <Typography variant="caption" color="text.secondary">Esperado en Caja</Typography>
-                            <Typography variant="h6" color="primary.main">
-                                ${expectedTotal.toFixed(2)}
-                            </Typography>
-                        </Grid>
+                            <Stack spacing={1}>
+                                <Box display="flex" justifyContent="space-between">
+                                    <Typography variant="body2">Apertura:</Typography>
+                                    <Typography variant="body2" fontWeight="bold">
+                                        {formatCurrency(cashRegister?.opening_amount || 0)}
+                                    </Typography>
+                                </Box>
+                                <Box display="flex" justifyContent="space-between">
+                                    <Typography variant="body2">Ventas en Efectivo:</Typography>
+                                    <Typography variant="body2" color="success.main" fontWeight="bold">
+                                        + {formatCurrency(cashRegister?.summary?.cash_sales || 0)}
+                                    </Typography>
+                                </Box>
+                                <Box display="flex" justifyContent="space-between">
+                                    <Typography variant="body2">Gastos Registrados:</Typography>
+                                    <Typography variant="body2" color="error.main" fontWeight="bold">
+                                        - {formatCurrency(cashRegister?.summary?.total_expenses || 0)}
+                                    </Typography>
+                                </Box>
+                                <Divider />
+                                <Box display="flex" justifyContent="space-between" sx={{ pt: 1 }}>
+                                    <Typography variant="subtitle1" fontWeight="bold">Efectivo Esperado:</Typography>
+                                    <Typography variant="subtitle1" fontWeight="bold" color="primary.main">
+                                        {formatCurrency(expectedAmount)}
+                                    </Typography>
+                                </Box>
+                            </Stack>
+                        </Paper>
+
+                        <Box sx={{ mt: 3 }}>
+                            <Paper
+                                variant="outlined"
+                                sx={{
+                                    p: 2,
+                                    bgcolor: difference === 0 ? 'success.light' : difference > 0 ? 'info.light' : 'error.light',
+                                    color: 'white',
+                                    textAlign: 'center'
+                                }}
+                            >
+                                <Typography variant="h6" fontWeight="bold">
+                                    Contado: {formatCurrency(totalCounted)}
+                                </Typography>
+                                <Typography variant="subtitle2">
+                                    Diferencia: {formatCurrency(difference)}
+                                </Typography>
+                                {difference === 0 ? (
+                                    <Typography variant="caption">Caja Cuadrada Perfectamente</Typography>
+                                ) : difference > 0 ? (
+                                    <Typography variant="caption">Sobrante en Caja</Typography>
+                                ) : (
+                                    <Typography variant="caption">Faltante en Caja</Typography>
+                                )}
+                            </Paper>
+                        </Box>
+
+                        <Box sx={{ mt: 2 }}>
+                            <TextField
+                                label="Notas de Cierre"
+                                fullWidth
+                                multiline
+                                rows={4}
+                                value={closingNotes}
+                                onChange={(e) => setClosingNotes(e.target.value)}
+                                placeholder="Indique cualquier novedad en el cuadre..."
+                            />
+                        </Box>
                     </Grid>
-                </Paper>
 
-                <Divider sx={{ my: 2 }} />
-
-                {/* Desglose de efectivo */}
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Calculate /> Desglose de Efectivo
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Cuente el efectivo en caja e ingrese la cantidad de cada denominación:
-                </Typography>
-
-                <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Denominación</TableCell>
-                                <TableCell align="center">Cantidad</TableCell>
-                                <TableCell align="right">Subtotal</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {denominations.map((denom) => (
-                                <TableRow key={denom.key}>
-                                    <TableCell>{denom.label}</TableCell>
-                                    <TableCell align="center">
-                                        <TextField
-                                            type="number"
-                                            size="small"
-                                            value={breakdown[denom.key]}
-                                            onChange={(e) => handleBreakdownChange(denom.key, e.target.value)}
-                                            inputProps={{ min: 0, style: { textAlign: 'center' } }}
-                                            sx={{ width: 80 }}
-                                        />
-                                    </TableCell>
-                                    <TableCell align="right">
-                                        ${(breakdown[denom.key] * denom.value).toFixed(2)}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                            <TableRow>
-                                <TableCell colSpan={2} align="right" sx={{ fontWeight: 'bold' }}>
-                                    Total Contado:
-                                </TableCell>
-                                <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-                                    ${countedTotal.toFixed(2)}
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-
-                {/* Diferencia */}
-                <Paper
-                    sx={{
-                        p: 2,
-                        mb: 2,
-                        bgcolor: difference === 0 ? 'success.light' : difference > 0 ? 'info.light' : 'warning.light',
-                        color: 'text.primary'
-                    }}
-                >
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={4}>
-                            <Typography variant="caption">Esperado</Typography>
-                            <Typography variant="h6">${expectedTotal.toFixed(2)}</Typography>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <Typography variant="caption">Contado</Typography>
-                            <Typography variant="h6">${countedTotal.toFixed(2)}</Typography>
-                        </Grid>
-                        <Grid item xs={4}>
-                            <Typography variant="caption">Diferencia</Typography>
-                            <Typography variant="h6" color={difference === 0 ? 'success.main' : difference > 0 ? 'info.main' : 'error.main'}>
-                                {difference >= 0 ? '+' : ''}{difference.toFixed(2)}
-                            </Typography>
-                            <Typography variant="caption">
-                                {difference === 0 ? 'Cuadrada ✓' : difference > 0 ? 'Sobrante' : 'Faltante'}
-                            </Typography>
-                        </Grid>
+                    {/* Desglose de Monedas/Billetes */}
+                    <Grid item xs={12} md={7}>
+                        <Typography variant="subtitle2" gutterBottom fontWeight="bold">
+                            Desglose de Efectivo
+                        </Typography>
+                        <Box sx={{ maxHeight: 400, overflowY: 'auto', pr: 1 }}>
+                            <Grid container spacing={1}>
+                                {denominations.map((denom) => (
+                                    <Grid item xs={12} key={denom.field}>
+                                        <Box display="flex" alignItems="center" gap={1}>
+                                            <TextField
+                                                size="small"
+                                                label={denom.label}
+                                                type="number"
+                                                value={breakdown[denom.field]}
+                                                onChange={(e) => handleBreakdownChange(denom.field, e.target.value)}
+                                                sx={{ flex: 1 }}
+                                                inputProps={{ min: 0 }}
+                                                InputProps={{
+                                                    endAdornment: (
+                                                        <InputAdornment position="end">
+                                                            x {denom.value}
+                                                        </InputAdornment>
+                                                    ),
+                                                }}
+                                            />
+                                            <Typography variant="body2" sx={{ minWidth: 100, textAlign: 'right', fontWeight: 'bold' }}>
+                                                {formatCurrency(breakdown[denom.field] * denom.value)}
+                                            </Typography>
+                                        </Box>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        </Box>
                     </Grid>
-                </Paper>
-
-                {/* Notas */}
-                <TextField
-                    label="Notas / Observaciones"
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={closingNotes}
-                    onChange={(e) => setClosingNotes(e.target.value)}
-                    placeholder={difference !== 0 ? "Explique la razón de la diferencia..." : "Observaciones opcionales..."}
-                    InputProps={{
-                        startAdornment: <Description sx={{ mr: 1, color: 'text.secondary' }} />
-                    }}
-                />
+                </Grid>
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ p: 2 }}>
                 <Button onClick={onClose} color="inherit" disabled={loading}>
                     Cancelar
                 </Button>
@@ -276,9 +261,9 @@ const CloseCashRegisterModal = ({ open, onClose, onSuccess, cashRegister }) => {
                     variant="contained"
                     color="error"
                     disabled={loading}
-                    startIcon={loading ? <CircularProgress size={20} /> : <AttachMoney />}
+                    startIcon={loading ? <CircularProgress size={20} /> : <Lock />}
                 >
-                    {loading ? 'Cerrando...' : 'Cerrar Caja'}
+                    {loading ? 'Cerrando...' : 'Finalizar y Cerrar Caja'}
                 </Button>
             </DialogActions>
         </Dialog>

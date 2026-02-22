@@ -49,6 +49,7 @@ const SucursalesConfigModal = ({ onClose }) => {
         rnc: '',
         ciudad: '',
         es_principal: false,
+        activa: true,
         printer_config: {
             connectionType: 'usb', // usb, network, bluetooth
             printerName: '',
@@ -90,6 +91,7 @@ const SucursalesConfigModal = ({ onClose }) => {
             rnc: branch.rnc || '',
             ciudad: branch.ciudad || '',
             es_principal: branch.es_principal || false,
+            activa: branch.activa !== undefined ? branch.activa : true,
             printer_config: {
                 connectionType: branch.printer_config?.connectionType || 'usb',
                 printerName: branch.printer_config?.printerName || '',
@@ -111,6 +113,7 @@ const SucursalesConfigModal = ({ onClose }) => {
             rnc: '',
             ciudad: '',
             es_principal: false,
+            activa: true,
             printer_config: {
                 connectionType: 'usb',
                 printerName: '',
@@ -174,6 +177,27 @@ const SucursalesConfigModal = ({ onClose }) => {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!window.confirm('¿Estás seguro de eliminar esta sucursal? Esta acción puede fallar si existen ventas asociadas.')) {
+            return;
+        }
+
+        try {
+            setSaving(true);
+            await branchService.delete(id);
+            setSuccess('Sucursal eliminada');
+            loadBranches();
+            if (editingBranch && (editingBranch._id === id || editingBranch.id === id)) {
+                setEditingBranch(null);
+            }
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.message || 'Error al eliminar sucursal');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleCancelEdit = () => {
         setEditingBranch(null);
         setError(null);
@@ -221,6 +245,9 @@ const SucursalesConfigModal = ({ onClose }) => {
                     <ListItemSecondaryAction>
                         <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(branch)} color="primary">
                             <EditIcon />
+                        </IconButton>
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(branch._id || branch.id)} color="error" sx={{ ml: 1 }}>
+                            <DeleteIcon />
                         </IconButton>
                     </ListItemSecondaryAction>
                 </ListItem>
@@ -291,7 +318,7 @@ const SucursalesConfigModal = ({ onClose }) => {
                 />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
                 <FormControlLabel
                     control={
                         <Switch
@@ -301,7 +328,20 @@ const SucursalesConfigModal = ({ onClose }) => {
                             color="primary"
                         />
                     }
-                    label="Marcar como Sucursal Principal"
+                    label="Sucursal Principal"
+                />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={formData.activa}
+                            onChange={handleChange}
+                            name="activa"
+                            color="success"
+                        />
+                    }
+                    label="Sucursal Activa"
                 />
             </Grid>
 

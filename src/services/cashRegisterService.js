@@ -89,6 +89,20 @@ const cashRegisterService = {
             console.error('Error getting daily summary:', error);
             throw error;
         }
+    },
+
+    /**
+     * Reiniciar caja (eliminar caja abierta)
+     * @param {string} id 
+     */
+    async resetCashRegister(id) {
+        try {
+            const response = await api.delete(`/cash-register/${id}/reset`);
+            return response.data;
+        } catch (error) {
+            console.error('Error resetting cash register:', error);
+            throw error;
+        }
     }
 };
 

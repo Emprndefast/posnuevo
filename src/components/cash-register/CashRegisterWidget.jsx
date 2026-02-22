@@ -10,10 +10,11 @@ import {
     alpha,
     useTheme
 } from '@mui/material';
-import { LockOpen, Lock, AttachMoney } from '@mui/icons-material';
+import { LockOpen, Lock, AttachMoney, ExitToApp, RestartAlt } from '@mui/icons-material';
 import cashRegisterService from '../../services/cashRegisterService';
 import { useBranch } from '../../context/BranchContext';
 import OpenCashRegisterModal from '../cash-register/OpenCashRegisterModal';
+import CloseCashRegisterModal from '../cash-register/CloseCashRegisterModal';
 
 const CashRegisterWidget = () => {
     const theme = useTheme();
@@ -21,6 +22,7 @@ const CashRegisterWidget = () => {
     const [loading, setLoading] = useState(true);
     const [cashRegister, setCashRegister] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+    const [openCloseModal, setOpenCloseModal] = useState(false);
 
     useEffect(() => {
         if (activeBranch) {
@@ -42,6 +44,29 @@ const CashRegisterWidget = () => {
 
     const handleOpenSuccess = () => {
         loadCashRegister();
+    };
+
+    const handleCloseSuccess = () => {
+        loadCashRegister();
+    };
+
+    const handleReset = async () => {
+        if (!cashRegister) return;
+
+        if (!window.confirm('¿Estás seguro de REINICIAR la caja? Esto eliminará la sesión actual de caja. Los registros de ventas no se borrarán, pero quedarán sin una caja asociada para este turno.')) {
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await cashRegisterService.resetCashRegister(cashRegister._id || cashRegister.id);
+            loadCashRegister();
+        } catch (error) {
+            console.error('Error resetting cash register:', error);
+            alert('Error al reiniciar caja');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const expectedCash = cashRegister
@@ -112,6 +137,27 @@ const CashRegisterWidget = () => {
                                     Gastos: ${cashRegister.summary?.total_expenses?.toFixed(2) || '0.00'}
                                 </Typography>
                             </Box>
+                            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    size="small"
+                                    fullWidth
+                                    startIcon={<Lock />}
+                                    onClick={() => setOpenCloseModal(true)}
+                                >
+                                    Cerrar Caja
+                                </Button>
+                                <IconButton
+                                    size="small"
+                                    color="warning"
+                                    onClick={handleReset}
+                                    title="Reiniciar Caja"
+                                    sx={{ border: '1px solid', borderColor: 'warning.main', borderRadius: 1 }}
+                                >
+                                    <RestartAlt />
+                                </IconButton>
+                            </Box>
                         </Box>
                     ) : (
                         <Box>
@@ -137,6 +183,13 @@ const CashRegisterWidget = () => {
                 open={openModal}
                 onClose={() => setOpenModal(false)}
                 onSuccess={handleOpenSuccess}
+            />
+
+            <CloseCashRegisterModal
+                open={openCloseModal}
+                onClose={() => setOpenCloseModal(false)}
+                onSuccess={handleCloseSuccess}
+                cashRegister={cashRegister}
             />
         </>
     );
