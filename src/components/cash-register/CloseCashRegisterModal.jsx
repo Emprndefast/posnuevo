@@ -23,7 +23,8 @@ import {
     RemoveCircleOutline,
     AddCircleOutline,
     AccountBalanceWallet,
-    AssignmentInd
+    AssignmentInd,
+    Lock
 } from '@mui/icons-material';
 import cashRegisterService from '../../services/cashRegisterService';
 import { formatCurrency } from '../../utils/formatters';
