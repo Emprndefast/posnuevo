@@ -8,7 +8,8 @@ import {
     Chip,
     CircularProgress,
     alpha,
-    useTheme
+    useTheme,
+    IconButton
 } from '@mui/material';
 import { LockOpen, Lock, AttachMoney, ExitToApp, RestartAlt } from '@mui/icons-material';
 import cashRegisterService from '../../services/cashRegisterService';
