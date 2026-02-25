@@ -384,6 +384,14 @@ const ReparacionesPro = () => {
     }
   };
 
+  const handleUpdatePartPrice = (index, newPrice) => {
+    setSelectedParts(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], precio: parseFloat(newPrice) || 0 };
+      return updated;
+    });
+  };
+
   useEffect(() => {
     if (user) {
       fetchRepairs();
@@ -802,42 +810,70 @@ const ReparacionesPro = () => {
                 📦 <strong>{selectedBrand} {selectedDevice}</strong> — Configurando reparaciones
               </Alert>
 
-              <Box>
-                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
-                  🔧 Partes a Reparar ({selectedParts.length})
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fbfbfb' }}>
-                  {selectedParts.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                      {selectedParts.map((p, idx) => (
-                        <Chip 
-                          key={idx} 
-                          label={`${p.nombre} - RD$${p.precio}`} 
-                          onDelete={() => {
-                            setSelectedParts(prev => prev.filter((_, i) => i !== idx));
-                          }}
-                          color="primary"
-                          variant="outlined"
-                        />
-                      ))}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">No hay partes seleccionadas aún.</Typography>
-                  )}
-                  <Divider sx={{ my: 1.5 }} />
-                  <Typography variant="h6" align="right" color="primary" sx={{ fontWeight: 'bold' }}>
-                    Total Sugerido: RD${selectedParts.reduce((acc, p) => acc + p.precio, 0).toLocaleString()}
+              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    🔧 Partes a Reparar ({selectedParts.length})
                   </Typography>
-                </Paper>
+                  {selectedParts.length > 0 ? (
+                    <TableContainer component={Box} sx={{ maxHeight: 200, overflow: 'auto' }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 'bold' }}>Parte/Servicio</TableCell>
+                            <TableCell sx={{ fontWeight: 'bold' }} align="right">Precio RD$</TableCell>
+                            <TableCell align="right"></TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {selectedParts.map((p, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell sx={{ fontSize: '0.85rem' }}>{p.nombre}</TableCell>
+                              <TableCell align="right">
+                                <TextField
+                                  size="small"
+                                  type="number"
+                                  value={p.precio}
+                                  onChange={(e) => handleUpdatePartPrice(idx, e.target.value)}
+                                  variant="standard"
+                                  sx={{ width: 80, '& input': { textAlign: 'right', fontSize: '0.85rem' } }}
+                                />
+                              </TableCell>
+                              <TableCell align="right">
+                                <IconButton size="small" color="error" onClick={() => setSelectedParts(prev => prev.filter((_, i) => i !== idx))}>
+                                  <DeleteIcon fontSize="inherit" />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center', bgcolor: '#f5f5f5', borderRadius: 1 }}>
+                      No hay partes seleccionadas aún.
+                    </Typography>
+                  )}
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, p: 1, bgcolor: alpha(theme.palette.primary.main, 0.05), borderRadius: 1 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Sugerido:</Typography>
+                    <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                      RD${selectedParts.reduce((acc, p) => acc + (p.precio || 0), 0).toLocaleString()}
+                    </Typography>
+                  </Box>
+                </Box>
                 <Button 
+                  fullWidth
+                  variant="outlined"
                   size="small" 
-                  onClick={() => setEditingRepair(null)} 
-                  sx={{ mt: 1 }}
+                  onClick={() => {
+                    setOpenRepairModal(false);
+                    setEditingRepair(null);
+                  }} 
+                  sx={{ mt: 2, borderStyle: 'dashed' }}
                   startIcon={<AddIcon />}
                 >
-                  Agregar más partes/servicios
+                  Cambiar Categoría / Agregar Más Partes
                 </Button>
-              </Box>
 
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
