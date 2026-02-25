@@ -1138,14 +1138,16 @@ const ReparacionesPro = () => {
                     status: 'pending'
                   });
 
-                  // AGREGAR AUTOMÁTICAMENTE LA CATEGORÍA COMO PARTE SI LA LISTA ESTÁ VACÍA
-                  if (selectedParts.length === 0) {
-                    setSelectedParts([{
+                  // AGREGAR LA CATEGORÍA COMO PARTE (APPEND)
+                  setSelectedParts(prev => {
+                    const alreadyExists = prev.find(p => p.nombre === categoryName);
+                    if (alreadyExists) return prev; // No duplicar si ya está
+                    return [...prev, {
                       nombre: `${categoryName}`,
                       precio: 0,
                       cantidad: 1
-                    }]);
-                  }
+                    }];
+                  });
 
                   setFormData(prev => ({
                     ...prev,
