@@ -32,6 +32,7 @@ import {
   InputAdornment,
   Divider,
 } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -303,6 +304,7 @@ const REPAIR_STATUSES = [
 ];
 
 const ReparacionesPro = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addRepairToCart } = useCart();
