@@ -361,7 +361,8 @@ const ReparacionesPro = () => {
   const togglePartSelection = (part, variation) => {
     const variationLabel = variation ? ` (${variation.nombre})` : '';
     const partName = `${part.nombre}${variationLabel}`;
-    const precio = variation?.precio_minimo ?? part.precio_minimo ?? 0;
+    // Intentar obtener precio de variación, luego precio_minimo (plantillas), luego cost (seeds)
+    const precio = variation?.precio_minimo ?? variation?.precio ?? part.precio_minimo ?? part.precio ?? part.cost ?? 0;
 
     setSelectedParts(prev => {
       const exists = prev.find(p => p.nombre === partName);
@@ -373,7 +374,7 @@ const ReparacionesPro = () => {
     });
 
     if (!editingRepair) {
-      // Si no estamos en modo edición forzada, activamos la vista de detalles
+      // Activar vista de detalles si es la primera pieza
       setEditingRepair({
         brand: selectedBrand,
         device: selectedDevice,
@@ -812,7 +813,9 @@ const ReparacionesPro = () => {
                         <Chip 
                           key={idx} 
                           label={`${p.nombre} - RD$${p.precio}`} 
-                          onDelete={() => togglePartSelection({ nombre: p.nombre.split(' (')[0] }, null)}
+                          onDelete={() => {
+                            setSelectedParts(prev => prev.filter((_, i) => i !== idx));
+                          }}
                           color="primary"
                           variant="outlined"
                         />
@@ -1046,12 +1049,27 @@ const ReparacionesPro = () => {
                                 {repair.problem}
                               </Typography>
                             </Box>
-                            <Chip
-                              label={`RD$${repair.cost || '0.00'}`}
-                              color="primary"
-                              variant="outlined"
-                              sx={{ fontWeight: 'bold' }}
-                            />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Chip
+                                label={`RD$${repair.cost || '0.00'}`}
+                                color="primary"
+                                variant="outlined"
+                                sx={{ fontWeight: 'bold' }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePartSelection({ nombre: repair.problem || 'Reparación', cost: repair.cost }, null);
+                                }}
+                              />
+                              <Button 
+                                size="small" 
+                                variant="contained"
+                                onClick={() => {
+                                  togglePartSelection({ nombre: repair.problem || 'Reparación', cost: repair.cost }, null);
+                                }}
+                              >
+                                Seleccionar
+                              </Button>
+                            </Box>
                           </Box>
                         </Paper>
                       ))}
