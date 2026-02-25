@@ -375,7 +375,7 @@ function Login() {
             <DialogContent>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.<br />
-                Si tienes problemas, contáctanos a <b>posntrd@gmail.com</b> o WhatsApp <b>+1 809-340-8534</b>.
+                Si tienes problemas, contáctanos a <b>posntrd@gmail.com</b> o WhatsApp <b>+1 809-340-8435</b>.
               </Typography>
               <TextField
                 autoFocus

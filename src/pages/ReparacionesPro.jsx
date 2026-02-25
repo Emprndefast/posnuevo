@@ -337,7 +337,18 @@ const ReparacionesPro = () => {
     customer_name: '',
     customer_phone: '',
     status: 'pending',
-    notes: '',
+    notes: ''
+  });
+
+  // Partes seleccionadas para la reparación actual (multi-selección)
+  const [selectedParts, setSelectedParts] = useState([]);
+
+  // Información extendida del dispositivo
+  const [deviceInfo, setDeviceInfo] = useState({
+    imei: '',
+    condition: '',
+    passcode: '',
+    deliveryDate: '',
   });
 
   // Variaciones seleccionadas por parte (nombre de parte => nombre variación)
@@ -347,23 +358,29 @@ const ReparacionesPro = () => {
     setSelectedVariations(prev => ({ ...prev, [partName]: variationName }));
   };
 
-  const addPartToRepair = (part, variation) => {
-    const variationLabel = variation ? ` - ${variation.nombre}` : '';
-    const partNombre = `${part.nombre}${variationLabel}`;
+  const togglePartSelection = (part, variation) => {
+    const variationLabel = variation ? ` (${variation.nombre})` : '';
+    const partName = `${part.nombre}${variationLabel}`;
     const precio = variation?.precio_minimo ?? part.precio_minimo ?? 0;
 
-    const newRepair = {
-      brand: selectedBrand,
-      device: selectedDevice,
-      category: selectedCategory.id,
-      problem: `${part.nombre} repair`,
-      partes_reparar: [{ nombre: partNombre, precio, cantidad: 1 }],
-      cost: precio,
-      status: 'pending'
-    };
+    setSelectedParts(prev => {
+      const exists = prev.find(p => p.nombre === partName);
+      if (exists) {
+        return prev.filter(p => p.nombre !== partName);
+      } else {
+        return [...prev, { nombre: partName, precio, cantidad: 1 }];
+      }
+    });
 
-    setEditingRepair(newRepair);
-    setFormData({ ...formData, cost: precio, customer_name: '', customer_phone: '', status: 'pending', notes: '' });
+    if (!editingRepair) {
+      // Si no estamos en modo edición forzada, activamos la vista de detalles
+      setEditingRepair({
+        brand: selectedBrand,
+        device: selectedDevice,
+        category: selectedCategory?.id || 'repair',
+        status: 'pending'
+      });
+    }
   };
 
   useEffect(() => {
@@ -489,6 +506,13 @@ const ReparacionesPro = () => {
       customer_phone: '',
       status: 'pending',
       notes: '',
+    });
+    setSelectedParts([]);
+    setDeviceInfo({
+      imei: '',
+      condition: '',
+      passcode: '',
+      deliveryDate: '',
     });
   };
 
@@ -771,65 +795,139 @@ const ReparacionesPro = () => {
           )}
           {editingRepair ? (
             // FORMULARIO DE EDICIÓN / CREACIÓN
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Alert severity="info">
-                🔧 Creando reparación: <strong>{selectedBrand} {selectedDevice}</strong>
+            // FORMULARIO DE DETALLES Y DATOS DEL DISPOSITIVO
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Alert severity="info" variant="outlined">
+                📦 <strong>{selectedBrand} {selectedDevice}</strong> — Configurando reparaciones
               </Alert>
 
-              <TextField
-                fullWidth
-                label="Nombre del Cliente"
-                value={formData.customer_name}
-                onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
-                placeholder="Ingresa nombre del cliente"
-                required
-                error={formData.customer_name === ''}
-              />
-
-              <TextField
-                fullWidth
-                label="Teléfono del Cliente"
-                value={formData.customer_phone}
-                onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
-                type="tel"
-                placeholder="+1 234 567 8900"
-              />
-
-              <TextField
-                fullWidth
-                label="Costo de Reparación"
-                value={formData.cost}
-                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
-                type="number"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start">RD$</InputAdornment>,
-                }}
-                required
-                error={formData.cost === '' || formData.cost <= 0}
-              />
-
-              <FormControl fullWidth>
-                <InputLabel>Estado</InputLabel>
-                <Select
-                  value={formData.status}
-                  label="Estado"
-                  onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              <Box>
+                <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  🔧 Partes a Reparar ({selectedParts.length})
+                </Typography>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#fbfbfb' }}>
+                  {selectedParts.length > 0 ? (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {selectedParts.map((p, idx) => (
+                        <Chip 
+                          key={idx} 
+                          label={`${p.nombre} - RD$${p.precio}`} 
+                          onDelete={() => togglePartSelection({ nombre: p.nombre.split(' (')[0] }, null)}
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">No hay partes seleccionadas aún.</Typography>
+                  )}
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="h6" align="right" color="primary" sx={{ fontWeight: 'bold' }}>
+                    Total Sugerido: RD${selectedParts.reduce((acc, p) => acc + p.precio, 0).toLocaleString()}
+                  </Typography>
+                </Paper>
+                <Button 
+                  size="small" 
+                  onClick={() => setEditingRepair(null)} 
+                  sx={{ mt: 1 }}
+                  startIcon={<AddIcon />}
                 >
-                  {REPAIR_STATUSES.map(s => (
-                    <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                  Agregar más partes/servicios
+                </Button>
+              </Box>
 
-              <TextField
-                fullWidth
-                label="Notas o Descripción del Problema"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                multiline
-                rows={3}
-                placeholder="Describe qué necesita reparación..."
-              />
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Nombre del Cliente"
+                    value={formData.customer_name}
+                    onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
+                    required
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Teléfono"
+                    value={formData.customer_phone}
+                    onChange={(e) => setFormData({ ...formData, customer_phone: e.target.value })}
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="IMEI / Serie"
+                    value={deviceInfo.imei}
+                    onChange={(e) => setDeviceInfo({ ...deviceInfo, imei: e.target.value })}
+                    placeholder="Opcional"
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Contraseña"
+                    value={deviceInfo.passcode}
+                    onChange={(e) => setDeviceInfo({ ...deviceInfo, passcode: e.target.value })}
+                    placeholder="Patrón o PIN"
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Condición del Equipo"
+                    value={deviceInfo.condition}
+                    onChange={(e) => setDeviceInfo({ ...deviceInfo, condition: e.target.value })}
+                    placeholder="Rayones, golpes, mojado, etc."
+                    size="small"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Precio Final ACORDADO"
+                    value={formData.cost || selectedParts.reduce((acc, p) => acc + p.precio, 0)}
+                    onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
+                    type="number"
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start">RD$</InputAdornment>,
+                    }}
+                    required
+                    size="medium"
+                    color="primary"
+                    focused
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="medium">
+                    <InputLabel>Estado</InputLabel>
+                    <Select
+                      value={formData.status}
+                      label="Estado"
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      {REPAIR_STATUSES.map(s => (
+                        <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Notas Técnicas"
+                    value={formData.notes}
+                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    multiline
+                    rows={2}
+                    size="small"
+                  />
+                </Grid>
+              </Grid>
 
               {error && <Alert severity="error">{error}</Alert>}
             </Box>
@@ -886,14 +984,15 @@ const ReparacionesPro = () => {
 
                             <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                               <Button
-                                variant="outlined"
+                                variant={selectedParts.find(p => p.nombre.startsWith(part.nombre)) ? "contained" : "outlined"}
+                                color={selectedParts.find(p => p.nombre.startsWith(part.nombre)) ? "success" : "primary"}
                                 onClick={() => {
                                   const selName = selectedVariations[part.nombre];
                                   const variation = part.variaciones.find(v => v.nombre === selName);
-                                  addPartToRepair(part, variation);
+                                  togglePartSelection(part, variation);
                                 }}
                               >
-                                Seleccionar
+                                {selectedParts.find(p => p.nombre.startsWith(part.nombre)) ? "✓ Seleccionado" : "Seleccionar"}
                               </Button>
                             </Box>
                           </Box>
@@ -902,10 +1001,11 @@ const ReparacionesPro = () => {
                         {!part.variaciones?.length && (
                           <Box sx={{ mt: 2 }}>
                             <Button
-                              variant="outlined"
-                              onClick={() => addPartToRepair(part, null)}
+                              variant={selectedParts.find(p => p.nombre === part.nombre) ? "contained" : "outlined"}
+                              color={selectedParts.find(p => p.nombre === part.nombre) ? "success" : "primary"}
+                              onClick={() => togglePartSelection(part, null)}
                             >
-                              Seleccionar
+                              {selectedParts.find(p => p.nombre === part.nombre) ? "✓ Seleccionado" : "Seleccionar"}
                             </Button>
                           </Box>
                         )}
@@ -995,16 +1095,17 @@ const ReparacionesPro = () => {
             </Box>
           )}
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
+        <DialogActions sx={{ p: 2, borderTop: '1px solid #eee' }}>
           {editingRepair && (
             <Button
               variant="text"
+              startIcon={<ArrowBackIcon />}
               onClick={() => {
                 setEditingRepair(null);
-                resetForm();
+                setError('');
               }}
             >
-              Atrás
+              Volver a Partes
             </Button>
           )}
           <Button onClick={() => {
@@ -1015,65 +1116,52 @@ const ReparacionesPro = () => {
             Cerrar
           </Button>
           {editingRepair && (
-            <>
-              <Button
-                variant="outlined"
-                color="secondary"
-                disabled={!selectedCategory || !formData.customer_name || !formData.cost || formData.cost <= 0}
-                onClick={() => {
-                  // Validar antes de agregar
-                  if (!formData.customer_name) {
-                    setError('Por favor ingresa el nombre del cliente');
-                    return;
-                  }
-                  if (!formData.cost || formData.cost <= 0) {
-                    setError('Por favor ingresa un costo válido');
-                    return;
-                  }
+            <Button
+              variant="contained"
+              color="success"
+              size="large"
+              startIcon={<ShoppingCartIcon />}
+              disabled={selectedParts.length === 0 || !formData.customer_name}
+              onClick={() => {
+                const finalPrice = parseFloat(formData.cost) || selectedParts.reduce((acc, p) => acc + p.precio, 0);
 
-                  const repairToAdd = {
-                    brand: editingRepair?.brand || selectedBrand,
-                    device: editingRepair?.device || selectedDevice,
-                    category: editingRepair?.category || selectedCategory?.id || selectedCategory,
-                    problem: formData.notes || 'Reparación',
-                    cost: parseFloat(formData.cost),
-                    customer_name: formData.customer_name,
-                    customer_phone: formData.customer_phone,
-                    status: formData.status,
-                    partes_reparar: [
-                      {
-                        nombre: `${editingRepair?.device} - ${selectedCategory?.name || 'Reparación'}`,
-                        precio: parseFloat(formData.cost),
-                        cantidad: 1
-                      }
-                    ]
-                  };
+                const repairToAdd = {
+                  brand: selectedBrand,
+                  device: selectedDevice,
+                  category: selectedCategory?.id || 'repair',
+                  problem: formData.notes || selectedParts.map(p => p.nombre).join(', '),
+                  cost: finalPrice,
+                  customer_name: formData.customer_name,
+                  customer_phone: formData.customer_phone,
+                  status: formData.status,
+                  partes_reparar: selectedParts,
+                  // Campos profesionales alineados con el backend
+                  imei: deviceInfo.imei,
+                  condicion: deviceInfo.condition,
+                  clave: deviceInfo.passcode,
+                };
 
-                  try {
-                    addRepairToCart(repairToAdd);
-                    enqueueSnackbar('Reparación agregada al carrito ✓', { variant: 'success' });
-                    setOpenRepairModal(false);
-                    setEditingRepair(null);
-                    resetForm();
-                    setError('');
-                    // Navegar automáticamente al POS después de agregar
-                    setTimeout(() => navigate('/pos'), 500);
-                  } catch (err) {
-                    enqueueSnackbar('Error al agregar al carrito: ' + err.message, { variant: 'error' });
-                  }
-                }}
-              >
-                ➕ Agregar al Pedido
-              </Button>
-
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleCreateRepair}
-              >
-                💾 Guardar
-              </Button>
-            </>
+                try {
+                  addRepairToCart(repairToAdd);
+                  setOpenRepairModal(false);
+                  setEditingRepair(null);
+                  resetForm();
+                  setError('');
+                  enqueueSnackbar('Reparación agregada al pedido ✓', { 
+                    variant: 'success',
+                    action: (key) => (
+                      <Button color="inherit" onClick={() => { navigate('/pos'); }}>
+                        IR AL POS
+                      </Button>
+                    )
+                  });
+                } catch (err) {
+                  enqueueSnackbar('Error: ' + err.message, { variant: 'error' });
+                }
+              }}
+            >
+              Agregar al Pedido (Carrito)
+            </Button>
           )}
         </DialogActions>
       </Dialog>
