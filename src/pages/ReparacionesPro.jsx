@@ -1088,24 +1088,32 @@ const ReparacionesPro = () => {
                 startIcon={<AddIcon />}
                 sx={{ mt: 2 }}
                 onClick={() => {
-                  // Crear nuevo objeto vacío para activar formulario
+                  const brandName = selectedBrand || '';
+                  const deviceName = selectedDevice || '';
+                  const categoryName = selectedCategory?.name || 'Reparación';
+                  
+                  // Crear nuevo objeto para activar formulario
                   setEditingRepair({
-                    brand: selectedBrand,
-                    device: selectedDevice,
-                    category: selectedCategory?.id || selectedCategory,
-                    problem: '',
-                    cost: 0,
-                    partes_reparar: [],
+                    brand: brandName,
+                    device: deviceName,
+                    category: selectedCategory?.id || 'other',
                     status: 'pending'
                   });
-                  // Reset form pero con valores iniciales
-                  setFormData({
-                    cost: '',
-                    customer_name: '',
-                    customer_phone: '',
-                    status: 'pending',
-                    notes: '',
-                  });
+
+                  // AGREGAR AUTOMÁTICAMENTE LA CATEGORÍA COMO PARTE SI LA LISTA ESTÁ VACÍA
+                  if (selectedParts.length === 0) {
+                    setSelectedParts([{
+                      nombre: `${categoryName}`,
+                      precio: 0,
+                      cantidad: 1
+                    }]);
+                  }
+
+                  setFormData(prev => ({
+                    ...prev,
+                    customer_name: prev.customer_name || '',
+                    status: 'pending'
+                  }));
                 }}
               >
                 ➕ Crear Nueva Reparación
