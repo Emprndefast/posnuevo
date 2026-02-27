@@ -1,4 +1,4 @@
-import React, { useState, startTransition } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -96,7 +96,7 @@ const ReparacionesNuevo = () => {
     try {
       setLoading(true);
       setError('');
-
+      
       const repairData = {
         cliente: customerName,
         marca: selectedDevice.marca,
@@ -131,7 +131,7 @@ const ReparacionesNuevo = () => {
       <Box sx={{ my: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <IconButton onClick={() => startTransition(() => navigate('/reparaciones'))} sx={{ mr: 2 }}>
+          <IconButton onClick={() => navigate('/reparaciones')} sx={{ mr: 2 }}>
             <ArrowBackIcon />
           </IconButton>
           <Typography variant="h4" component="h1">

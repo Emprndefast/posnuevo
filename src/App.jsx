@@ -46,8 +46,6 @@ import { ProductosProvider } from './context/ProductosContext';
 import { VentasProvider } from './context/VentasContext';
 import { ClientesProvider } from './context/ClientesContext';
 import { CrmProvider } from './context/CrmContext';
-import { CartProvider } from './context/CartContext';
-import { BranchProvider } from './context/BranchContext';
 
 // Configurar goober
 setup(createElement);
@@ -71,7 +69,6 @@ const ProductCostManager = React.lazy(() => import('./components/inventory/Produ
 const InvoiceGenerator = React.lazy(() => import('./components/billing/InvoiceGenerator').then(m => ({ default: m.InvoiceGenerator })));
 const Reparaciones = React.lazy(() => import('./pages/Reparaciones'));
 const ReparacionesNuevo = React.lazy(() => import('./pages/ReparacionesNuevo'));
-const ReparacionesPro = React.lazy(() => import('./pages/ReparacionesPro'));
 const Contabilidad = React.lazy(() => import('./pages/contabilidad/index'));
 const RegistroMovimiento = React.lazy(() => import('./pages/contabilidad/registro'));
 const Settings = React.lazy(() => import('./components/settings/Settings').then(m => ({ default: m.Settings })));
@@ -100,7 +97,6 @@ const EInvoicing = React.lazy(() => import('./pages/EInvoicing'));
 const Suppliers = React.lazy(() => import('./pages/Suppliers'));
 const Promotions = React.lazy(() => import('./pages/Promotions'));
 const CrmRoutes = React.lazy(() => import('./routes/CrmRoutes'));
-const CashRegister = React.lazy(() => import('./pages/CashRegister'));
 
 function TestTrial() {
   const [userId, setUserId] = useState('');
@@ -153,13 +149,13 @@ function TestTrial() {
 
       await testUtils.modifySubscriptionToExpired(targetUserId);
       await testUtils.disableFreePlan(targetUserId);
-
+      
       // Forzar cierre de sesión
       await auth.signOut();
-
-      setMessage({
-        type: 'success',
-        text: 'Suscripción modificada para simular vencimiento y plan gratuito desactivado. Serás redirigido al login...'
+      
+      setMessage({ 
+        type: 'success', 
+        text: 'Suscripción modificada para simular vencimiento y plan gratuito desactivado. Serás redirigido al login...' 
       });
 
       // Redirigir al login después de 2 segundos
@@ -195,7 +191,7 @@ function TestTrial() {
           <Typography variant="h5" gutterBottom>
             Prueba de Período de Prueba
           </Typography>
-
+          
           {message.text && (
             <Alert severity={message.type} sx={{ mb: 2 }}>
               {message.text}
@@ -301,7 +297,7 @@ const AppContent = () => {
     } else if (localStorage.getItem('protectorPantalla')) {
       try {
         config = JSON.parse(localStorage.getItem('protectorPantalla'));
-      } catch { }
+      } catch {}
     }
     setConfigProtector(config);
   }, [settings]);
@@ -314,10 +310,10 @@ const AppContent = () => {
       if (inactividadTimer.current) {
         clearTimeout(inactividadTimer.current);
       }
-
+      
       // Convertir minutos a milisegundos
       const timeoutMs = (configProtector.timeout || 5) * 60 * 1000;
-
+      
       inactividadTimer.current = setTimeout(() => {
         console.log('Activando bloqueo por inactividad');
         setBloqueado(true);
@@ -413,13 +409,7 @@ const AppContent = () => {
                   <Route path="/inventory/costs" element={<ProductCostManager />} />
                   <Route path="/customers" element={<Customers />} />
                   <Route path="/billing" element={<InvoiceGenerator />} />
-                  <Route path="/repairs" element={<ReparacionesPro />} />
-                  <Route path="/repairs/nuevo" element={
-                    <Suspense fallback={<CircularProgress />}>
-                      <ReparacionesNuevo />
-                    </Suspense>
-                  } />
-                  <Route path="/reparaciones" element={<ReparacionesPro />} />
+                  <Route path="/reparaciones" element={<Reparaciones />} />
                   <Route path="/reparaciones/nuevo" element={
                     <Suspense fallback={<CircularProgress />}>
                       <ReparacionesNuevo />
@@ -436,7 +426,6 @@ const AppContent = () => {
                   <Route path="/e-invoicing" element={<EInvoicing />} />
                   <Route path="/suppliers" element={<Suppliers />} />
                   <Route path="/promotions" element={<Promotions />} />
-                  <Route path="/cash-register" element={<CashRegister />} />
                   <Route path="/test-trial" element={<TestTrial />} />
                   <Route path="/test-huggingface" element={<HuggingFaceTest />} />
                   {/* Rutas CRM */}
@@ -462,34 +451,32 @@ function App() {
         <LanguageProvider>
           <PermissionsProvider>
             <CustomThemeProvider>
-              <SubscriptionProvider>
-                <BusinessProvider>
-                  <ConfigProvider>
-                    <TelegramProvider>
-                      <PrinterProvider>
-                        <PrintProvider>
-                          <CartProvider>
+              <ThemeProvider theme={theme}>
+                <SubscriptionProvider>
+                  <BusinessProvider>
+                    <ConfigProvider>
+                      <TelegramProvider>
+                        <PrinterProvider>
+                          <PrintProvider>
                             <ProductosProvider>
                               <VentasProvider>
                                 <ClientesProvider>
                                   <CrmProvider>
-                                    <BranchProvider>
-                                      <SnackbarProvider maxSnack={3}>
-                                        <CssBaseline />
-                                        <AppContent />
-                                      </SnackbarProvider>
-                                    </BranchProvider>
+                                    <SnackbarProvider maxSnack={3}>
+                                      <CssBaseline />
+                                      <AppContent />
+                                    </SnackbarProvider>
                                   </CrmProvider>
                                 </ClientesProvider>
                               </VentasProvider>
                             </ProductosProvider>
-                          </CartProvider>
-                        </PrintProvider>
-                      </PrinterProvider>
-                    </TelegramProvider>
-                  </ConfigProvider>
-                </BusinessProvider>
-              </SubscriptionProvider>
+                          </PrintProvider>
+                        </PrinterProvider>
+                      </TelegramProvider>
+                    </ConfigProvider>
+                  </BusinessProvider>
+                </SubscriptionProvider>
+              </ThemeProvider>
             </CustomThemeProvider>
           </PermissionsProvider>
         </LanguageProvider>

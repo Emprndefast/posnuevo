@@ -1,4 +1,4 @@
-import React, { useState, useEffect, startTransition } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -144,7 +144,7 @@ const Reparaciones = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => startTransition(() => navigate('/reparaciones/nuevo'))}
+            onClick={() => navigate('/reparaciones/nuevo')}
           >
             Nueva Reparación
           </Button>
