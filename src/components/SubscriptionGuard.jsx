@@ -1,11 +1,12 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useSubscription } from '../hooks/useSubscription';
-import { CircularProgress, Box, Typography } from '@mui/material';
+import { useAuth } from '../context/AuthContextMongo';
 
 export const SubscriptionGuard = ({ children, requiredPlan = 'basic' }) => {
   const { subscription, loading } = useSubscription();
+  const { user } = useAuth();
   const location = useLocation();
+
+  // Permitir siempre el acceso si es el usuario dueño principal
+  const isMainAdmin = user?.email?.toLowerCase() === 'nachotechrd@gmail.com';
 
   // Permitir siempre el acceso a la página de suscripción
   if (location.pathname === '/subscription' || location.pathname === '/subscriptions') {
@@ -13,13 +14,13 @@ export const SubscriptionGuard = ({ children, requiredPlan = 'basic' }) => {
   }
 
   // Mostrar loading mientras se verifica la suscripción
-  if (loading) {
+  if (loading && !isMainAdmin) {
     return (
-      <Box 
-        sx={{ 
-          display: 'flex', 
+      <Box
+        sx={{
+          display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center', 
+          alignItems: 'center',
           justifyContent: 'center',
           height: '100vh'
         }}
@@ -30,6 +31,11 @@ export const SubscriptionGuard = ({ children, requiredPlan = 'basic' }) => {
         </Typography>
       </Box>
     );
+  }
+
+  // Si es el admin principal, saltar todas las verificaciones
+  if (isMainAdmin) {
+    return children;
   }
 
   // Verificar si el usuario tiene una suscripción activa y el plan requerido
@@ -53,15 +59,15 @@ export const SubscriptionGuard = ({ children, requiredPlan = 'basic' }) => {
   // Solo redirigir si no hay suscripción activa, no puede usar el plan gratuito y no está en la página de suscripción
   if (!subscription?.isActive && !canUseFreePlan()) {
     return (
-      <Navigate 
-        to="/subscription" 
-        state={{ 
+      <Navigate
+        to="/subscription"
+        state={{
           from: location,
-          message: subscription?.freePlanUsed 
+          message: subscription?.freePlanUsed
             ? 'Ya has utilizado tu período de prueba gratuito. Por favor, selecciona un plan para continuar usando la aplicación.'
             : 'Por favor, selecciona un plan para comenzar a usar la aplicación.'
-        }} 
-        replace 
+        }}
+        replace
       />
     );
   }

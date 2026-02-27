@@ -37,10 +37,10 @@ export const useSubscription = () => {
         dataRetentionEndDate: toDateSafe(status.dataRetentionEndDate)
       };
       setSubscription(prevState => {
-        if (!prevState || 
-            prevState.isActive !== normalizedStatus.isActive || 
-            prevState.planId !== normalizedStatus.planId ||
-            (prevState.endDate && normalizedStatus.endDate && prevState.endDate.getTime() !== normalizedStatus.endDate.getTime())) {
+        if (!prevState ||
+          prevState.isActive !== normalizedStatus.isActive ||
+          prevState.planId !== normalizedStatus.planId ||
+          (prevState.endDate && normalizedStatus.endDate && prevState.endDate.getTime() !== normalizedStatus.endDate.getTime())) {
           return normalizedStatus;
         }
         return prevState;
@@ -61,7 +61,7 @@ export const useSubscription = () => {
     }
 
     setLoading(true);
-    
+
     // Configurar el listener de suscripción en tiempo real
     const q = query(
       collection(db, 'subscriptions'),
@@ -69,7 +69,7 @@ export const useSubscription = () => {
       where('status', '==', 'active')
     );
 
-    const unsubscribe = onSnapshot(q, 
+    const unsubscribe = onSnapshot(q,
       (snapshot) => {
         if (!snapshot.empty) {
           const data = snapshot.docs[0].data();
@@ -137,7 +137,12 @@ export const useSubscription = () => {
   };
 
   return {
-    subscription,
+    subscription: subscription || (user?.plan ? {
+      isActive: true,
+      planId: user.plan,
+      planName: user.plan.toUpperCase(),
+      isPermanent: true
+    } : null),
     loading,
     error,
     checkSubscription,
