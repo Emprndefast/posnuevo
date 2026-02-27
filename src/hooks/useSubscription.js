@@ -13,6 +13,28 @@ function toDateSafe(val) {
   return null;
 }
 
+// Aplicar privilegios PRO basados en Mongo (JWT) para el dueño principal
+function applyMongoPlanOverride(status, user) {
+  if (!user || !status) return status;
+
+  const isMainAdmin = user.email?.toLowerCase() === 'nachotechrd@gmail.com';
+  const mongoPlan = user.plan;
+
+  if (isMainAdmin || mongoPlan === 'pro') {
+    return {
+      ...status,
+      isActive: true,
+      planId: 'pro',
+      planName: 'Plan Profesional',
+      isPermanent: true,
+      canUseFreePlan: false,
+      freePlanUsed: true
+    };
+  }
+
+  return status;
+}
+
 export const useSubscription = () => {
   const { user } = useAuth();
   const [subscription, setSubscription] = useState(null);
@@ -36,16 +58,24 @@ export const useSubscription = () => {
         trialEndDate: toDateSafe(status.trialEndDate),
         dataRetentionEndDate: toDateSafe(status.dataRetentionEndDate)
       };
+
+      // Si en Mongo eres PRO / dueño principal, forzar plan PRO
+      const finalStatus = applyMongoPlanOverride(normalizedStatus, user);
+
       setSubscription(prevState => {
-        if (!prevState ||
-          prevState.isActive !== normalizedStatus.isActive ||
-          prevState.planId !== normalizedStatus.planId ||
-          (prevState.endDate && normalizedStatus.endDate && prevState.endDate.getTime() !== normalizedStatus.endDate.getTime())) {
-          return normalizedStatus;
+        if (
+          !prevState ||
+          prevState.isActive !== finalStatus.isActive ||
+          prevState.planId !== finalStatus.planId ||
+          (prevState.endDate &&
+            finalStatus.endDate &&
+            prevState.endDate.getTime() !== finalStatus.endDate.getTime())
+        ) {
+          return finalStatus;
         }
         return prevState;
       });
-      return normalizedStatus;
+      return finalStatus;
     } catch (err) {
       console.error('Error checking subscription:', err);
       setError(err);
@@ -69,7 +99,8 @@ export const useSubscription = () => {
       where('status', '==', 'active')
     );
 
-    const unsubscribe = onSnapshot(q,
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
         if (!snapshot.empty) {
           const data = snapshot.docs[0].data();
@@ -83,13 +114,18 @@ export const useSubscription = () => {
             trialEndDate: toDateSafe(data.trialEndDate),
             dataRetentionEndDate: toDateSafe(data.dataRetentionEndDate)
           };
+
+          const finalData = applyMongoPlanOverride(subscriptionData, user);
+
           setSubscription(prevState => {
-            if (!prevState || prevState.id !== subscriptionData.id) {
-              return subscriptionData;
+            if (!prevState || prevState.id !== finalData.id) {
+              return finalData;
             }
             return prevState;
           });
         } else {
+          // Sin doc de suscripción activa en Firestore:
+          // dejar que el fallback de user.plan actúe
           setSubscription(null);
         }
         setLoading(false);
