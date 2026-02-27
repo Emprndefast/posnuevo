@@ -24,8 +24,6 @@ import { LanguageProvider } from './context/LanguageContext';
 import { PermissionsProvider } from './context/PermissionsContext';
 import { CustomThemeProvider } from './context/ThemeContext';
 import { PrivateRoute } from './components/auth/PrivateRoute';
-import { ThemeProvider } from '@mui/material/styles';
-import { theme } from './theme';
 import { SubscriptionProvider } from './context/SubscriptionContext';
 import { ConfigProvider, useConfig } from './context/ConfigContext';
 import { BusinessProvider } from './context/BusinessContext';
@@ -453,32 +451,30 @@ function App() {
           <LanguageProvider>
             <PermissionsProvider>
               <CustomThemeProvider>
-                <ThemeProvider theme={theme}>
-                  <SubscriptionProvider>
-                    <BusinessProvider>
-                      <ConfigProvider>
-                        <TelegramProvider>
-                          <PrinterProvider>
-                            <PrintProvider>
-                              <ProductosProvider>
-                                <VentasProvider>
-                                  <ClientesProvider>
-                                    <CrmProvider>
-                                      <SnackbarProvider maxSnack={3}>
-                                        <CssBaseline />
-                                        <AppContent />
-                                      </SnackbarProvider>
-                                    </CrmProvider>
-                                  </ClientesProvider>
-                                </VentasProvider>
-                              </ProductosProvider>
-                            </PrintProvider>
-                          </PrinterProvider>
-                        </TelegramProvider>
-                      </ConfigProvider>
-                    </BusinessProvider>
-                  </SubscriptionProvider>
-                </ThemeProvider>
+                <SubscriptionProvider>
+                  <BusinessProvider>
+                    <ConfigProvider>
+                      <TelegramProvider>
+                        <PrinterProvider>
+                          <PrintProvider>
+                            <ProductosProvider>
+                              <VentasProvider>
+                                <ClientesProvider>
+                                  <CrmProvider>
+                                    <SnackbarProvider maxSnack={3}>
+                                      <CssBaseline />
+                                      <AppContent />
+                                    </SnackbarProvider>
+                                  </CrmProvider>
+                                </ClientesProvider>
+                              </VentasProvider>
+                            </ProductosProvider>
+                          </PrintProvider>
+                        </PrinterProvider>
+                      </TelegramProvider>
+                    </ConfigProvider>
+                  </BusinessProvider>
+                </SubscriptionProvider>
               </CustomThemeProvider>
             </PermissionsProvider>
           </LanguageProvider>
