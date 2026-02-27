@@ -46,6 +46,7 @@ import { ProductosProvider } from './context/ProductosContext';
 import { VentasProvider } from './context/VentasContext';
 import { ClientesProvider } from './context/ClientesContext';
 import { CrmProvider } from './context/CrmContext';
+import { BranchProvider } from './context/BranchContext';
 
 // Configurar goober
 setup(createElement);
@@ -448,38 +449,40 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <LanguageProvider>
-          <PermissionsProvider>
-            <CustomThemeProvider>
-              <ThemeProvider theme={theme}>
-                <SubscriptionProvider>
-                  <BusinessProvider>
-                    <ConfigProvider>
-                      <TelegramProvider>
-                        <PrinterProvider>
-                          <PrintProvider>
-                            <ProductosProvider>
-                              <VentasProvider>
-                                <ClientesProvider>
-                                  <CrmProvider>
-                                    <SnackbarProvider maxSnack={3}>
-                                      <CssBaseline />
-                                      <AppContent />
-                                    </SnackbarProvider>
-                                  </CrmProvider>
-                                </ClientesProvider>
-                              </VentasProvider>
-                            </ProductosProvider>
-                          </PrintProvider>
-                        </PrinterProvider>
-                      </TelegramProvider>
-                    </ConfigProvider>
-                  </BusinessProvider>
-                </SubscriptionProvider>
-              </ThemeProvider>
-            </CustomThemeProvider>
-          </PermissionsProvider>
-        </LanguageProvider>
+        <BranchProvider>
+          <LanguageProvider>
+            <PermissionsProvider>
+              <CustomThemeProvider>
+                <ThemeProvider theme={theme}>
+                  <SubscriptionProvider>
+                    <BusinessProvider>
+                      <ConfigProvider>
+                        <TelegramProvider>
+                          <PrinterProvider>
+                            <PrintProvider>
+                              <ProductosProvider>
+                                <VentasProvider>
+                                  <ClientesProvider>
+                                    <CrmProvider>
+                                      <SnackbarProvider maxSnack={3}>
+                                        <CssBaseline />
+                                        <AppContent />
+                                      </SnackbarProvider>
+                                    </CrmProvider>
+                                  </ClientesProvider>
+                                </VentasProvider>
+                              </ProductosProvider>
+                            </PrintProvider>
+                          </PrinterProvider>
+                        </TelegramProvider>
+                      </ConfigProvider>
+                    </BusinessProvider>
+                  </SubscriptionProvider>
+                </ThemeProvider>
+              </CustomThemeProvider>
+            </PermissionsProvider>
+          </LanguageProvider>
+        </BranchProvider>
       </AuthProvider>
     </Router>
   );
