@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, startTransition } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -797,7 +797,7 @@ const Sales = () => {
             variant="contained"
             fullWidth
             startIcon={<AddIcon />}
-            onClick={() => startTransition(() => navigate('/quick-sale'))}
+            onClick={() => navigate('/quick-sale')}
             sx={{
               bgcolor: 'primary.main',
               color: 'white',
