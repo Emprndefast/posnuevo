@@ -394,45 +394,47 @@ const AppContent = () => {
           element={
             <PrivateRoute>
               <Layout>
-                <Routes>
-                  {/* Ruta de suscripción - accesible después del login */}
-                  <Route path="/subscription" element={<SubscriptionPlans />} />
-                  <Route path="/subscriptions" element={<SubscriptionPlans />} />
-                  <Route path="/setup-wizard" element={<PrivateRoute><ConfigGuard><SetupWizard /></ConfigGuard></PrivateRoute>} />
-                  <Route path="/dashboard" element={<DashboardPro />} />
-                  <Route path="/analytics" element={<AnalyticsDashboard />} />
-                  <Route path="/financial" element={<FinancialAnalytics />} />
-                  <Route path="/sales" element={<Sales />} />
-                  <Route path="/quick-sale" element={<QuickSale />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/inventory" element={<Inventario />} />
-                  <Route path="/inventory/costs" element={<ProductCostManager />} />
-                  <Route path="/customers" element={<Customers />} />
-                  <Route path="/billing" element={<InvoiceGenerator />} />
-                  <Route path="/reparaciones" element={<Reparaciones />} />
-                  <Route path="/reparaciones/nuevo" element={
-                    <Suspense fallback={<CircularProgress />}>
-                      <ReparacionesNuevo />
-                    </Suspense>
-                  } />
-                  <Route path="/contabilidad" element={<Contabilidad />} />
-                  <Route path="/contabilidad/registro" element={<RegistroMovimiento />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/settings/branches" element={<BranchManager />} />
-                  <Route path="/perfil" element={<Perfil />} />
-                  <Route path="/reports/export" element={<DataExport />} />
-                  {/* Rutas de comercio */}
-                  <Route path="/payment-gateways" element={<PaymentGateways />} />
-                  <Route path="/e-invoicing" element={<EInvoicing />} />
-                  <Route path="/suppliers" element={<Suppliers />} />
-                  <Route path="/promotions" element={<Promotions />} />
-                  <Route path="/test-trial" element={<TestTrial />} />
-                  <Route path="/test-huggingface" element={<HuggingFaceTest />} />
-                  {/* Rutas CRM */}
-                  <Route path="/crm/*" element={<CrmRoutes />} />
-                  {/* Redirigir cualquier otra ruta a la página principal */}
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
+                <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}><CircularProgress /></Box>}>
+                  <Routes>
+                    {/* Ruta de suscripción - accesible después del login */}
+                    <Route path="/subscription" element={<SubscriptionPlans />} />
+                    <Route path="/subscriptions" element={<SubscriptionPlans />} />
+                    <Route path="/setup-wizard" element={<PrivateRoute><ConfigGuard><SetupWizard /></ConfigGuard></PrivateRoute>} />
+                    <Route path="/dashboard" element={<DashboardPro />} />
+                    <Route path="/analytics" element={<AnalyticsDashboard />} />
+                    <Route path="/financial" element={<FinancialAnalytics />} />
+                    <Route path="/sales" element={<Sales />} />
+                    <Route path="/quick-sale" element={<QuickSale />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/inventory" element={<Inventario />} />
+                    <Route path="/inventory/costs" element={<ProductCostManager />} />
+                    <Route path="/customers" element={<Customers />} />
+                    <Route path="/billing" element={<InvoiceGenerator />} />
+                    <Route path="/reparaciones" element={<Reparaciones />} />
+                    <Route path="/reparaciones/nuevo" element={
+                      <Suspense fallback={<CircularProgress />}>
+                        <ReparacionesNuevo />
+                      </Suspense>
+                    } />
+                    <Route path="/contabilidad" element={<Contabilidad />} />
+                    <Route path="/contabilidad/registro" element={<RegistroMovimiento />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/settings/branches" element={<BranchManager />} />
+                    <Route path="/perfil" element={<Perfil />} />
+                    <Route path="/reports/export" element={<DataExport />} />
+                    {/* Rutas de comercio */}
+                    <Route path="/payment-gateways" element={<PaymentGateways />} />
+                    <Route path="/e-invoicing" element={<EInvoicing />} />
+                    <Route path="/suppliers" element={<Suppliers />} />
+                    <Route path="/promotions" element={<Promotions />} />
+                    <Route path="/test-trial" element={<TestTrial />} />
+                    <Route path="/test-huggingface" element={<HuggingFaceTest />} />
+                    {/* Rutas CRM */}
+                    <Route path="/crm/*" element={<CrmRoutes />} />
+                    {/* Redirigir cualquier otra ruta a la página principal */}
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </Suspense>
               </Layout>
             </PrivateRoute>
           }
