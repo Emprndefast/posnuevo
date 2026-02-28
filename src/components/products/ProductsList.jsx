@@ -34,11 +34,13 @@ import {
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { formatCurrency } from '../../utils/formatters';
+import ProductDetailModal from './ProductDetailModal';
 
 const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPrintLabel }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [detailProduct, setDetailProduct] = useState(null);
 
   const handleMenuClick = (event, product) => {
     setAnchorEl(event.currentTarget);
@@ -52,8 +54,11 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
 
   const handleAction = (action) => {
     if (!selectedProduct) return;
-    
-    switch(action) {
+
+    switch (action) {
+      case 'view':
+        setDetailProduct(selectedProduct);
+        break;
       case 'edit':
         onEdit?.(selectedProduct);
         break;
@@ -82,11 +87,11 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
         }
       }}
     >
-      <DialogTitle sx={{ 
-        m: 0, 
-        p: 2, 
-        display: 'flex', 
-        alignItems: 'center', 
+      <DialogTitle sx={{
+        m: 0,
+        p: 2,
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`
       }}>
@@ -94,9 +99,9 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
           <Typography variant="h6">
             Lista de Productos
           </Typography>
-          <Typography 
-            variant="subtitle2" 
-            sx={{ 
+          <Typography
+            variant="subtitle2"
+            sx={{
               ml: 2,
               color: 'text.secondary',
               bgcolor: alpha(theme.palette.primary.main, 0.1),
@@ -121,9 +126,9 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
       </DialogTitle>
 
       <DialogContent sx={{ p: 2 }}>
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
+        <TableContainer
+          component={Paper}
+          sx={{
             borderRadius: 2,
             boxShadow: 'none',
             border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
@@ -164,10 +169,12 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
                 ))
               ) : (
                 products?.map((product) => (
-                  <TableRow 
+                  <TableRow
                     key={product.id}
                     hover
+                    onClick={() => setDetailProduct(product)}
                     sx={{
+                      cursor: 'pointer',
                       '&:last-child td, &:last-child th': { border: 0 }
                     }}
                   >
@@ -182,8 +189,8 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
                         ) : (
                           <Avatar
                             variant="rounded"
-                            sx={{ 
-                              width: 40, 
+                            sx={{
+                              width: 40,
                               height: 40,
                               bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
                             }}
@@ -211,9 +218,9 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Typography 
-                        variant="subtitle2" 
-                        sx={{ 
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
                           color: 'success.main',
                           fontWeight: 600
                         }}
@@ -234,7 +241,7 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
                         label={product.category || 'Sin categoría'}
                         size="small"
                         variant="outlined"
-                        sx={{ 
+                        sx={{
                           borderRadius: 1,
                           bgcolor: alpha(theme.palette.primary.main, 0.1),
                           borderColor: 'transparent',
@@ -251,9 +258,18 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
                       />
                     </TableCell>
                     <TableCell align="center">
+                      <Tooltip title="Ver detalle">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); setDetailProduct(product); }}
+                          sx={{ mr: 0.5 }}
+                        >
+                          <VisibilityIcon fontSize="small" color="primary" />
+                        </IconButton>
+                      </Tooltip>
                       <IconButton
                         size="small"
-                        onClick={(e) => handleMenuClick(e, product)}
+                        onClick={(e) => { e.stopPropagation(); handleMenuClick(e, product); }}
                       >
                         <MoreVertIcon />
                       </IconButton>
@@ -273,11 +289,17 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
+        <MenuItem onClick={() => handleAction('view')}>
+          <ListItemIcon>
+            <VisibilityIcon fontSize="small" color="primary" />
+          </ListItemIcon>
+          <ListItemText>Ver Detalle</ListItemText>
+        </MenuItem>
         <MenuItem onClick={() => handleAction('edit')}>
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Ver Detalles y Editar</ListItemText>
+          <ListItemText>Editar</ListItemText>
         </MenuItem>
         <MenuItem onClick={() => handleAction('print')}>
           <ListItemIcon>
@@ -292,6 +314,12 @@ const ProductsList = ({ open, onClose, products, loading, onEdit, onDelete, onPr
           <ListItemText>Eliminar</ListItemText>
         </MenuItem>
       </Menu>
+
+      <ProductDetailModal
+        open={Boolean(detailProduct)}
+        onClose={() => setDetailProduct(null)}
+        product={detailProduct}
+      />
     </Dialog>
   );
 };

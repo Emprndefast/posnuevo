@@ -127,6 +127,7 @@ import EnhancedTable from '../common/EnhancedTable';
 import ProductsList from './ProductsList';
 import axios from 'axios';
 import LabelPreview from './LabelPreview';
+import ProductDetailModal from './ProductDetailModal';
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -143,13 +144,13 @@ ChartJS.register(
 // Componente de tarjeta de estadísticas
 const StatCard = ({ title, data, icon: Icon, color = 'primary', subtitle, onClick }) => {
   const theme = useTheme();
-  
+
   return (
     <Fade in={true} timeout={800}>
-      <Card 
+      <Card
         onClick={onClick}
-        sx={{ 
-          height: '100%', 
+        sx={{
+          height: '100%',
           position: 'relative',
           overflow: 'hidden',
           transition: 'all 0.3s ease',
@@ -176,12 +177,12 @@ const StatCard = ({ title, data, icon: Icon, color = 'primary', subtitle, onClic
             {typeof Icon === 'function' ? <Icon sx={{ fontSize: 140 }} /> : Icon}
           </Box>
         )}
-        
+
         <CardContent sx={{ position: 'relative', zIndex: 1 }}>
           <Box>
-            <Typography 
+            <Typography
               variant="subtitle2"
-              sx={{ 
+              sx={{
                 mb: 2,
                 opacity: 0.8,
                 fontWeight: 500,
@@ -191,9 +192,9 @@ const StatCard = ({ title, data, icon: Icon, color = 'primary', subtitle, onClic
             >
               {title}
             </Typography>
-            <Typography 
-              variant="h4" 
-              sx={{ 
+            <Typography
+              variant="h4"
+              sx={{
                 mb: 1,
                 fontWeight: 700,
                 letterSpacing: -0.5
@@ -202,9 +203,9 @@ const StatCard = ({ title, data, icon: Icon, color = 'primary', subtitle, onClic
               {data}
             </Typography>
             {subtitle && (
-              <Typography 
-                variant="body2" 
-                sx={{ 
+              <Typography
+                variant="body2"
+                sx={{
                   opacity: 0.8,
                   display: 'flex',
                   alignItems: 'center',
@@ -332,7 +333,7 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
       // Usar el servicio de almacenamiento que usa el endpoint del backend
       const storageService = (await import('../../services/storageService')).default;
       const result = await storageService.uploadProductImage(file);
-      
+
       setFormData(prev => ({
         ...prev,
         imageUrl: result.url
@@ -347,26 +348,26 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validar campos requeridos
     if (!formData.name || !formData.name.trim()) {
       setError('El nombre del producto es requerido');
       return;
     }
-    
+
     if (!formData.code || !formData.code.trim()) {
       setError('El código del producto es requerido');
       return;
     }
-    
+
     if (!formData.price || parseFloat(formData.price) <= 0) {
       setError('El precio del producto debe ser mayor a 0');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       await onSave(formData);
       // Solo cerrar si no hay error
@@ -424,7 +425,7 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
       setNewCategory('');
       setNewCategoryDialog(false);
-      
+
       setSnackbar({
         open: true,
         message: 'Categoría creada correctamente',
@@ -531,7 +532,7 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
                     </MenuItem>
                   ))}
                   <Divider />
-                  <MenuItem 
+                  <MenuItem
                     onClick={(e) => {
                       e.preventDefault();
                       setNewCategoryDialog(true);
@@ -794,8 +795,8 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
   return (
     <>
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onClose={onClose}
         maxWidth="md"
         fullWidth
@@ -806,9 +807,9 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
           }
         }}
       >
-        <DialogTitle 
-          sx={{ 
-            pb: 1, 
+        <DialogTitle
+          sx={{
+            pb: 1,
             borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
             bgcolor: theme.palette.background.default
           }}
@@ -825,11 +826,11 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ width: '100%' }}>
-            <Stepper 
-              activeStep={activeStep} 
+            <Stepper
+              activeStep={activeStep}
               alternativeLabel
-              sx={{ 
-                pt: 3, 
+              sx={{
+                pt: 3,
                 pb: 2,
                 px: 2,
                 bgcolor: theme.palette.background.default
@@ -843,8 +844,8 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
             </Stepper>
 
             {error && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity="error"
                 sx={{ mx: 3, mb: 2 }}
                 onClose={() => setError(null)}
               >
@@ -860,9 +861,9 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
           </Box>
         </DialogContent>
 
-        <DialogActions 
-          sx={{ 
-            p: 2, 
+        <DialogActions
+          sx={{
+            p: 2,
             borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
             bgcolor: theme.palette.background.default
           }}
@@ -936,8 +937,8 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
           <Button onClick={() => setNewCategoryDialog(false)}>
             Cancelar
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             onClick={handleNewCategory}
             disabled={!newCategory.trim()}
           >
@@ -952,8 +953,8 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
+        <Alert
+          onClose={handleCloseSnackbar}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
           variant="filled"
@@ -967,8 +968,8 @@ const ProductForm = ({ open, onClose, product, onSave, categories = [], onAddCat
 
 // Componente de confirmación de eliminación
 const DeleteConfirmation = ({ open, onClose, onConfirm, productName }) => (
-  <Dialog 
-    open={open} 
+  <Dialog
+    open={open}
     onClose={onClose}
     PaperProps={{
       sx: {
@@ -982,7 +983,7 @@ const DeleteConfirmation = ({ open, onClose, onConfirm, productName }) => (
         Confirmar eliminación
       </Typography>
     </DialogTitle>
-    
+
     <DialogContent>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <ErrorIcon color="error" sx={{ mr: 1, fontSize: 28 }} />
@@ -990,20 +991,20 @@ const DeleteConfirmation = ({ open, onClose, onConfirm, productName }) => (
           ¿Estás seguro de que deseas eliminar este producto?
         </Typography>
       </Box>
-      
+
       <Typography variant="body1" color="text.secondary">
         El producto <strong>{productName}</strong> será eliminado permanentemente.
         Esta acción no se puede deshacer.
       </Typography>
     </DialogContent>
-    
+
     <DialogActions sx={{ p: 2 }}>
       <Button onClick={onClose} color="inherit">
         Cancelar
       </Button>
-      <Button 
-        onClick={onConfirm} 
-        variant="contained" 
+      <Button
+        onClick={onConfirm}
+        variant="contained"
         color="error"
         startIcon={<DeleteIcon />}
       >
@@ -1016,7 +1017,7 @@ const DeleteConfirmation = ({ open, onClose, onConfirm, productName }) => (
 // Componente de gráfico de análisis
 const AnalyticsChart = ({ data, type = 'line', title }) => {
   const theme = useTheme();
-  
+
   const chartData = {
     labels: data.labels,
     datasets: [
@@ -1070,7 +1071,7 @@ const ExportAnalysis = ({ data, onClose }) => {
       setGenerating(true);
       const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage([595.28, 841.89]); // A4
-      
+
       // Agregar título
       page.drawText('Análisis de Productos', {
         x: 50,
@@ -1259,7 +1260,7 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
           <Grid item xs={12} md={6}>
             <StyledSection icon={ImageIcon} title="Imágenes">
               <Box
-                sx={{ 
+                sx={{
                   width: '100%',
                   aspectRatio: '1/1',
                   borderRadius: 1,
@@ -1272,7 +1273,7 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
                 }}
               >
                 {product?.imageUrl ? (
-                  <Box 
+                  <Box
                     component="img"
                     src={product.imageUrl}
                     alt={product.name || 'Producto'}
@@ -1304,23 +1305,23 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
             <StyledSection icon={InfoIcon} title="Información Básica">
               <InfoItem label="Nombre" value={product.name} />
               <InfoItem label="Código" value={product.code} />
-              <InfoItem 
-                label="Precio" 
-                value={formatCurrency(product.price)} 
+              <InfoItem
+                label="Precio"
+                value={formatCurrency(product.price)}
               />
               <InfoItem label="Categoría" value={product.category || 'Sin categoría'} />
             </StyledSection>
 
             <StyledSection icon={InventoryIcon} title="Inventario">
               <Box sx={{ mb: 2 }}>
-                <InfoItem 
-                  label="Stock Actual" 
+                <InfoItem
+                  label="Stock Actual"
                   value={product.stock}
                   color={getStockColor(product.stock)}
                 />
                 {typeof product.stock === 'number' && product.stock <= 10 && (
                   <Alert severity={product.stock <= 0 ? "error" : "warning"} sx={{ mt: 1 }}>
-                    {product.stock <= 0 
+                    {product.stock <= 0
                       ? "Producto sin stock"
                       : "Stock bajo"}
                   </Alert>
@@ -1339,8 +1340,8 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <EventIcon sx={{ mr: 1, fontSize: 'small', color: 'text.secondary' }} />
-                    <InfoItem 
-                      label="Creado" 
+                    <InfoItem
+                      label="Creado"
                       value={formatDate(product.createdAt)}
                     />
                   </Box>
@@ -1348,8 +1349,8 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
                 <Grid item xs={12} sm={6}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <UpdateIcon sx={{ mr: 1, fontSize: 'small', color: 'text.secondary' }} />
-                    <InfoItem 
-                      label="Actualizado" 
+                    <InfoItem
+                      label="Actualizado"
                       value={formatDate(product.updatedAt)}
                     />
                   </Box>
@@ -1361,9 +1362,9 @@ const ProductDetails = ({ product, open, onClose, onEdit }) => {
       </DialogContent>
 
       <DialogActions sx={{ p: 2 }}>
-        <Button 
+        <Button
           onClick={onClose}
-          variant="contained" 
+          variant="contained"
           color="primary"
           startIcon={<CloseIcon />}
         >
@@ -1416,7 +1417,8 @@ const Products = () => {
   const [searchByCode, setSearchByCode] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
   const [labelOpen, setLabelOpen] = useState(false);
-  
+  const [detailModalProduct, setDetailModalProduct] = useState(null);
+
   const { darkMode } = useCustomTheme();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -1455,7 +1457,7 @@ const Products = () => {
 
     try {
       setLoading(true);
-      
+
       // Obtener token del localStorage
       const token = localStorage.getItem('token');
       console.log('🔑 Token from localStorage:', token ? 'exists' : 'not found');
@@ -1511,13 +1513,13 @@ const Products = () => {
         });
 
         setProducts(productsData);
-        
+
         // Calcular estadísticas
-        const totalValue = productsData.reduce((sum, product) => 
+        const totalValue = productsData.reduce((sum, product) =>
           sum + (product.price * (product.stock || 0)), 0);
-        const lowStock = productsData.filter(product => 
+        const lowStock = productsData.filter(product =>
           (product.stock || 0) <= (product.minStock || 5)).length;
-        
+
         setStats({
           totalProducts: productsData.length,
           totalValue,
@@ -1568,7 +1570,7 @@ const Products = () => {
   const fetchCategories = async () => {
     const userId = user?.id || user?._id;
     if (!userId) return;
-    
+
     try {
       const q = query(collection(db, 'categories'), where('userId', '==', userId));
       const querySnapshot = await getDocs(q);
@@ -1599,7 +1601,7 @@ const Products = () => {
 
   const handleDeleteConfirm = async () => {
     if (!selectedProduct) return;
-    
+
     try {
       await deleteDoc(doc(db, 'products', selectedProduct.id));
       setProducts(products.filter(p => p.id !== selectedProduct.id));
@@ -1631,22 +1633,22 @@ const Products = () => {
     try {
       // Importar la API de productos
       const { createProduct, updateProduct } = await import('../../api/products');
-      
+
       // Preparar datos del producto según el formato esperado por el backend
       // El backend acepta tanto campos en inglés como en español
       // Validar campos requeridos
       if (!formData.name || !formData.name.trim()) {
         throw new Error('El nombre del producto es requerido');
       }
-      
+
       if (!formData.code || !formData.code.trim()) {
         throw new Error('El código del producto es requerido');
       }
-      
+
       if (!formData.price || parseFloat(formData.price) <= 0) {
         throw new Error('El precio del producto debe ser mayor a 0');
       }
-      
+
       const productData = {
         // Campos en inglés (para compatibilidad)
         name: formData.name.trim(),
@@ -1683,16 +1685,16 @@ const Products = () => {
         // Actualizar producto existente
         const { updateProduct } = await import('../../api/products');
         result = await updateProduct(selectedProduct.id || selectedProduct._id, productData);
-        
+
         // Actualizar el estado local
-        setProducts(prevProducts => 
+        setProducts(prevProducts =>
           prevProducts.map(p => {
             const productId = p.id || p._id;
             const selectedId = selectedProduct.id || selectedProduct._id;
             return productId === selectedId ? { ...p, ...result.data } : p;
           })
         );
-        
+
         setSnackbar({
           open: true,
           message: 'Producto actualizado correctamente',
@@ -1701,16 +1703,16 @@ const Products = () => {
       } else {
         // Crear nuevo producto usando la API de MongoDB
         result = await createProduct(productData);
-        
+
         // Verificar que la respuesta sea exitosa
         if (!result.success) {
           throw new Error(result.message || 'Error al crear el producto');
         }
-        
+
         // Actualizar el estado local con el nuevo producto
         const newProduct = result.data || result;
         setProducts(prevProducts => [...prevProducts, newProduct]);
-        
+
         setSnackbar({
           open: true,
           message: 'Producto creado correctamente',
@@ -1720,7 +1722,7 @@ const Products = () => {
 
       // Recargar la lista de productos para asegurar sincronización
       await fetchProducts();
-      
+
     } catch (err) {
       console.error('Error al guardar producto:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Error al guardar el producto';
@@ -1763,22 +1765,22 @@ const Products = () => {
   // Filtrar y ordenar productos
   const filteredProducts = useMemo(() => {
     let result = [...products];
-    
+
     // Filtrar por búsqueda
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(p => 
-        p.name?.toLowerCase().includes(term) || 
+      result = result.filter(p =>
+        p.name?.toLowerCase().includes(term) ||
         p.code?.toLowerCase().includes(term) ||
         p.category?.toLowerCase().includes(term)
       );
     }
-    
+
     // Filtrar por categoría
     if (categoryFilter !== 'all') {
       result = result.filter(p => p.category === categoryFilter);
     }
-    
+
     return result;
   }, [products, searchTerm, categoryFilter]);
 
@@ -1883,8 +1885,8 @@ const Products = () => {
             <Avatar
               src={row.imageUrl}
               variant="rounded"
-              sx={{ 
-                width: 40, 
+              sx={{
+                width: 40,
                 height: 40,
                 borderRadius: 1
               }}
@@ -1926,7 +1928,7 @@ const Products = () => {
           label={value}
           size="small"
           variant="outlined"
-          sx={{ 
+          sx={{
             borderRadius: 1,
             '& .MuiChip-label': {
               px: 1
@@ -1941,9 +1943,9 @@ const Products = () => {
       align: 'right',
       sortable: true,
       render: (value) => (
-        <Typography 
-          variant="subtitle2" 
-          sx={{ 
+        <Typography
+          variant="subtitle2"
+          sx={{
             fontWeight: 600,
             color: 'success.main'
           }}
@@ -1966,7 +1968,7 @@ const Products = () => {
               label={stockValue}
               size="small"
               color={isLow ? 'error' : 'default'}
-              sx={{ 
+              sx={{
                 minWidth: 60,
                 borderRadius: 1
               }}
@@ -1983,7 +1985,7 @@ const Products = () => {
           label={value ? 'Activo' : 'Inactivo'}
           color={value ? 'success' : 'error'}
           size="small"
-          sx={{ 
+          sx={{
             minWidth: 80,
             borderRadius: 1
           }}
@@ -2083,12 +2085,12 @@ const Products = () => {
 
         csvContent = [
           headers.join(','),
-          ...exportData.map(row => 
+          ...exportData.map(row =>
             headers.map(header => {
               const value = row[header];
               // Manejar valores que puedan contener comas
-              return typeof value === 'string' && value.includes(',') 
-                ? `"${value}"` 
+              return typeof value === 'string' && value.includes(',')
+                ? `"${value}"`
                 : value;
             }).join(',')
           )
@@ -2101,7 +2103,7 @@ const Products = () => {
       link.href = window.URL.createObjectURL(blob);
       link.download = `productos_${format(new Date(), 'dd-MM-yyyy_HH-mm')}.csv`;
       link.click();
-      
+
       setSnackbar({
         open: true,
         message: 'Productos exportados correctamente',
@@ -2138,14 +2140,14 @@ const Products = () => {
       await batch.commit();
 
       // Actualizar el estado local
-      setProducts(prevProducts => 
-        prevProducts.map(product => 
+      setProducts(prevProducts =>
+        prevProducts.map(product =>
           productsToUpdate.some(p => p.id === product.id)
             ? { ...product, status: newStatus }
             : product
         )
       );
-      
+
       setSnackbar({
         open: true,
         message: `${updatedCount} productos ${newStatus === 'active' ? 'activados' : 'desactivados'} correctamente`,
@@ -2176,11 +2178,11 @@ const Products = () => {
           const text = e.target.result;
           const rows = text.split('\n');
           const headers = rows[0].split(',');
-          
+
           // Validar estructura del archivo
           const requiredFields = ['code', 'name', 'price', 'currentStock'];
           const missingFields = requiredFields.filter(field => !headers.includes(field));
-          
+
           if (missingFields.length > 0) {
             throw new Error(`Campos requeridos faltantes: ${missingFields.join(', ')}`);
           }
@@ -2199,10 +2201,10 @@ const Products = () => {
             .map(row => {
               const values = row.split(',');
               const product = {};
-              
+
               headers.forEach((header, index) => {
                 let value = values[index]?.trim();
-                
+
                 // Convertir valores según el tipo de campo
                 switch (header) {
                   case 'price':
@@ -2218,7 +2220,7 @@ const Products = () => {
                   default:
                     value = value || '';
                 }
-                
+
                 product[header] = value;
               });
 
@@ -2241,7 +2243,7 @@ const Products = () => {
             if (!product.code || !product.name) continue;
 
             const existingProduct = existingProducts.get(product.code);
-            
+
             if (existingProduct) {
               // Actualizar producto existente
               const productRef = doc(db, 'products', existingProduct.id);
@@ -2270,7 +2272,7 @@ const Products = () => {
               ...savedProducts
             ];
           });
-          
+
           setSnackbar({
             open: true,
             message: `${savedProducts.length} productos nuevos importados y ${updatedProducts.length} actualizados correctamente`,
@@ -2297,16 +2299,16 @@ const Products = () => {
   };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       width: '100%',
       margin: 0,
       padding: 0,
       background: theme => theme.palette.background.default,
       minHeight: '100vh'
     }}>
-      <Paper 
+      <Paper
         elevation={0}
-        sx={{ 
+        sx={{
           p: { xs: 3, sm: 4 },
           borderRadius: 0,
           backgroundColor: theme => theme.palette.background.paper,
@@ -2315,14 +2317,14 @@ const Products = () => {
         }}
       >
         {/* Header */}
-        <Box sx={{ 
+        <Box sx={{
           mb: 4,
           textAlign: 'center'
         }}>
-          <Typography 
-            variant="h4" 
-            sx={{ 
-              mb: 1, 
+          <Typography
+            variant="h4"
+            sx={{
+              mb: 1,
               fontWeight: 700,
               fontSize: { xs: '1.5rem', sm: '2rem' },
               textTransform: 'uppercase',
@@ -2331,11 +2333,11 @@ const Products = () => {
             }}
           >
             Gestión de Productos
-        </Typography>
-          <Typography 
-            variant="subtitle1" 
+          </Typography>
+          <Typography
+            variant="subtitle1"
             color="text.secondary"
-            sx={{ 
+            sx={{
               fontSize: { xs: '0.875rem', sm: '1rem' },
               maxWidth: '600px',
               mx: 'auto'
@@ -2346,9 +2348,9 @@ const Products = () => {
         </Box>
 
         {/* Botones de acción */}
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 2, 
+        <Box sx={{
+          display: 'flex',
+          gap: 2,
           mb: 4,
           flexDirection: { xs: 'column', sm: 'row' },
           maxWidth: '600px',
@@ -2376,7 +2378,7 @@ const Products = () => {
             fullWidth
             startIcon={<RefreshIcon />}
             onClick={() => fetchProducts()}
-            sx={{ 
+            sx={{
               height: 48,
               borderRadius: 2
             }}
@@ -2388,7 +2390,7 @@ const Products = () => {
             fullWidth
             startIcon={<DownloadIcon />}
             onClick={handleExportProducts}
-            sx={{ 
+            sx={{
               height: 48,
               borderRadius: 2
             }}
@@ -2400,7 +2402,7 @@ const Products = () => {
             fullWidth
             component="label"
             startIcon={<UploadIcon />}
-            sx={{ 
+            sx={{
               height: 48,
               borderRadius: 2
             }}
@@ -2416,7 +2418,7 @@ const Products = () => {
         </Box>
 
         {/* Filtros y botón para escanear */}
-        <Box sx={{ 
+        <Box sx={{
           mb: 3,
           display: 'flex',
           gap: 2,
@@ -2424,7 +2426,7 @@ const Products = () => {
           justifyContent: 'space-between',
           alignItems: 'center'
         }}>
-          <Box sx={{ 
+          <Box sx={{
             display: 'flex',
             gap: 2,
             flexWrap: 'wrap',
@@ -2436,7 +2438,7 @@ const Products = () => {
               disabled={loading}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ 
+              sx={{
                 flexGrow: 1,
                 maxWidth: 300,
                 backgroundColor: theme => theme.palette.background.paper,
@@ -2453,7 +2455,7 @@ const Products = () => {
               onChange={(e) => setCategoryFilter(e.target.value)}
               size="small"
               disabled={loading}
-              sx={{ 
+              sx={{
                 minWidth: 150,
                 backgroundColor: theme => theme.palette.background.paper,
                 borderRadius: 1.5
@@ -2538,9 +2540,9 @@ const Products = () => {
             Productos Recientes (Total: {products.length}, Loading: {loading ? 'Sí' : 'No'})
           </Typography>
           {console.log('Render - Total productos:', products.length, 'Loading:', loading)}
-          <TableContainer 
-            component={Paper} 
-            sx={{ 
+          <TableContainer
+            component={Paper}
+            sx={{
               borderRadius: 2,
               boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
               maxHeight: 400,
@@ -2548,34 +2550,39 @@ const Products = () => {
             }}
           >
             <Table size="small">
-          <TableHead>
-            <TableRow>
+              <TableHead>
+                <TableRow>
                   <TableCell>Producto</TableCell>
                   <TableCell align="right">Precio</TableCell>
                   <TableCell align="right">Stock</TableCell>
-              <TableCell>Estado</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
+                  <TableCell>Estado</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading ? (
                   Array.from({ length: 5 }).map((_, index) => (
-                <TableRow key={index}>
+                    <TableRow key={index}>
                       <TableCell><Skeleton width={150} /></TableCell>
                       <TableCell align="right"><Skeleton width={80} /></TableCell>
                       <TableCell align="right"><Skeleton width={60} /></TableCell>
                       <TableCell><Skeleton width={90} /></TableCell>
-                </TableRow>
-              ))
-                        ) : products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} align="center">
-                  <Typography color="text.secondary">No hay productos disponibles</Typography>
-                </TableCell>
-              </TableRow>
-            ) : (
+                    </TableRow>
+                  ))
+                ) : products.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography color="text.secondary">No hay productos disponibles</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
                   products.slice(0, 5).map((product) => (
-                     <TableRow key={product.id} hover>
-                  <TableCell>
+                    <TableRow
+                      key={product.id}
+                      hover
+                      onClick={() => setDetailModalProduct(product)}
+                      sx={{ cursor: 'pointer' }}
+                    >
+                      <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           {product.imageUrl ? (
                             <Avatar
@@ -2586,8 +2593,8 @@ const Products = () => {
                           ) : (
                             <Avatar
                               variant="rounded"
-                              sx={{ 
-                                width: 32, 
+                              sx={{
+                                width: 32,
                                 height: 32,
                                 bgcolor: theme => alpha(theme.palette.primary.main, 0.1)
                               }}
@@ -2602,29 +2609,29 @@ const Products = () => {
                             </Typography>
                           </Box>
                         </Box>
-                  </TableCell>
+                      </TableCell>
                       <TableCell align="right">{formatCurrency(product.price)}</TableCell>
                       <TableCell align="right">
-                    <Chip
-                      label={product.stock}
-                      size="small"
+                        <Chip
+                          label={product.stock}
+                          size="small"
                           color={product.stock <= (product.minStock || 5) ? 'error' : 'default'}
                           sx={{ minWidth: 60 }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
                           label={product.status === 'active' ? 'Activo' : 'Inactivo'}
-                      size="small"
+                          size="small"
                           color={product.status === 'active' ? 'success' : 'error'}
-                    />
-                  </TableCell>
-                </TableRow>
+                        />
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       </Paper>
 
@@ -2653,9 +2660,9 @@ const Products = () => {
       />
 
       {error && (
-        <Alert 
-          severity="error" 
-          sx={{ 
+        <Alert
+          severity="error"
+          sx={{
             mt: 3,
             borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
@@ -2690,8 +2697,15 @@ const Products = () => {
         onClose={() => setScannerOpen(false)}
         onDetected={handleCodeDetected}
       />
+
+      {/* Modal de detalle de producto */}
+      <ProductDetailModal
+        open={Boolean(detailModalProduct)}
+        onClose={() => setDetailModalProduct(null)}
+        product={detailModalProduct}
+      />
     </Box>
   );
-}; 
+};
 
 export default Products; 

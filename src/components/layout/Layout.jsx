@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import NotificacionesModal from '../common/NotificacionesModal';
 import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
+import ProductDetailModal from '../products/ProductDetailModal';
 import api from '../../config/api';
 // Firebase imports - Mocked for backward compatibility
 import { db, collection, query, where, onSnapshot } from '../../firebase/config';
@@ -63,6 +64,7 @@ const Layout = ({ children }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnchorEl, setSearchAnchorEl] = useState(null);
   const [navigationResults, setNavigationResults] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -321,7 +323,10 @@ const Layout = ({ children }) => {
                           PRODUCTOS
                         </Typography>
                         {searchResults.products.map((p) => (
-                          <MenuItem key={p._id} onClick={() => handleResultClick(`/productos`)}>
+                          <MenuItem key={p._id} onClick={() => {
+                            setSearchAnchorEl(null);
+                            setSelectedProduct(p);
+                          }}>
                             <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
                             <ListItemText primary={p.nombre} secondary={`Stock: ${p.stock} | RD$ ${p.precio}`} />
                           </MenuItem>
@@ -566,6 +571,11 @@ const Layout = ({ children }) => {
         {children}
       </Box>
       <SoporteTecnicoModal open={openSoporte} onClose={() => setOpenSoporte(false)} />
+      <ProductDetailModal
+        open={Boolean(selectedProduct)}
+        onClose={() => setSelectedProduct(null)}
+        product={selectedProduct}
+      />
     </Box>
   );
 };
