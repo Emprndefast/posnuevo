@@ -45,20 +45,8 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
     };
 
     const handleSubmit = async () => {
-        if (!formData.opening_amount || parseFloat(formData.opening_amount) < 0) {
-            setError('Por favor ingrese un monto válido');
-            return;
-        }
-
-        // Validar que haya una sucursal activa
-        if (!activeBranch) {
-            setError('No hay una sucursal activa. Por favor selecciona una sucursal antes de abrir caja.');
-            return;
-        }
-
-        const branchId = activeBranch._id || activeBranch.id;
-        if (!branchId) {
-            setError('Error: No se pudo identificar la sucursal. Por favor recarga la página.');
+        if (formData.opening_amount === '' || parseFloat(formData.opening_amount) < 0) {
+            setError('Por favor ingrese un monto válido (puede ser 0)');
             return;
         }
 
@@ -66,11 +54,18 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
             setLoading(true);
             setError('');
 
-            await cashRegisterService.openCashRegister({
-                opening_amount: parseFloat(formData.opening_amount),
+            const payload = {
+                opening_amount: parseFloat(formData.opening_amount) || 0,
                 opening_notes: formData.opening_notes,
-                branch_id: branchId
-            });
+            };
+
+            // Enviar branch_id solo si se conoce la sucursal activa
+            if (activeBranch) {
+                const branchId = activeBranch._id || activeBranch.id;
+                if (branchId) payload.branch_id = branchId;
+            }
+
+            await cashRegisterService.openCashRegister(payload);
 
             if (onSuccess) onSuccess();
             onClose();
@@ -100,27 +95,10 @@ const OpenCashRegisterModal = ({ open, onClose, onSuccess }) => {
                 )}
 
                 {!activeBranch && (
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                        <Typography variant="body2" gutterBottom>
-                            <strong>Atención:</strong> No tienes una sucursal activa configurada.
-                        </Typography>
+                    <Alert severity="info" sx={{ mb: 2 }}>
                         <Typography variant="body2">
-                            El sistema ha detectado que es necesario configurar tu cuenta.
-                            <strong> Por favor, cierra sesión y vuelve a ingresar</strong> para que configuremos tu "Sucursal Principal" automáticamente.
+                            No tienes una sucursal configurada, pero puedes abrir la caja directamente para tu usuario.
                         </Typography>
-                        <Button
-                            variant="outlined"
-                            color="warning"
-                            size="small"
-                            onClick={() => {
-                                onClose();
-                                localStorage.removeItem('token');
-                                window.location.reload();
-                            }}
-                            sx={{ mt: 1 }}
-                        >
-                            Cerrar Sesión y Reparar
-                        </Button>
                     </Alert>
                 )}
 
