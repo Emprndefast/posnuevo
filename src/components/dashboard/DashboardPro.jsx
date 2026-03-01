@@ -1011,20 +1011,54 @@ const DashboardPro = () => {
             <Card
               sx={{
                 height: '100%',
-                borderRadius: 2,
-                boxShadow: 2,
-                background: theme.palette.background.paper,
-                border: promoMedia.url ? `1px solid ${theme.palette.divider}` : `2px dashed ${theme.palette.divider}`,
+                borderRadius: 4,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                background: promoMedia.url ? '#000' : theme.palette.background.paper,
+                border: promoMedia.url ? 'none' : `2px dashed ${theme.palette.divider}`,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                flexDirection: 'column',
                 position: 'relative',
                 overflow: 'hidden',
-                minHeight: { xs: 200, md: '100%' }
+                minHeight: { xs: 350, md: 500 },
+                maxHeight: { xs: 500, md: 650 },
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 15px 40px rgba(0,0,0,0.2)',
+                }
               }}
             >
               {promoMedia.url ? (
-                <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+                <Box sx={{
+                  width: '100%',
+                  height: '100%',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: '#000'
+                }}>
+                  {/* Etiqueta de Contenido PRO */}
+                  <Box sx={{
+                    position: 'absolute',
+                    top: 12,
+                    left: 12,
+                    zIndex: 5,
+                    bgcolor: 'rgba(0,0,0,0.5)',
+                    backdropFilter: 'blur(8px)',
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: 1,
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <Box sx={{ width: 8, height: 8, bgcolor: '#10b981', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
+                    <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}>
+                      PROMOCIÓN LIVE
+                    </Typography>
+                  </Box>
+
                   {promoMedia.type === 'video' ? (
                     <video
                       src={promoMedia.url}
@@ -1035,8 +1069,9 @@ const DashboardPro = () => {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        display: 'block'
+                        objectFit: 'contain', // PREVENIR ESTIRAMIENTO
+                        maxHeight: '100%',
+                        backgroundColor: '#000'
                       }}
                     />
                   ) : (
@@ -1046,18 +1081,29 @@ const DashboardPro = () => {
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        display: 'block'
+                        objectFit: 'contain', // PREVENIR ESTIRAMIENTO
+                        maxHeight: '100%',
+                        backgroundColor: '#000'
                       }}
                     />
                   )}
+
+                  <style>
+                    {`
+                      @keyframes pulse {
+                        0% { transform: scale(1); opacity: 1; }
+                        50% { transform: scale(1.2); opacity: 0.5; }
+                        100% { transform: scale(1); opacity: 1; }
+                      }
+                    `}
+                  </style>
 
                   {/* Overlay for Admin Management */}
                   {(userRole === 'admin' || userRole === 'owner') && (
                     <Box sx={{
                       position: 'absolute',
-                      top: 8,
-                      right: 8,
+                      bottom: 12,
+                      right: 12,
                       display: 'flex',
                       gap: 1,
                       zIndex: 10
@@ -1066,7 +1112,11 @@ const DashboardPro = () => {
                         <IconButton
                           size="small"
                           component="label"
-                          sx={{ bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
+                          sx={{
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' },
+                            transition: 'all 0.2s'
+                          }}
                         >
                           <CloudUpload fontSize="small" color="primary" />
                           <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
@@ -1076,7 +1126,11 @@ const DashboardPro = () => {
                         <IconButton
                           size="small"
                           onClick={handleRemoveMedia}
-                          sx={{ bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
+                          sx={{
+                            bgcolor: 'rgba(255,255,255,0.9)',
+                            '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' },
+                            transition: 'all 0.2s'
+                          }}
                         >
                           <DeleteForever fontSize="small" color="error" />
                         </IconButton>
@@ -1085,24 +1139,42 @@ const DashboardPro = () => {
                   )}
                 </Box>
               ) : (
-                <Box sx={{ textAlign: 'center', width: '100%', p: 2 }}>
-                  <Typography variant="h6" sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                    {uploadingMedia ? <CircularProgress size={20} /> : <PlayCircle color="disabled" />} Contenido Multimedia
+                <Box sx={{
+                  textAlign: 'center',
+                  width: '100%',
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center'
+                }}>
+                  <Box sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: '50%',
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2
+                  }}>
+                    {uploadingMedia ? <CircularProgress size={30} /> : <PlayCircle sx={{ fontSize: 35, color: 'primary.main' }} />}
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: '1rem' }}>
+                    Contenido Multimedia
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', display: 'block', mb: 2 }}>
-                    Sube anuncios para que todos los usuarios los vean aquí.
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.8rem', mb: 3, maxWidth: 200 }}>
+                    Sube anuncios o videos promocionales para tus clientes y empleados.
                   </Typography>
 
                   {(userRole === 'admin' || userRole === 'owner') && (
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       size="small"
                       component="label"
                       startIcon={<CloudUpload />}
-                      disabled={uploadingMedia}
-                      sx={{ borderRadius: 2, fontSize: '0.7rem' }}
+                      sx={{ borderRadius: 2, px: 3 }}
                     >
-                      {uploadingMedia ? 'Subiendo...' : 'Subir Imagen/Video'}
+                      Subir Video / Imagen
                       <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
                     </Button>
                   )}
@@ -1326,10 +1398,10 @@ const DashboardPro = () => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid >
 
           {/* Card 2: Rendimiento */}
-          <Grid item xs={12} sm={6} md={3}>
+          < Grid item xs={12} sm={6} md={3} >
             <Card
               sx={{
                 height: '100%',
@@ -1407,10 +1479,10 @@ const DashboardPro = () => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid >
 
           {/* Card 3: Estado de Conexiones */}
-          <Grid item xs={12} sm={6} md={3}>
+          < Grid item xs={12} sm={6} md={3} >
             <Card
               sx={{
                 height: '100%',
@@ -1496,10 +1568,10 @@ const DashboardPro = () => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid >
 
           {/* Card 4: Estado de APIs */}
-          <Grid item xs={12} sm={6} md={3}>
+          < Grid item xs={12} sm={6} md={3} >
             <Card
               sx={{
                 height: '100%',
@@ -1593,9 +1665,9 @@ const DashboardPro = () => {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
-      </Box>
+          </Grid >
+        </Grid >
+      </Box >
 
       <QuickExpenseModal
         open={openExpenseModal}
