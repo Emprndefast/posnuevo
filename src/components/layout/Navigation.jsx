@@ -47,7 +47,7 @@ const menuGroups = [
     items: [
       { text: 'Productos', icon: <InventoryIcon />, path: '/products' },
       { text: 'Ventas', icon: <SalesIcon />, path: '/sales' },
-      { text: 'Reparaciones', icon: <RepairsIcon />, path: '/repairs' },
+      { text: 'Reparaciones', icon: <RepairsIcon />, path: '/reparaciones' },
     ],
   },
   {

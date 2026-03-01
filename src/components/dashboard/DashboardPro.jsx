@@ -673,7 +673,7 @@ const DashboardPro = () => {
               <ProButton
                 startIcon={<Settings />}
                 color="secondary"
-                onClick={() => handleNavigate('/repairs')}
+                onClick={() => handleNavigate('/reparaciones')}
                 fullWidth
                 variant="soft"
               >

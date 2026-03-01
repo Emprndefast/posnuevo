@@ -67,7 +67,7 @@ const QuickSale = React.lazy(() => import('./components/sales/QuickSale'));
 const Inventario = React.lazy(() => import('./components/inventory/Inventario'));
 const ProductCostManager = React.lazy(() => import('./components/inventory/ProductCostManager'));
 const InvoiceGenerator = React.lazy(() => import('./components/billing/InvoiceGenerator').then(m => ({ default: m.InvoiceGenerator })));
-const Reparaciones = React.lazy(() => import('./pages/Reparaciones'));
+const Reparaciones = React.lazy(() => import('./pages/ReparacionesPro'));
 const ReparacionesNuevo = React.lazy(() => import('./pages/ReparacionesNuevo'));
 const Contabilidad = React.lazy(() => import('./pages/contabilidad/index'));
 const RegistroMovimiento = React.lazy(() => import('./pages/contabilidad/registro'));
@@ -405,12 +405,14 @@ const AppContent = () => {
                     <Route path="/financial" element={<FinancialAnalytics />} />
                     <Route path="/sales" element={<Sales />} />
                     <Route path="/quick-sale" element={<QuickSale />} />
+                    <Route path="/pos" element={<QuickSale />} />
                     <Route path="/products" element={<Products />} />
                     <Route path="/inventory" element={<Inventario />} />
                     <Route path="/inventory/costs" element={<ProductCostManager />} />
                     <Route path="/customers" element={<Customers />} />
                     <Route path="/billing" element={<InvoiceGenerator />} />
                     <Route path="/reparaciones" element={<Reparaciones />} />
+                    <Route path="/repairs" element={<Reparaciones />} />
                     <Route path="/reparaciones/nuevo" element={
                       <Suspense fallback={<CircularProgress />}>
                         <ReparacionesNuevo />
