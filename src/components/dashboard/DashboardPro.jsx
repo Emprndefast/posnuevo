@@ -1253,42 +1253,74 @@ const DashboardPro = () => {
                     const filteredProducts = getFilteredProducts();
 
                     return filteredProducts.length > 0 ? filteredProducts.map((product, index) => (
-                      <Box key={index}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                            {product.name}
-                          </Typography>
-                          <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}>
-                            {productFilter === 'stock'
-                              ? `${product.value.toLocaleString('es-DO')} unidades`
-                              : productFilter === 'valor'
-                                ? `$${product.value.toLocaleString('es-DO')}`
-                                : `$${product.value.toLocaleString('es-DO')}`
+                      <Box key={index} sx={{
+                        p: 1.5,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.background.default, 0.4),
+                        border: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          bgcolor: alpha(theme.palette.primary.main, 0.04),
+                          borderColor: alpha(theme.palette.primary.main, 0.2),
+                          transform: 'translateX(4px)'
+                        }
+                      }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="body2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: 'text.primary' }}>
+                              {product.name}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                              ID: #{product.id?.slice(-6) || 'N/A'}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={productFilter === 'stock'
+                              ? `${product.value} uds`
+                              : `$${product.value.toLocaleString('es-DO')}`
                             }
+                            size="small"
+                            color={productFilter === 'stock' ? (product.value < 10 ? 'error' : 'success') : 'primary'}
+                            variant="soft"
+                            sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
+                          />
+                        </Box>
+
+                        <Box sx={{ position: 'relative', pt: 0.5 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={Math.min((product.value / (productFilter === 'stock' ? 1000 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              bgcolor: alpha(theme.palette.divider, 0.1),
+                              '& .MuiLinearProgress-bar': {
+                                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                                borderRadius: 4,
+                              },
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            {productFilter === 'precio' && <><InventoryIcon sx={{ fontSize: 12 }} /> Stock: <strong>{product.sales}</strong></>}
+                            {productFilter === 'stock' && <><MoneyIcon sx={{ fontSize: 12 }} /> Precio: <strong>${(product.precio || 0).toLocaleString('es-DO')}</strong></>}
+                            {productFilter === 'valor' && <><InfoIcon sx={{ fontSize: 12 }} /> Yield: <strong>${(product.precio || 0).toLocaleString('es-DO')} p/u</strong></>}
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'success.main', fontSize: '0.65rem' }}>
+                            {productFilter === 'stock' && product.value > 0 ? 'Disponible' : ''}
+                            {productFilter === 'precio' && '+12% hoy'}
                           </Typography>
                         </Box>
-                        <LinearProgress
-                          variant="determinate"
-                          value={Math.min((product.value / (productFilter === 'stock' ? 1000 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
-                          sx={{
-                            height: 6,
-                            borderRadius: 3,
-                            bgcolor: 'grey.200',
-                            '& .MuiLinearProgress-bar': {
-                              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                            },
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', mt: 0.5, display: 'block' }}>
-                          {productFilter === 'precio' && `Stock: ${product.sales}`}
-                          {productFilter === 'stock' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')}`}
-                          {productFilter === 'valor' && `Precio: $${(product.precio || 0).toLocaleString('es-DO')} × Stock: ${product.sales}`}
-                        </Typography>
                       </Box>
                     )) : (
-                      <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 3 }}>
-                        No hay productos top
-                      </Typography>
+                      <Box sx={{ py: 4, textAlign: 'center', bgcolor: alpha(theme.palette.action.hover, 0.5), borderRadius: 2, border: `1px dashed ${theme.palette.divider}` }}>
+                        <InventoryIcon sx={{ fontSize: 32, color: 'text.disabled', mb: 1 }} />
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          No hay productos para mostrar
+                        </Typography>
+                      </Box>
                     );
                   })()}
                 </Stack>
@@ -1509,50 +1541,54 @@ const DashboardPro = () => {
                     </Box>
                   </Box>
                 </Box>
-                <Stack spacing={1.5}>
+                <Stack spacing={2}>
                   <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                        Tiendas conectadas
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'primary.main', fontSize: '0.75rem' }}>
-                        2
-                      </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Store sx={{ fontSize: 16, color: 'primary.main' }} />
+                        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>
+                          Tiendas conectadas
+                        </Typography>
+                      </Box>
+                      <Chip label="2 activas" size="small" variant="soft" color="success" sx={{ height: 20, fontSize: '0.65rem' }} />
                     </Box>
                     <LinearProgress
                       variant="determinate"
-                      value={66}
+                      value={100}
                       sx={{
-                        height: 6,
-                        borderRadius: 3,
-                        bgcolor: 'grey.200',
+                        height: 4,
+                        borderRadius: 2,
+                        bgcolor: alpha(theme.palette.success.main, 0.1),
                         '& .MuiLinearProgress-bar': {
-                          bgcolor: 'primary.main',
+                          bgcolor: 'success.main',
                         },
                       }}
                     />
                   </Box>
                   <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>
-                        Sincronizaciones
-                      </Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.main', fontSize: '0.75rem' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Refresh sx={{ fontSize: 16, color: 'info.main' }} />
+                        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>
+                          Sincronizaciones
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: 'info.main', fontSize: '0.75rem' }}>
                         Hoy: 12
                       </Typography>
                     </Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'block' }}>
-                      Última: hace 5 min
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'block', mb: 1 }}>
+                      Última sesión: hace 5 min
                     </Typography>
-                  </Box>
-                  <Divider sx={{ my: 0.5 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                      Productos sincronizados
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>
-                      156
-                    </Typography>
+                    <Divider sx={{ mb: 1.5, opacity: 0.5 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 600 }}>
+                        Base de Datos
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.8rem', color: 'primary.main' }}>
+                        156 SKUs
+                      </Typography>
+                    </Box>
                   </Box>
                 </Stack>
               </CardContent>

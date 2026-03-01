@@ -661,59 +661,42 @@ export const AnalyticsDashboard = () => {
         <Grid item xs={12} sm={6} lg={3}>
           <Card sx={{
             height: '100%',
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${alpha(theme.palette.primary.main, 0.8)} 100%)`,
+            borderRadius: 3,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-4px)',
-              transition: 'transform 0.3s ease-in-out'
+              transform: 'translateY(-8px)',
+              boxShadow: `0 20px 40px ${alpha(theme.palette.primary.main, 0.4)}`
             }
           }}>
-            <CardContent>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                mb: 2
-              }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ opacity: 0.8, mb: 1 }}>
-                    Ventas Totales
+                  <Typography variant="overline" sx={{ opacity: 0.9, fontWeight: 700, letterSpacing: 1.5 }}>
+                    Facturación Total
                   </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800, mt: 1 }}>
                     {formatCurrency(stats.totalSales)}
                   </Typography>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      En el período
-                    </Typography>
-                    <Chip
-                      size="small"
-                      icon={stats.salesTrend >= 0 ? <TrendingUpIcon /> : <TrendingDownIcon />}
-                      label={`${stats.salesTrend >= 0 ? '+' : ''}${stats.salesTrend}%`}
-                      color={stats.salesTrend >= 0 ? 'success' : 'error'}
-                      sx={{
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: 'white'
-                      }}
-                    />
-                  </Box>
                 </Box>
-                <MoneyIcon sx={{
-                  fontSize: 40,
-                  opacity: 0.2,
-                  position: 'absolute',
-                  right: 20,
-                  top: 20
-                }} />
+                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <MoneyIcon sx={{ fontSize: 32 }} />
+                </Avatar>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  size="small"
+                  icon={stats.salesTrend >= 0 ? <TrendingUpIcon style={{ color: 'white' }} /> : <TrendingDownIcon style={{ color: 'white' }} />}
+                  label={`${stats.salesTrend >= 0 ? '+' : ''}${stats.salesTrend}%`}
+                  sx={{ bgcolor: stats.salesTrend >= 0 ? 'rgba(76, 175, 80, 0.4)' : 'rgba(244, 67, 54, 0.4)', color: 'white', fontWeight: 700 }}
+                />
+                <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600 }}>
+                  vs. periodo anterior
+                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -722,57 +705,41 @@ export const AnalyticsDashboard = () => {
         <Grid item xs={12} sm={6} lg={3}>
           <Card sx={{
             height: '100%',
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${alpha(theme.palette.success.main, 0.8)} 100%)`,
+            borderRadius: 3,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            background: `linear-gradient(135deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`,
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-4px)',
-              transition: 'transform 0.3s ease-in-out'
+              transform: 'translateY(-8px)',
+              boxShadow: `0 20px 40px ${alpha(theme.palette.success.main, 0.4)}`
             }
           }}>
-            <CardContent>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                mb: 2
-              }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ opacity: 0.8, mb: 1 }}>
-                    Productos Vendidos
+                  <Typography variant="overline" sx={{ opacity: 0.9, fontWeight: 700, letterSpacing: 1.5 }}>
+                    Items Vendidos
                   </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800, mt: 1 }}>
                     {stats.totalProducts}
                   </Typography>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      En total
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label="45% más que ayer"
-                      sx={{
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: 'white'
-                      }}
-                    />
-                  </Box>
                 </Box>
-                <CartIcon sx={{
-                  fontSize: 40,
-                  opacity: 0.2,
-                  position: 'absolute',
-                  right: 20,
-                  top: 20
-                }} />
+                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <CartIcon sx={{ fontSize: 32 }} />
+                </Avatar>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  size="small"
+                  label="Volumen Pro"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700 }}
+                />
+                <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600 }}>
+                  Eficiencia de despacho: 98%
+                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -781,136 +748,84 @@ export const AnalyticsDashboard = () => {
         <Grid item xs={12} sm={6} lg={3}>
           <Card sx={{
             height: '100%',
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            background: `linear-gradient(135deg, ${theme.palette.info.main} 0%, ${alpha(theme.palette.info.main, 0.8)} 100%)`,
+            borderRadius: 3,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            background: `linear-gradient(135deg, ${theme.palette.info.main} 0%, ${theme.palette.info.dark} 100%)`,
             color: 'white',
             position: 'relative',
             overflow: 'hidden',
+            transition: 'all 0.3s ease',
             '&:hover': {
-              transform: 'translateY(-4px)',
-              transition: 'transform 0.3s ease-in-out'
+              transform: 'translateY(-8px)',
+              boxShadow: `0 20px 40px ${alpha(theme.palette.info.main, 0.4)}`
             }
           }}>
-            <CardContent>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                mb: 2
-              }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Box>
-                  <Typography variant="h6" sx={{ opacity: 0.8, mb: 1 }}>
-                    Clientes Activos
+                  <Typography variant="overline" sx={{ opacity: 0.9, fontWeight: 700, letterSpacing: 1.5 }}>
+                    Ticket Promedio
                   </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {stats.totalCustomers}
-                  </Typography>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      En el período
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label="+5 nuevos"
-                      sx={{
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: 'white'
-                      }}
-                    />
-                  </Box>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      Tasa de retención: 85%
-                    </Typography>
-                  </Box>
-                </Box>
-                <PersonIcon sx={{
-                  fontSize: 40,
-                  opacity: 0.2,
-                  position: 'absolute',
-                  right: 20,
-                  top: 20
-                }} />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} lg={3}>
-          <Card sx={{
-            height: '100%',
-            borderRadius: 2,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            background: `linear-gradient(135deg, ${theme.palette.warning.main} 0%, ${alpha(theme.palette.warning.main, 0.8)} 100%)`,
-            color: 'white',
-            position: 'relative',
-            overflow: 'hidden',
-            '&:hover': {
-              transform: 'translateY(-4px)',
-              transition: 'transform 0.3s ease-in-out'
-            }
-          }}>
-            <CardContent>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                mb: 2
-              }}>
-                <Box>
-                  <Typography variant="h6" sx={{ opacity: 0.8, mb: 1 }}>
-                    Valor Promedio
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 800, mt: 1 }}>
                     {formatCurrency(stats.averageOrderValue)}
                   </Typography>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      Por orden
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label="+12% vs mes anterior"
-                      sx={{
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: 'white'
-                      }}
-                    />
-                  </Box>
-                  <Box sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    mt: 1,
-                    gap: 1
-                  }}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                      Ticket promedio: 3.2 productos
-                    </Typography>
-                  </Box>
                 </Box>
-                <BarChartIcon sx={{
-                  fontSize: 40,
-                  opacity: 0.2,
-                  position: 'absolute',
-                  right: 20,
-                  top: 20
-                }} />
+                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <ReceiptIcon sx={{ fontSize: 32 }} />
+                </Avatar>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="caption" sx={{ opacity: 0.9, fontWeight: 700 }}>
+                  META Sugerida: $1,500
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min((stats.averageOrderValue / 1500) * 100, 100)}
+                  sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)', '& .MuiLinearProgress-bar': { bgcolor: 'white' } }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} lg={3}>
+          <Card sx={{
+            height: '100%',
+            borderRadius: 3,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+            background: `linear-gradient(135deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`,
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-8px)',
+              boxShadow: `0 20px 40px ${alpha(theme.palette.secondary.main, 0.4)}`
+            }
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Box>
+                  <Typography variant="overline" sx={{ opacity: 0.9, fontWeight: 700, letterSpacing: 1.5 }}>
+                    Clientes Activos
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 800, mt: 1 }}>
+                    {stats.totalCustomers}
+                  </Typography>
+                </Box>
+                <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 56, height: 56 }}>
+                  <PersonIcon sx={{ fontSize: 32 }} />
+                </Avatar>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip
+                  size="small"
+                  label="+5 nuevos"
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 700 }}
+                />
+                <Typography variant="caption" sx={{ opacity: 0.8, fontWeight: 600 }}>
+                  Tasa de retención: 85%
+                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -940,36 +855,42 @@ export const AnalyticsDashboard = () => {
                   <MoreVertIcon />
                 </IconButton>
               </Box>
-              <TableContainer>
+              <TableContainer sx={{ mt: 1 }}>
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell>Producto</TableCell>
-                      <TableCell align="right">Ventas</TableCell>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.background.default, 0.5) }}>
+                      <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>PRODUCTO</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>CANTIDAD</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>TOTAL</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {stats.topProducts.map((product) => (
-                      <TableRow key={product.id}>
+                      <TableRow key={product.id} sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05) } }}>
                         <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar
-                              sx={{
-                                width: 24,
-                                height: 24,
-                                bgcolor: theme.palette.primary.main,
-                                fontSize: '0.75rem'
-                              }}
-                            >
-                              {product.name[0]}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            <Avatar sx={{
+                              bgcolor: alpha(theme.palette.primary.main, 0.1),
+                              color: 'primary.main',
+                              width: 32, height: 32, fontSize: '0.85rem'
+                            }}>
+                              <InventoryIcon sx={{ fontSize: 18 }} />
                             </Avatar>
-                            <Typography variant="body2">
-                              {product.name}
-                            </Typography>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {product.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                Ref: {product.id?.slice(-6).toUpperCase()}
+                              </Typography>
+                            </Box>
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          <Chip label={`${product.quantity} uds`} size="small" variant="soft" color="primary" sx={{ fontWeight: 700, height: 20 }} />
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
                             {formatCurrency(product.sales)}
                           </Typography>
                         </TableCell>
@@ -1003,42 +924,58 @@ export const AnalyticsDashboard = () => {
                   <MoreVertIcon />
                 </IconButton>
               </Box>
-              <TableContainer>
+              <TableContainer sx={{ mt: 1 }}>
                 <Table size="small">
                   <TableHead>
-                    <TableRow>
-                      <TableCell>Cliente</TableCell>
-                      <TableCell align="right">Compras</TableCell>
-                      <TableCell align="right">Total</TableCell>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.background.default, 0.5) }}>
+                      <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>RANK</TableCell>
+                      <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem' }}>CLIENTE</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>COMPRAS</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem' }}>TOTAL</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {stats.topCustomers.map((customer) => (
-                      <TableRow key={customer.id}>
+                    {stats.topCustomers.map((customer, index) => (
+                      <TableRow key={customer.id} sx={{ '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05) } }}>
                         <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Box sx={{
+                            width: 24, height: 24, borderRadius: '50%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            bgcolor: index === 0 ? '#FFD700' : index === 1 ? '#C0C0C0' : index === 2 ? '#CD7F32' : 'transparent',
+                            color: index < 3 ? 'black' : 'text.secondary',
+                            fontWeight: 800, fontSize: '0.75rem'
+                          }}>
+                            {index + 1}
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                             <Avatar
                               sx={{
-                                width: 24,
-                                height: 24,
-                                bgcolor: theme.palette.secondary.main,
-                                fontSize: '0.75rem'
+                                width: 32,
+                                height: 32,
+                                bgcolor: alpha(theme.palette.secondary.main, 0.8),
+                                fontSize: '0.85rem',
+                                fontWeight: 700
                               }}
                             >
                               {customer.name[0]}
                             </Avatar>
-                            <Typography variant="body2">
-                              {customer.name}
-                            </Typography>
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                {customer.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                ID: #{customer.id?.slice(-4)}
+                              </Typography>
+                            </Box>
                           </Box>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography variant="body2">
-                            {customer.purchases}
-                          </Typography>
+                          <Chip label={customer.purchases} size="small" variant="outlined" sx={{ fontWeight: 700, height: 20 }} />
                         </TableCell>
                         <TableCell align="right">
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>
                             {formatCurrency(customer.total)}
                           </Typography>
                         </TableCell>
@@ -1072,38 +1009,58 @@ export const AnalyticsDashboard = () => {
                   <MoreVertIcon />
                 </IconButton>
               </Box>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Categoría</TableCell>
-                      <TableCell align="right">Ventas</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {stats.salesByCategory.map((item, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CategoryIcon sx={{
-                              color: theme.palette.primary.main,
-                              fontSize: 20
-                            }} />
-                            <Typography variant="body2">
-                              {item.category}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {formatCurrency(item.sales)}
+              <Stack spacing={2.5} sx={{ mt: 2 }}>
+                {stats.salesByCategory.map((item, index) => {
+                  const maxSales = Math.max(...stats.salesByCategory.map(s => s.sales), 1);
+                  const percentage = (item.sales / maxSales) * 100;
+
+                  return (
+                    <Box key={index}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Avatar sx={{
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            color: 'primary.main',
+                            width: 32, height: 32
+                          }}>
+                            <CategoryIcon sx={{ fontSize: 18 }} />
+                          </Avatar>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                            {item.category}
                           </Typography>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                        </Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'primary.main' }}>
+                          {formatCurrency(item.sales)}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={percentage}
+                          sx={{
+                            flex: 1,
+                            height: 8,
+                            borderRadius: 4,
+                            bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            '& .MuiLinearProgress-bar': {
+                              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                              borderRadius: 4,
+                            },
+                          }}
+                        />
+                        <Typography variant="caption" sx={{ minWidth: 35, fontWeight: 700, color: 'text.secondary' }}>
+                          {Math.round(percentage)}%
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
+                {stats.salesByCategory.length === 0 && (
+                  <Typography variant="body2" sx={{ textAlign: 'center', color: 'text.disabled', py: 4 }}>
+                    No hay datos de categorías registrados
+                  </Typography>
+                )}
+              </Stack>
             </CardContent>
           </Card>
         </Grid>
