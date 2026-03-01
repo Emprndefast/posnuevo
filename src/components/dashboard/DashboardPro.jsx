@@ -49,6 +49,8 @@ import ProCard from '../common/ui/ProCard';
 import ProButton from '../common/ui/ProButton';
 import QuickExpenseModal from '../expenses/QuickExpenseModal';
 import CashRegisterWidget from '../cash-register/CashRegisterWidget';
+import { CloudUpload, DeleteForever, PlayCircle } from '@mui/icons-material';
+import { enqueueSnackbar } from 'notistack';
 
 const DashboardPro = () => {
   const theme = useTheme();
@@ -75,6 +77,8 @@ const DashboardPro = () => {
   });
   const [hasData, setHasData] = useState(false);
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
+  const [promoMedia, setPromoMedia] = useState({ url: '', type: 'image' });
+  const [uploadingMedia, setUploadingMedia] = useState(false);
 
   // Filtros dinámicos para las cards
   const [productFilter, setProductFilter] = useState('precio'); // 'precio', 'stock', 'valor'
@@ -113,6 +117,19 @@ const DashboardPro = () => {
         customersData = response.data;
       } catch (error) {
         console.log('No hay datos de clientes disponibles');
+      }
+
+      // Obtener configuración de multimedia promocional
+      try {
+        const response = await api.get('/settings/business');
+        if (response.data.success && response.data.data) {
+          setPromoMedia({
+            url: response.data.data.promoMediaUrl || '',
+            type: response.data.data.promoMediaType || 'image'
+          });
+        }
+      } catch (error) {
+        console.log('No hay configuración de multimedia disponible');
       }
 
       // Calcular métricas reales desde productos
@@ -294,6 +311,71 @@ const DashboardPro = () => {
       fetchDashboardData();
     }
   }, [productos.length]);
+
+  const handleMediaUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validar tamaño (50MB) 
+    if (file.size > 50 * 1024 * 1024) {
+      enqueueSnackbar('El archivo es demasiado grande (máximo 50MB)', { variant: 'error' });
+      return;
+    }
+
+    setUploadingMedia(true);
+    const formData = new FormData();
+    formData.append('image', file); // Cloudinary Controller espera 'image'
+
+    try {
+      enqueueSnackbar('Subiendo contenido multimedia...', { variant: 'info' });
+      const response = await api.post('/upload/file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data.success) {
+        const url = response.data.data.url;
+        const type = file.type.startsWith('video') ? 'video' : 'image';
+
+        // Guardar en settings de negocio
+        const currentSettingsRes = await api.get('/settings/business');
+        const currentSettings = currentSettingsRes.data.data || {};
+
+        await api.post('/settings/business', {
+          ...currentSettings,
+          promoMediaUrl: url,
+          promoMediaType: type
+        });
+
+        setPromoMedia({ url, type });
+        enqueueSnackbar('Contenido multimedia actualizado correctamente ✨', { variant: 'success' });
+      }
+    } catch (error) {
+      console.error('Error al subir multimedia:', error);
+      enqueueSnackbar('Error al subir el archivo. Intente de nuevo.', { variant: 'error' });
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const handleRemoveMedia = async () => {
+    if (!window.confirm('¿Deseas eliminar el contenido multimedia actual?')) return;
+
+    try {
+      const currentSettingsRes = await api.get('/settings/business');
+      const currentSettings = currentSettingsRes.data.data || {};
+
+      await api.post('/settings/business', {
+        ...currentSettings,
+        promoMediaUrl: '',
+        promoMediaType: 'image'
+      });
+
+      setPromoMedia({ url: '', type: 'image' });
+      enqueueSnackbar('Contenido multimedia eliminado', { variant: 'info' });
+    } catch (error) {
+      enqueueSnackbar('Error al eliminar el contenido', { variant: 'error' });
+    }
+  };
 
   const handleNavigate = (path) => {
     startTransition(() => {
@@ -930,25 +1012,102 @@ const DashboardPro = () => {
               sx={{
                 height: '100%',
                 borderRadius: 2,
-                boxShadow: 1,
-                py: 1.5,
-                pl: '145px',
-                pr: '151px',
+                boxShadow: 2,
                 background: theme.palette.background.paper,
-                border: `2px dashed ${theme.palette.divider}`,
+                border: promoMedia.url ? `1px solid ${theme.palette.divider}` : `2px dashed ${theme.palette.divider}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: { xs: 200, md: '100%' }
               }}
             >
-              <Box sx={{ textAlign: 'center', width: '100%' }}>
-                <Typography variant="h6" sx={{ color: 'text.secondary', fontSize: '1rem', mb: 1 }}>
-                  📸 Contenido Multimedia
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', display: 'block' }}>
-                  Imagen o Video Promocional
-                </Typography>
-              </Box>
+              {promoMedia.url ? (
+                <Box sx={{ width: '100%', height: '100%', position: 'relative' }}>
+                  {promoMedia.type === 'video' ? (
+                    <video
+                      src={promoMedia.url}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src={promoMedia.url}
+                      alt="Promoción"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block'
+                      }}
+                    />
+                  )}
+
+                  {/* Overlay for Admin Management */}
+                  {(userRole === 'admin' || userRole === 'owner') && (
+                    <Box sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      display: 'flex',
+                      gap: 1,
+                      zIndex: 10
+                    }}>
+                      <Tooltip title="Cambiar Contenido">
+                        <IconButton
+                          size="small"
+                          component="label"
+                          sx={{ bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
+                        >
+                          <CloudUpload fontSize="small" color="primary" />
+                          <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <IconButton
+                          size="small"
+                          onClick={handleRemoveMedia}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.8)', '&:hover': { bgcolor: 'white' } }}
+                        >
+                          <DeleteForever fontSize="small" color="error" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <Box sx={{ textAlign: 'center', width: '100%', p: 2 }}>
+                  <Typography variant="h6" sx={{ color: 'text.secondary', fontSize: '0.9rem', mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                    {uploadingMedia ? <CircularProgress size={20} /> : <PlayCircle color="disabled" />} Contenido Multimedia
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', display: 'block', mb: 2 }}>
+                    Sube anuncios para que todos los usuarios los vean aquí.
+                  </Typography>
+
+                  {(userRole === 'admin' || userRole === 'owner') && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      component="label"
+                      startIcon={<CloudUpload />}
+                      disabled={uploadingMedia}
+                      sx={{ borderRadius: 2, fontSize: '0.7rem' }}
+                    >
+                      {uploadingMedia ? 'Subiendo...' : 'Subir Imagen/Video'}
+                      <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
+                    </Button>
+                  )}
+                </Box>
+              )}
             </Card>
           </Grid>
         </Grid>
