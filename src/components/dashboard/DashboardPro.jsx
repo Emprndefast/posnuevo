@@ -37,6 +37,7 @@ import {
   FiberManualRecord,
   Whatshot,
   EmojiEvents,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContextMongo';
@@ -81,7 +82,7 @@ const DashboardPro = () => {
   const [uploadingMedia, setUploadingMedia] = useState(false);
 
   // Filtros dinámicos para las cards
-  const [productFilter, setProductFilter] = useState('precio'); // 'precio', 'stock', 'valor'
+  const [productFilter, setProductFilter] = useState('ventas'); // 'ventas', 'precio', 'stock', 'valor'
   const [productOrder, setProductOrder] = useState('desc'); // 'asc' ascendente, 'desc' descendente
   const [performancePeriod, setPerformancePeriod] = useState('mes'); // 'dia', 'semana', 'mes', 'anio'
   const [connectionFilter, setConnectionFilter] = useState('todos'); // 'todos', 'activos', 'inactivos'
@@ -153,87 +154,8 @@ const DashboardPro = () => {
         console.log(`  - ${product.nombre || product.name}: Stock=${stock}, Precio=${price}, Valor=${price * effectiveStock}`);
       });
 
-      // Función para obtener productos top según el filtro
-      const getTopProducts = (filter) => {
-        let sorted = [];
-
-        switch (filter) {
-          case 'precio':
-            sorted = productsList
-              .filter(p => {
-                const precio = parseFloat(p.precio) || 0;
-                return precio > 0;
-              })
-              .sort((a, b) => {
-                const precioA = parseFloat(a.precio) || 0;
-                const precioB = parseFloat(b.precio) || 0;
-                return precioB - precioA;
-              });
-            break;
-          case 'stock':
-            sorted = productsList
-              .filter(p => {
-                const stock = parseInt(p.stock) || 0;
-                return stock > 0;
-              })
-              .sort((a, b) => {
-                const stockA = parseInt(a.stock) || 0;
-                const stockB = parseInt(b.stock) || 0;
-                return stockB - stockA;
-              });
-            break;
-          case 'valor':
-            sorted = productsList
-              .filter(p => {
-                const precio = parseFloat(p.precio) || 0;
-                const stock = parseInt(p.stock) || 0;
-                return precio > 0 && stock > 0;
-              })
-              .sort((a, b) => {
-                const valorA = (parseFloat(a.precio) || 0) * (parseInt(a.stock) || 0);
-                const valorB = (parseFloat(b.precio) || 0) * (parseInt(b.stock) || 0);
-                return valorB - valorA;
-              });
-            break;
-          default:
-            sorted = productsList.filter(p => {
-              const precio = parseFloat(p.precio) || 0;
-              return precio > 0;
-            }).sort((a, b) => {
-              const precioA = parseFloat(a.precio) || 0;
-              const precioB = parseFloat(b.precio) || 0;
-              return precioB - precioA;
-            });
-        }
-
-        return sorted.slice(0, 2).map(p => {
-          const stock = parseInt(p.stock) || 0;
-          const precio = parseFloat(p.precio) || 0;
-          const valor = precio * stock;
-
-          let valueToShow = precio;
-          let label = 'Stock';
-
-          if (filter === 'stock') {
-            valueToShow = stock;
-            label = 'Stock';
-          } else if (filter === 'valor') {
-            valueToShow = valor;
-            label = 'Valor';
-          }
-
-          return {
-            name: p.nombre || p.name || 'Sin nombre',
-            sales: stock,
-            value: valueToShow,
-            label: label
-          };
-        });
-      };
-
-      const topProducts = getTopProducts(productFilter);
-
-      console.log('🏆 Top productos:', topProducts);
+      // Top productos inicial (se recalcula dinámicamente en el render ahora)
+      console.log('🏆 Dashboard data fetching complete');
 
       // Calcular ventas del día desde estadísticas
       let dailySales = 0;
@@ -266,7 +188,7 @@ const DashboardPro = () => {
         customersServed: customersData?.data?.todayCount || customersData?.data?.total_clientes || 0,
         inventoryValue: productsData?.data?.total_value || totalInventoryValue,
         salesGrowth: 0, // No calculado todavía
-        topProducts: topProducts.length > 0 ? topProducts : [],
+        topProducts: salesData?.data?.top_productos || [],
         recentSales: [],
         cajaActual: cajaActual,
         stockBajo: stockBajo,
@@ -1205,20 +1127,30 @@ const DashboardPro = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <EmojiEvents sx={{ fontSize: 24, color: '#f59e0b', mr: 1.5 }} />
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                        Productos Top
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
+                        TOP PRODUCTOS
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: 0.5, mt: 1, flexWrap: 'wrap' }}>
+                        <Chip
+                          label="Ventas"
+                          size="small"
+                          clickable
+                          onClick={() => { setProductFilter('ventas'); setProductOrder('desc'); }}
+                          color={productFilter === 'ventas' ? 'error' : 'default'}
+                          variant={productFilter === 'ventas' ? 'filled' : 'outlined'}
+                          sx={{ fontSize: '0.65rem', height: 22, fontWeight: 700 }}
+                          icon={productFilter === 'ventas' && <Whatshot sx={{ fontSize: '10px !important' }} />}
+                        />
                         <Chip
                           label="Precio"
                           size="small"
                           clickable
                           onClick={() => setProductFilter('precio')}
                           color={productFilter === 'precio' ? 'primary' : 'default'}
-                          sx={{ fontSize: '0.65rem', height: 20 }}
+                          sx={{ fontSize: '0.65rem', height: 22 }}
                           icon={productFilter === 'precio' && <Box sx={{ fontSize: '0.7rem', ml: 0.5 }}>{productOrder === 'desc' ? '↓' : '↑'}</Box>}
                           onDelete={productFilter === 'precio' ? () => setProductOrder(productOrder === 'asc' ? 'desc' : 'asc') : undefined}
-                          deleteIcon={productFilter === 'precio' ? <Box sx={{ cursor: 'pointer', fontSize: '0.7rem', ml: 0.5 }} onClick={(e) => { e.stopPropagation(); setProductOrder(productOrder === 'asc' ? 'desc' : 'asc'); }}>{productOrder === 'desc' ? '↓' : '↑'}</Box> : undefined}
+                          deleteIcon={productFilter === 'precio' ? <Box sx={{ cursor: 'pointer', fontSize: '10px', ml: 0.5, fontWeight: 'bold' }}>CAMBIAR</Box> : undefined}
                         />
                         <Chip
                           label="Stock"
@@ -1226,10 +1158,9 @@ const DashboardPro = () => {
                           clickable
                           onClick={() => setProductFilter('stock')}
                           color={productFilter === 'stock' ? 'primary' : 'default'}
-                          sx={{ fontSize: '0.65rem', height: 20 }}
+                          sx={{ fontSize: '0.65rem', height: 22 }}
                           icon={productFilter === 'stock' && <Box sx={{ fontSize: '0.7rem', ml: 0.5 }}>{productOrder === 'desc' ? '↓' : '↑'}</Box>}
                           onDelete={productFilter === 'stock' ? () => setProductOrder(productOrder === 'asc' ? 'desc' : 'asc') : undefined}
-                          deleteIcon={productFilter === 'stock' ? <Box sx={{ cursor: 'pointer', fontSize: '0.7rem', ml: 0.5 }} onClick={(e) => { e.stopPropagation(); setProductOrder(productOrder === 'asc' ? 'desc' : 'asc'); }}>{productOrder === 'desc' ? '↓' : '↑'}</Box> : undefined}
                         />
                         <Chip
                           label="Valor"
@@ -1237,10 +1168,9 @@ const DashboardPro = () => {
                           clickable
                           onClick={() => setProductFilter('valor')}
                           color={productFilter === 'valor' ? 'primary' : 'default'}
-                          sx={{ fontSize: '0.65rem', height: 20 }}
+                          sx={{ fontSize: '0.65rem', height: 22 }}
                           icon={productFilter === 'valor' && <Box sx={{ fontSize: '0.7rem', ml: 0.5 }}>{productOrder === 'desc' ? '↓' : '↑'}</Box>}
                           onDelete={productFilter === 'valor' ? () => setProductOrder(productOrder === 'asc' ? 'desc' : 'asc') : undefined}
-                          deleteIcon={productFilter === 'valor' ? <Box sx={{ cursor: 'pointer', fontSize: '0.7rem', ml: 0.5 }} onClick={(e) => { e.stopPropagation(); setProductOrder(productOrder === 'asc' ? 'desc' : 'asc'); }}>{productOrder === 'desc' ? '↓' : '↑'}</Box> : undefined}
                         />
                       </Box>
                     </Box>
@@ -1252,72 +1182,72 @@ const DashboardPro = () => {
                     const productsList = productos || [];
                     const getFilteredProducts = () => {
                       let sorted = [];
-                      const order = productOrder === 'asc' ? -1 : 1; // -1 para ascendente (menor a mayor), 1 para descendente (mayor a menor)
+                      const isDesc = productOrder === 'desc';
 
-                      switch (productFilter) {
-                        case 'precio':
-                          sorted = productsList
-                            .filter(p => {
-                              const precio = parseFloat(p.precio) || 0;
-                              return precio > 0;
-                            })
-                            .sort((a, b) => {
-                              const precioA = parseFloat(a.precio) || 0;
-                              const precioB = parseFloat(b.precio) || 0;
-                              return (precioB - precioA) * order;
+                      if (productFilter === 'ventas') {
+                        // Usar los datos de ventas si están disponibles si no fallback a stock
+                        if (dashboardData.topProducts && dashboardData.topProducts.length > 0) {
+                          sorted = dashboardData.topProducts.map(tp => ({
+                            _id: tp._id,
+                            nombre: tp.nombre,
+                            precio: tp.total_vendido / tp.cantidad_vendida || 0,
+                            stock: tp.cantidad_vendida, // Aquí 'stock' representa cantidad vendida
+                            id: tp._id,
+                            isSaleData: true
+                          }));
+                        } else {
+                          // Fallback a más stock si no hay ventas
+                          sorted = [...productsList].sort((a, b) => (parseInt(b.stock) || 0) - (parseInt(a.stock) || 0));
+                        }
+                      } else {
+                        switch (productFilter) {
+                          case 'precio':
+                            sorted = [...productsList].sort((a, b) => {
+                              const valA = parseFloat(a.precio) || 0;
+                              const valB = parseFloat(b.precio) || 0;
+                              return isDesc ? valB - valA : valA - valB;
                             });
-                          break;
-                        case 'stock':
-                          // Mostrar todos los productos ordenados por stock
-                          sorted = productsList
-                            .filter(p => {
-                              const precio = parseFloat(p.precio) || 0;
-                              return precio > 0; // Al menos que tengan precio
-                            })
-                            .sort((a, b) => {
-                              const stockA = parseInt(a.stock) || 0;
-                              const stockB = parseInt(b.stock) || 0;
-                              return (stockB - stockA) * order;
+                            break;
+                          case 'stock':
+                            sorted = [...productsList].sort((a, b) => {
+                              const valA = parseInt(a.stock) || 0;
+                              const valB = parseInt(b.stock) || 0;
+                              return isDesc ? valB - valA : valA - valB;
                             });
-                          break;
-                        case 'valor':
-                          // Calcular valor (precio * stock), usar 1 si stock es 0
-                          sorted = productsList
-                            .filter(p => {
-                              const precio = parseFloat(p.precio) || 0;
-                              return precio > 0;
-                            })
-                            .sort((a, b) => {
-                              const valorA = (parseFloat(a.precio) || 0) * Math.max(parseInt(a.stock) || 0, 1);
-                              const valorB = (parseFloat(b.precio) || 0) * Math.max(parseInt(b.stock) || 0, 1);
-                              return (valorB - valorA) * order;
+                            break;
+                          case 'valor':
+                            sorted = [...productsList].sort((a, b) => {
+                              const valA = (parseFloat(a.precio) || 0) * (parseInt(a.stock) || 0);
+                              const valB = (parseFloat(b.precio) || 0) * (parseInt(b.stock) || 0);
+                              return isDesc ? valB - valA : valA - valB;
                             });
-                          break;
+                            break;
+                        }
                       }
 
-                      return sorted.slice(0, 2).map(p => {
+                      return sorted.slice(0, 4).map(p => {
                         const stock = parseInt(p.stock) || 0;
                         const precio = parseFloat(p.precio) || 0;
-                        // Para valor, si stock es 0, calcular como precio * 1
-                        const valor = precio * Math.max(stock, 1);
+                        const valor = precio * stock;
 
                         let valueToShow = precio;
                         let label = 'Precio';
 
-                        if (productFilter === 'stock') {
+                        if (productFilter === 'stock' || (productFilter === 'ventas' && p.isSaleData)) {
                           valueToShow = stock;
-                          label = 'Stock';
+                          label = productFilter === 'ventas' ? 'Vendidos' : 'Stock';
                         } else if (productFilter === 'valor') {
                           valueToShow = valor;
                           label = 'Valor';
                         }
 
                         return {
+                          id: p._id || p.id,
                           name: p.nombre || p.name || 'Sin nombre',
-                          sales: stock,
                           value: valueToShow,
                           label: label,
-                          precio: precio // Guardar el precio para mostrar en detalles
+                          precio: precio,
+                          stock: p.stock || 0
                         };
                       });
                     };
@@ -1347,27 +1277,29 @@ const DashboardPro = () => {
                             </Typography>
                           </Box>
                           <Chip
-                            label={productFilter === 'stock'
+                            label={productFilter === 'stock' || productFilter === 'ventas'
                               ? `${product.value} uds`
                               : `$${product.value.toLocaleString('es-DO')}`
                             }
                             size="small"
-                            color={productFilter === 'stock' ? (product.value < 10 ? 'error' : 'success') : 'primary'}
+                            color={productFilter === 'stock' ? (product.value < 10 ? 'error' : 'success') : (productFilter === 'ventas' ? 'error' : 'primary')}
                             variant="soft"
-                            sx={{ fontWeight: 700, height: 22, fontSize: '0.7rem' }}
+                            sx={{ fontWeight: 800, height: 22, fontSize: '0.75rem' }}
                           />
                         </Box>
 
                         <Box sx={{ position: 'relative', pt: 0.5 }}>
                           <LinearProgress
                             variant="determinate"
-                            value={Math.min((product.value / (productFilter === 'stock' ? 1000 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
+                            value={Math.min((product.value / (productFilter === 'stock' ? 100 : productFilter === 'ventas' ? 50 : productFilter === 'valor' ? 50000 : 20000)) * 100, 100)}
                             sx={{
-                              height: 8,
+                              height: 6,
                               borderRadius: 4,
                               bgcolor: alpha(theme.palette.divider, 0.1),
                               '& .MuiLinearProgress-bar': {
-                                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                                background: productFilter === 'ventas'
+                                  ? `linear-gradient(90deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`
+                                  : `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
                                 borderRadius: 4,
                               },
                             }}
@@ -1376,13 +1308,13 @@ const DashboardPro = () => {
 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            {productFilter === 'precio' && <><InventoryIcon sx={{ fontSize: 12 }} /> Stock: <strong>{product.sales}</strong></>}
-                            {productFilter === 'stock' && <><MoneyIcon sx={{ fontSize: 12 }} /> Precio: <strong>${(product.precio || 0).toLocaleString('es-DO')}</strong></>}
+                            {productFilter === 'precio' && <><InventoryIcon sx={{ fontSize: 12 }} /> Stock: <strong>{product.stock}</strong></>}
+                            {productFilter === 'stock' && <><AttachMoney sx={{ fontSize: 12 }} /> Precio: <strong>${(product.precio || 0).toLocaleString('es-DO')}</strong></>}
                             {productFilter === 'valor' && <><InfoIcon sx={{ fontSize: 12 }} /> Yield: <strong>${(product.precio || 0).toLocaleString('es-DO')} p/u</strong></>}
+                            {productFilter === 'ventas' && <><AttachMoney sx={{ fontSize: 12 }} /> Ingresos: <strong>${((product.precio || 0) * (product.value || 0)).toLocaleString('es-DO')}</strong></>}
                           </Typography>
-                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'success.main', fontSize: '0.65rem' }}>
-                            {productFilter === 'stock' && product.value > 0 ? 'Disponible' : ''}
-                            {productFilter === 'precio' && '+12% hoy'}
+                          <Typography variant="caption" sx={{ fontWeight: 700, color: productFilter === 'ventas' ? 'error.main' : 'success.main', fontSize: '0.65rem' }}>
+                            {productFilter === 'ventas' ? <><Whatshot sx={{ fontSize: 12, verticalAlign: 'middle' }} /> Hot</> : '+12% hoy'}
                           </Typography>
                         </Box>
                       </Box>
