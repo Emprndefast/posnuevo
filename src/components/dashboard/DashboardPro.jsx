@@ -752,22 +752,20 @@ const DashboardPro = () => {
         </ProCard>
 
         {/* Contenedor principal: Impulsos + Multimedia en fila */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          {/* Columna 1: Impulso y Metas (75%) */}
-          <Grid item xs={12} md={9}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, alignItems: 'stretch' }}>
+          {/* Columna 1: Impulso y Metas (crece) */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Card
               sx={{
                 height: '100%',
-                borderRadius: 3, // Consistente con el resto
+                borderRadius: 3,
                 boxShadow: 2,
                 p: 1.5,
                 background: theme.palette.background.paper,
                 border: `1px solid ${theme.palette.divider}`,
-                maxHeight: { md: 400 },
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   boxShadow: 4,
-                  transform: 'translateY(-4px)',
                 }
               }}
             >
@@ -933,61 +931,57 @@ const DashboardPro = () => {
                 />
               </Box>
             </Card>
-          </Grid>
+          </Box>
 
-          {/* Columna 2: Multimedia (25%) */}
-          <Grid item xs={12} md={3}>
+          {/* Columna 2: Multimedia — ancho fijo tipo tarjeta compacta */}
+          <Box
+            sx={{
+              flexShrink: 0,
+              width: { xs: '100%', md: 210 },
+            }}
+          >
             <Card
               sx={{
-                height: '100%',
-                borderRadius: 3, // Consistente con Top Productos y Rendimiento
+                width: '100%',
+                height: { xs: 220, md: 280 },
+                borderRadius: 3,
                 boxShadow: 2,
-                background: promoMedia.url ? '#000' : theme.palette.background.paper,
-                border: promoMedia.url ? 'none' : `1px solid ${theme.palette.divider}`,
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative',
                 overflow: 'hidden',
-                maxHeight: { md: 400 },
+                position: 'relative',
+                border: promoMedia.url ? 'none' : `1px solid ${theme.palette.divider}`,
+                background: promoMedia.url ? '#111' : theme.palette.background.paper,
                 transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: 4,
-                  transform: 'translateY(-4px)',
-                }
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': { boxShadow: 4 },
               }}
             >
               {promoMedia.url ? (
-                <Box sx={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: '#000'
-                }}>
-                  {/* Etiqueta de Contenido PRO */}
+                <>
+                  {/* Badge LIVE */}
                   <Box sx={{
                     position: 'absolute',
-                    top: 12,
-                    left: 12,
+                    top: 8,
+                    left: 8,
                     zIndex: 5,
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    backdropFilter: 'blur(8px)',
-                    px: 1.5,
-                    py: 0.5,
+                    bgcolor: 'rgba(0,0,0,0.55)',
+                    backdropFilter: 'blur(6px)',
+                    px: 1,
+                    py: 0.3,
                     borderRadius: 1,
-                    border: '1px solid rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.15)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 0.6,
                   }}>
-                    <Box sx={{ width: 8, height: 8, bgcolor: '#10b981', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
-                    <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, letterSpacing: 1 }}>
+                    <Box sx={{ width: 7, height: 7, bgcolor: '#10b981', borderRadius: '50%', animation: 'pulse 1.5s infinite' }} />
+                    <Typography variant="caption" sx={{ color: 'white', fontWeight: 700, letterSpacing: 0.8, fontSize: '0.6rem' }}>
                       PROMOCIÓN LIVE
                     </Typography>
                   </Box>
 
+                  {/* Media — cover para no dejar barras negras */}
                   {promoMedia.type === 'video' ? (
                     <video
                       src={promoMedia.url}
@@ -996,11 +990,11 @@ const DashboardPro = () => {
                       muted
                       playsInline
                       style={{
+                        position: 'absolute',
+                        top: 0, left: 0,
                         width: '100%',
                         height: '100%',
-                        objectFit: 'contain', // PREVENIR ESTIRAMIENTO
-                        maxHeight: '100%',
-                        backgroundColor: '#000'
+                        objectFit: 'cover',
                       }}
                     />
                   ) : (
@@ -1008,110 +1002,73 @@ const DashboardPro = () => {
                       src={promoMedia.url}
                       alt="Promoción"
                       style={{
+                        position: 'absolute',
+                        top: 0, left: 0,
                         width: '100%',
                         height: '100%',
-                        objectFit: 'contain', // PREVENIR ESTIRAMIENTO
-                        maxHeight: '100%',
-                        backgroundColor: '#000'
+                        objectFit: 'cover',
                       }}
                     />
                   )}
 
-                  <style>
-                    {`
-                      @keyframes pulse {
-                        0% { transform: scale(1); opacity: 1; }
-                        50% { transform: scale(1.2); opacity: 0.5; }
-                        100% { transform: scale(1); opacity: 1; }
-                      }
-                    `}
-                  </style>
+                  <style>{`
+                    @keyframes pulse {
+                      0% { transform: scale(1); opacity: 1; }
+                      50% { transform: scale(1.2); opacity: 0.5; }
+                      100% { transform: scale(1); opacity: 1; }
+                    }
+                  `}</style>
 
-                  {/* Overlay for Admin Management */}
+                  {/* Botones admin */}
                   {(userRole === 'admin' || userRole === 'owner') && (
-                    <Box sx={{
-                      position: 'absolute',
-                      bottom: 12,
-                      right: 12,
-                      display: 'flex',
-                      gap: 1,
-                      zIndex: 10
-                    }}>
-                      <Tooltip title="Cambiar Contenido">
-                        <IconButton
-                          size="small"
-                          component="label"
-                          sx={{
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                            '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' },
-                            transition: 'all 0.2s'
-                          }}
+                    <Box sx={{ position: 'absolute', bottom: 8, right: 8, display: 'flex', gap: 0.5, zIndex: 10 }}>
+                      <Tooltip title="Cambiar">
+                        <IconButton size="small" component="label"
+                          sx={{ bgcolor: 'rgba(255,255,255,0.85)', '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' }, transition: 'all 0.2s', width: 28, height: 28 }}
                         >
-                          <CloudUpload fontSize="small" color="primary" />
+                          <CloudUpload sx={{ fontSize: 14 }} color="primary" />
                           <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Eliminar">
-                        <IconButton
-                          size="small"
-                          onClick={handleRemoveMedia}
-                          sx={{
-                            bgcolor: 'rgba(255,255,255,0.9)',
-                            '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' },
-                            transition: 'all 0.2s'
-                          }}
+                        <IconButton size="small" onClick={handleRemoveMedia}
+                          sx={{ bgcolor: 'rgba(255,255,255,0.85)', '&:hover': { bgcolor: 'white', transform: 'scale(1.1)' }, transition: 'all 0.2s', width: 28, height: 28 }}
                         >
-                          <DeleteForever fontSize="small" color="error" />
+                          <DeleteForever sx={{ fontSize: 14 }} color="error" />
                         </IconButton>
                       </Tooltip>
                     </Box>
                   )}
-                </Box>
+                </>
               ) : (
-                <Box sx={{
-                  textAlign: 'center',
-                  width: '100%',
-                  p: 3,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center'
-                }}>
+                <Box sx={{ textAlign: 'center', p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <Box sx={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: '50%',
+                    width: 48, height: 48, borderRadius: '50%',
                     bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1.5
                   }}>
-                    {uploadingMedia ? <CircularProgress size={30} /> : <PlayCircle sx={{ fontSize: 35, color: 'primary.main' }} />}
+                    {uploadingMedia ? <CircularProgress size={24} /> : <PlayCircle sx={{ fontSize: 28, color: 'primary.main' }} />}
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1, fontSize: '1rem' }}>
-                    Contenido Multimedia
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, fontSize: '0.85rem' }}>
+                    Promo / Anuncio
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.8rem', mb: 3, maxWidth: 200 }}>
-                    Sube anuncios o videos promocionales para tus clientes y empleados.
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', mb: 1.5, display: 'block' }}>
+                    Sube un video o imagen promocional
                   </Typography>
-
                   {(userRole === 'admin' || userRole === 'owner') && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      component="label"
-                      startIcon={<CloudUpload />}
-                      sx={{ borderRadius: 2, px: 3 }}
+                    <Button variant="contained" size="small" component="label"
+                      startIcon={<CloudUpload sx={{ fontSize: 14 }} />}
+                      sx={{ borderRadius: 2, px: 2, fontSize: '0.7rem', py: 0.5 }}
                     >
-                      Subir Video / Imagen
+                      Subir
                       <input type="file" hidden accept="image/*,video/*" onChange={handleMediaUpload} />
                     </Button>
                   )}
                 </Box>
               )}
             </Card>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {/* Métricas Secundarias */}
         <Grid container spacing={2} sx={{ mb: 4 }}>
