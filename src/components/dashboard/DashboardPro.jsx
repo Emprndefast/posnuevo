@@ -757,11 +757,18 @@ const DashboardPro = () => {
           <Grid item xs={12} md={9}>
             <Card
               sx={{
-                borderRadius: 2,
-                boxShadow: 1,
+                height: '100%',
+                borderRadius: 3, // Consistente con el resto
+                boxShadow: 2,
                 p: 1.5,
                 background: theme.palette.background.paper,
                 border: `1px solid ${theme.palette.divider}`,
+                maxHeight: { md: 400 },
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: 4,
+                  transform: 'translateY(-4px)',
+                }
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
@@ -933,19 +940,19 @@ const DashboardPro = () => {
             <Card
               sx={{
                 height: '100%',
-                borderRadius: 4,
-                boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                borderRadius: 3, // Consistente con Top Productos y Rendimiento
+                boxShadow: 2,
                 background: promoMedia.url ? '#000' : theme.palette.background.paper,
-                border: promoMedia.url ? 'none' : `2px dashed ${theme.palette.divider}`,
+                border: promoMedia.url ? 'none' : `1px solid ${theme.palette.divider}`,
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
                 overflow: 'hidden',
-                minHeight: { xs: 350, md: 500 },
-                maxHeight: { xs: 500, md: 650 },
+                maxHeight: { md: 400 },
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  boxShadow: '0 15px 40px rgba(0,0,0,0.2)',
+                  boxShadow: 4,
+                  transform: 'translateY(-4px)',
                 }
               }}
             >
