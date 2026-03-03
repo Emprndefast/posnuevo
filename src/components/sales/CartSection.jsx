@@ -29,7 +29,9 @@ const CartSection = ({
     discountAmount,
     onCheckout,
     processingPayment,
-    isMobile
+    isMobile,
+    onUpdateDiscount,
+    onUpdateTotalManually
 }) => {
     return (
         <Card sx={{
@@ -71,19 +73,46 @@ const CartSection = ({
                                         <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.name}</Typography>
                                         <Typography variant="body2" sx={{ fontWeight: 700 }}>${(item.price * item.quantity).toLocaleString()}</Typography>
                                     </Box>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : '#f0f0f0', borderRadius: 1, p: 0.5 }}>
-                                            <IconButton size="small" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} sx={{ width: 24, height: 24 }}>
-                                                <RemoveIcon fontSize="small" />
-                                            </IconButton>
-                                            <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center', fontWeight: 600 }}>{item.quantity}</Typography>
-                                            <IconButton size="small" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} sx={{ width: 24, height: 24 }}>
-                                                <AddIcon fontSize="small" />
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : '#f0f0f0', borderRadius: 1, p: 0.5 }}>
+                                                <IconButton size="small" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} sx={{ width: 24, height: 24 }}>
+                                                    <RemoveIcon fontSize="small" />
+                                                </IconButton>
+                                                <Typography variant="body2" sx={{ minWidth: 20, textAlign: 'center', fontWeight: 600 }}>{item.quantity}</Typography>
+                                                <IconButton size="small" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} sx={{ width: 24, height: 24 }}>
+                                                    <AddIcon fontSize="small" />
+                                                </IconButton>
+                                            </Box>
+                                            <IconButton size="small" color="error" onClick={() => onRemoveFromCart(item.id)}>
+                                                <DeleteIcon fontSize="small" />
                                             </IconButton>
                                         </Box>
-                                        <IconButton size="small" color="error" onClick={() => onRemoveFromCart(item.id)}>
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
+
+                                        {/* Input de Precio de Venta (Monto Final por Item) */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Paga este item:</Typography>
+                                            <input
+                                                type="number"
+                                                value={((item.price * item.quantity) - (item.discount || 0)).toFixed(2)}
+                                                onChange={(e) => {
+                                                    const targetFinal = parseFloat(e.target.value) || 0;
+                                                    const disc = (item.price * item.quantity) - targetFinal;
+                                                    onUpdateDiscount(item.id, disc);
+                                                }}
+                                                placeholder="0.00"
+                                                style={{
+                                                    width: '80px',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '4px',
+                                                    border: '1px solid #ccc',
+                                                    fontSize: '0.75rem',
+                                                    background: darkMode ? '#333' : '#fff',
+                                                    color: darkMode ? '#fff' : '#000',
+                                                    outline: 'none'
+                                                }}
+                                            />
+                                        </Box>
                                     </Box>
                                 </Box>
                             </ListItem>
@@ -104,9 +133,34 @@ const CartSection = ({
                     </Box>
                 )}
                 <Divider sx={{ my: 1.5 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800 }}>Total</Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${total.toFixed(2)}</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
+                    <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800 }}>Total</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Pactado:</Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'right' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>${total.toFixed(2)}</Typography>
+                        <input
+                            type="number"
+                            placeholder="Ajustar Total..."
+                            onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                if (val > 0) onUpdateTotalManually(val);
+                            }}
+                            style={{
+                                width: '100px',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                border: '1.5px solid #2196f3',
+                                fontSize: '0.85rem',
+                                background: darkMode ? '#333' : '#fff',
+                                color: darkMode ? '#fff' : '#000',
+                                fontWeight: 'bold',
+                                textAlign: 'right',
+                                marginTop: '4px'
+                            }}
+                        />
+                    </Box>
                 </Box>
 
                 <Button

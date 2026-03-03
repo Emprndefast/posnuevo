@@ -583,7 +583,7 @@ const QuickSale = () => {
   const { darkMode } = useTheme();
   const theme = useMuiTheme();
   const { user, loading: userLoading } = useAuth();
-  const { cart, setCart, addProductToCart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { cart, setCart, addProductToCart, removeFromCart, updateQuantity, clearCart, updateDiscount } = useCart();
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -603,6 +603,7 @@ const QuickSale = () => {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [skipPromotions, setSkipPromotions] = useState(false);
 
   // Mobile UI States
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -646,9 +647,11 @@ const QuickSale = () => {
   // Auto-apply promotions when cart changes
   useEffect(() => {
     const applyPromotions = async () => {
-      if (cart.length === 0 || promotions.length === 0) {
-        setDiscount(0);
-        setSelectedPromotion(null);
+      if (skipPromotions || cart.length === 0 || promotions.length === 0) {
+        if (!skipPromotions) {
+          setDiscount(0);
+          setSelectedPromotion(null);
+        }
         return;
       }
 
@@ -821,6 +824,7 @@ const QuickSale = () => {
       stock: product.stock_actual || product.stock,
       code: product.codigo || product.code
     });
+    setSkipPromotions(false);
   };
 
   const handleRemoveFromCart = (itemId) => {
@@ -1172,6 +1176,36 @@ const QuickSale = () => {
   }
   */
 
+  const handleUpdateTotalManually = (targetTotal) => {
+    if (!targetTotal || targetTotal <= 0 || cart.length === 0) return;
+
+    // Calcular el total bruto (suma de precio * cantidad sin descuentos de items previos)
+    const grossTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    if (grossTotal <= 0) return;
+
+    // El descuento total que necesitamos aplicar para llegar al targetTotal
+    const totalDiscountToApply = Math.max(0, grossTotal - targetTotal);
+
+    // Distribuir el descuento proporcionalmente según el peso de cada item en el total bruto
+    const updatedCart = cart.map(item => {
+      const itemGross = item.price * item.quantity;
+      const proportion = itemGross / grossTotal;
+      const itemDiscount = totalDiscountToApply * proportion;
+      return { ...item, discount: itemDiscount };
+    });
+
+    setCart(updatedCart);
+
+    // Al hacer un ajuste manual, limpiamos cualquier promoción automática seleccionada
+    // para evitar que se aplique un descuento doble.
+    setDiscount(0);
+    setSelectedPromotion(null);
+    setSkipPromotions(true); // Activar modo manual
+
+    enqueueSnackbar(`Total ajustado a $${targetTotal.toFixed(2)}. Descuentos distribuidos.`, { variant: 'info' });
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -1288,6 +1322,8 @@ const QuickSale = () => {
               onCheckout={() => setPaymentDialog(true)}
               processingPayment={processingPayment}
               isMobile={true}
+              onUpdateDiscount={updateDiscount}
+              onUpdateTotalManually={handleUpdateTotalManually}
             />
           </Box>
         </Box>
@@ -1502,6 +1538,8 @@ const QuickSale = () => {
               onCheckout={() => setPaymentDialog(true)}
               processingPayment={processingPayment}
               isMobile={false}
+              onUpdateDiscount={updateDiscount}
+              onUpdateTotalManually={handleUpdateTotalManually}
             />
           </Box>
         )}
