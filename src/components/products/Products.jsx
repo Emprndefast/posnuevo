@@ -128,6 +128,7 @@ import ProductsList from './ProductsList';
 import axios from 'axios';
 import LabelPreview from './LabelPreview';
 import ProductDetailModal from './ProductDetailModal';
+import { exportProductsCatalogPDF, exportProductsExcel } from '../../utils/exportService';
 
 // Registrar componentes de Chart.js
 ChartJS.register(
@@ -1400,6 +1401,8 @@ const Products = () => {
     categories: 0
   });
   const [showExport, setShowExport] = useState(false);
+  const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const [analyticsData, setAnalyticsData] = useState({
     daily: {
       labels: [],
@@ -1998,7 +2001,36 @@ const Products = () => {
   const handleOpenList = () => setIsListOpen(true);
   const handleCloseList = () => setIsListOpen(false);
 
-  // Función para exportar productos
+  // ─── Exportación profesional de productos ───────────────────────────────────
+  const handleExportProductsPDF = async () => {
+    setExportMenuAnchor(null);
+    setExportLoading(true);
+    try {
+      await exportProductsCatalogPDF(products, 'Mi Negocio');
+      setSnackbar({ open: true, message: '✅ Catálogo PDF generado con fotos incluidas', severity: 'success' });
+    } catch (err) {
+      console.error('Error PDF:', err);
+      setSnackbar({ open: true, message: 'Error al generar el catálogo PDF', severity: 'error' });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleExportProductsExcel = async () => {
+    setExportMenuAnchor(null);
+    setExportLoading(true);
+    try {
+      await exportProductsExcel(products);
+      setSnackbar({ open: true, message: '✅ Excel de contabilidad generado', severity: 'success' });
+    } catch (err) {
+      console.error('Error Excel:', err);
+      setSnackbar({ open: true, message: 'Error al generar el Excel', severity: 'error' });
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Función para exportar productos (CSV legacy — mantenida por compatibilidad)
   const handleExportProducts = async () => {
     try {
       // Definir la estructura de las columnas
@@ -2388,15 +2420,42 @@ const Products = () => {
           <Button
             variant="outlined"
             fullWidth
-            startIcon={<DownloadIcon />}
-            onClick={handleExportProducts}
-            sx={{
-              height: 48,
-              borderRadius: 2
-            }}
+            startIcon={exportLoading ? <CircularProgress size={18} /> : <DownloadIcon />}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+            disabled={exportLoading}
+            sx={{ height: 48, borderRadius: 2 }}
           >
-            Exportar
+            {exportLoading ? 'Generando...' : 'Exportar'}
           </Button>
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+            PaperProps={{ sx: { width: 280, mt: 1 } }}
+          >
+            <Box sx={{ px: 2, py: 1.5, borderBottom: `1px solid`, borderColor: 'divider' }}>
+              <Typography variant="subtitle2" fontWeight={700}>Exportar Productos</Typography>
+              <Typography variant="caption" color="text.secondary">{products.length} productos en vista actual</Typography>
+            </Box>
+            <MenuItem onClick={handleExportProductsPDF} sx={{ py: 1.5, gap: 1.5 }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: 1.5, bgcolor: 'error.light', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <DescriptionIcon sx={{ color: 'error.main', fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography variant="body2" fontWeight={700}>Catálogo PDF</Typography>
+                <Typography variant="caption" color="text.secondary">Con fotos · Para publicidad y socios</Typography>
+              </Box>
+            </MenuItem>
+            <MenuItem onClick={handleExportProductsExcel} sx={{ py: 1.5, gap: 1.5, borderTop: `1px solid`, borderColor: 'divider' }}>
+              <Box sx={{ width: 36, height: 36, borderRadius: 1.5, bgcolor: 'success.light', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <FileCopyIcon sx={{ color: 'success.main', fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography variant="body2" fontWeight={700}>Excel Contabilidad</Typography>
+                <Typography variant="caption" color="text.secondary">Costos, márgenes y stock · Para contadores</Typography>
+              </Box>
+            </MenuItem>
+          </Menu>
           <Button
             variant="outlined"
             fullWidth

@@ -119,6 +119,10 @@ const DashboardPro = () => {
   const [connectionFilter, setConnectionFilter] = useState('todos');
   const [apiFilter, setApiFilter] = useState('todos');
 
+  // Métricas de rendimiento por período
+  const [performanceData, setPerformanceData] = useState({ revenue: 0, growth: 0, target: 500000 });
+  const [performanceLoading, setPerformanceLoading] = useState(false);
+
   // ─── fetch ────────────────────────────────────────────────────────────────────
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
@@ -173,6 +177,24 @@ const DashboardPro = () => {
 
   useEffect(() => { fetchDashboardData(); }, []);
   useEffect(() => { if (productos.length > 0) fetchDashboardData(); }, [productos.length]);
+
+  // ─── Cargar métricas de rendimiento según período ─────────────────────────────
+  const fetchPerformanceData = useCallback(async (periodo) => {
+    setPerformanceLoading(true);
+    try {
+      const r = await api.get(`/sales/stats?periodo=${periodo}`);
+      if (r.data?.success) {
+        const prev = await api.get(`/sales/stats?periodo=${periodo === 'dia' ? 'dia' : periodo === 'mes' ? 'mes' : 'mes'}`);
+        const revenue = r.data.data?.resumen?.monto_total || 0;
+        const prevRevenue = prev.data.data?.resumen?.monto_total || 0;
+        const growth = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue * 100) : 0;
+        setPerformanceData({ revenue, growth: parseFloat(growth.toFixed(1)), target: 500000 });
+      }
+    } catch { }
+    finally { setPerformanceLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchPerformanceData(performancePeriod); }, [performancePeriod]);
 
   // ─── Guardar lista en settings ────────────────────────────────────────────────
   const saveMediaList = useCallback(async (list) => {
@@ -508,21 +530,38 @@ const DashboardPro = () => {
                 </Box>
                 <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
                   {['dia', 'mes', 'anio'].map(p => (
-                    <Chip key={p} label={p === 'dia' ? 'Día' : p === 'mes' ? 'Mes' : 'Año'} size="small" clickable onClick={() => setPerformancePeriod(p)} color={performancePeriod === p ? 'primary' : 'default'} sx={{ fontSize: '0.6rem', height: 20, fontWeight: 700 }} />
+                    <Chip key={p} label={p === 'dia' ? 'Hoy' : p === 'mes' ? 'Mes' : 'Año'} size="small" clickable
+                      onClick={() => setPerformancePeriod(p)}
+                      color={performancePeriod === p ? 'primary' : 'default'}
+                      sx={{ fontSize: '0.6rem', height: 20, fontWeight: 700 }} />
                   ))}
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main', mb: 0.3, fontSize: '1.25rem' }}>${dashboardData.monthlyRevenue.toLocaleString()}</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>Ventas del mes</Typography>
+                {performanceLoading ? (
+                  <Box sx={{ my: 1 }}><CircularProgress size={20} /></Box>
+                ) : (
+                  <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main', mb: 0.3, fontSize: '1.25rem' }}>
+                    ${performanceData.revenue.toLocaleString('es-DO', { minimumFractionDigits: 2 })}
+                  </Typography>
+                )}
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  {performancePeriod === 'dia' ? 'Ventas de hoy' : performancePeriod === 'mes' ? 'Ventas del mes' : 'Ventas del año'}
+                </Typography>
                 <Divider sx={{ my: 1.5 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>Crecimiento</Typography>
-                  <Chip label={`+${dashboardData.salesGrowth}%`} size="small" color="success" icon={<TrendingUp sx={{ fontSize: 11 }} />} sx={{ fontSize: '0.62rem', height: 19, fontWeight: 800 }} />
+                  <Chip
+                    label={`${performanceData.growth >= 0 ? '+' : ''}${performanceData.growth}%`}
+                    size="small"
+                    color={performanceData.growth >= 0 ? 'success' : 'error'}
+                    icon={performanceData.growth >= 0 ? <TrendingUp sx={{ fontSize: 11 }} /> : <TrendingDown sx={{ fontSize: 11 }} />}
+                    sx={{ fontSize: '0.62rem', height: 19, fontWeight: 800 }}
+                  />
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
                   <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>Objetivo</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem' }}>$500,000</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem' }}>${performanceData.target.toLocaleString()}</Typography>
                 </Box>
-                <LinearProgress variant="determinate" value={Math.min((dashboardData.monthlyRevenue / 500000) * 100, 100)} sx={{ height: 5, borderRadius: 4, bgcolor: alpha(theme.palette.success.main, 0.1), '& .MuiLinearProgress-bar': { bgcolor: 'success.main', borderRadius: 4 } }} />
+                <LinearProgress variant="determinate" value={Math.min((performanceData.revenue / performanceData.target) * 100, 100)} sx={{ height: 5, borderRadius: 4, bgcolor: alpha(theme.palette.success.main, 0.1), '& .MuiLinearProgress-bar': { bgcolor: 'success.main', borderRadius: 4 } }} />
               </CardContent>
             </Card>
           </Grid>
