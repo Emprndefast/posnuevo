@@ -566,69 +566,75 @@ const DashboardPro = () => {
             </Card>
           </Grid>
 
-          {/* CONEXIONES */}
+          {/* RESUMEN DE INVENTARIO */}
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1, border: `1px solid ${theme.palette.divider}`, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 3 } }}>
               <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <Speed sx={{ fontSize: 19, color: '#3b82f6' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Conexiones</Typography>
+                  <InventoryIcon sx={{ fontSize: 19, color: '#f59e0b' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Inventario</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
-                  {['todos', 'activos'].map(f => (
-                    <Chip key={f} label={f === 'todos' ? 'Todos' : 'Activos'} size="small" clickable onClick={() => setConnectionFilter(f)} color={connectionFilter === f ? 'primary' : 'default'} sx={{ fontSize: '0.6rem', height: 20, fontWeight: 700 }} />
-                  ))}
-                </Box>
-                <Stack spacing={1.2}>
-                  {[{ name: 'API MongoDB', status: 'Activa' }, { name: 'WhatsApp API', status: 'Activa' }, { name: 'Whabot Pro', status: 'Conectado' }].map((c, i) => (
-                    <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${alpha(theme.palette.divider, 0.4)}` }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
-                        <FiberManualRecord sx={{ fontSize: 7, color: 'success.main' }} />
-                        <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.7rem' }}>{c.name}</Typography>
-                      </Box>
-                      <Chip label={c.status} size="small" color="success" sx={{ fontSize: '0.58rem', height: 17, fontWeight: 700 }} />
-                    </Box>
-                  ))}
+
+                <Stack spacing={2} sx={{ mt: 2 }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 0.5 }}>Valor Total del Inventario</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1.1rem' }}>
+                      ${dashboardData.inventoryValue.toLocaleString('es-DO')}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${alpha(theme.palette.divider, 0.4)}` }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total Productos</Typography>
+                    <Chip label={`${productos.length} SKUs`} size="small" color="default" sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }} />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.error.main, 0.05), border: `1px solid ${alpha(theme.palette.error.main, 0.2)}` }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>Stock Bajo (&lt; 10 uds)</Typography>
+                    <Chip label={dashboardData.stockBajo} size="small" color={dashboardData.stockBajo > 0 ? "error" : "success"} sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }} />
+                  </Box>
                 </Stack>
-                <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.6rem', mt: 1.5, display: 'block' }}>Última verificación: hace 2 min</Typography>
+                <Button fullWidth size="small" variant="text" onClick={() => navigate('/products')} sx={{ mt: 2, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none' }}>
+                  Ir a Productos
+                </Button>
               </CardContent>
             </Card>
           </Grid>
 
-          {/* APIs EXTERNAS */}
+          {/* ÚLTIMAS VENTAS */}
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1, border: `1px solid ${theme.palette.divider}`, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 3 } }}>
               <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <Store sx={{ fontSize: 19, color: '#8b5cf6' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>APIs Externas</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  <Receipt sx={{ fontSize: 19, color: '#10b981' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Últimas Ventas</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 0.5, mb: 2 }}>
-                  {['activas', 'todos'].map(f => (
-                    <Chip key={f} label={f === 'activas' ? 'Activas' : 'Todas'} size="small" clickable onClick={() => setApiFilter(f)} color={apiFilter === f ? 'primary' : 'default'} sx={{ fontSize: '0.6rem', height: 20, fontWeight: 700 }} />
-                  ))}
-                </Box>
-                <Stack spacing={1.5}>
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.7 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
-                        <Store sx={{ fontSize: 13, color: 'primary.main' }} />
-                        <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem' }}>Tiendas Conectadas</Typography>
+
+                <Stack spacing={1.2}>
+                  {dashboardData.ultimasVentas && dashboardData.ultimasVentas.length > 0 ? (
+                    dashboardData.ultimasVentas.map((venta, i) => (
+                      <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${alpha(theme.palette.divider, 0.4)}` }}>
+                        <Box sx={{ overflow: 'hidden' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem', display: 'block' }}>
+                            {venta.cliente_nombre || 'Cliente General'}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem', display: 'block', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                            {venta.estado === 'Completada' ? '✅' : '⏳'} {format(new Date(venta.fecha || new Date()), 'HH:mm')} hrs
+                          </Typography>
+                        </Box>
+                        <Chip label={`$${(venta.total || 0).toLocaleString('es-DO')}`} size="small" color="success" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, fontWeight: 800 }} />
                       </Box>
-                      <Chip label="2 activas" size="small" color="success" sx={{ height: 17, fontSize: '0.6rem', fontWeight: 700 }} />
+                    ))
+                  ) : (
+                    <Box sx={{ py: 3, textAlign: 'center', color: 'text.secondary' }}>
+                      <ShoppingCart sx={{ fontSize: 26, mb: 1, opacity: 0.4 }} />
+                      <Typography variant="caption" display="block">No hay ventas hoy</Typography>
                     </Box>
-                    <LinearProgress variant="determinate" value={100} sx={{ height: 4, borderRadius: 2, bgcolor: alpha(theme.palette.success.main, 0.1), '& .MuiLinearProgress-bar': { bgcolor: 'success.main' } }} />
-                  </Box>
-                  <Divider sx={{ opacity: 0.5 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600 }}>Sincronizaciones hoy</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'info.main', fontSize: '0.7rem' }}>12</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600 }}>Base de Datos</Typography>
-                    <Chip label={`${productos.length} SKUs`} size="small" color="primary" variant="outlined" sx={{ height: 17, fontSize: '0.6rem', fontWeight: 700 }} />
-                  </Box>
+                  )}
                 </Stack>
+
+                <Button fullWidth size="small" variant="text" onClick={() => navigate('/sales')} sx={{ mt: 1, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none' }}>
+                  Ver Historial
+                </Button>
               </CardContent>
             </Card>
           </Grid>

@@ -139,7 +139,7 @@ const loadImageAsBase64 = (url) =>
 export const exportProductsCatalogPDF = async (products, businessName = 'Mi Negocio') => {
     const jsPDF = await getJsPDF();
 
-    // Layout: 2 tarjetas por fila en A4 horizontal (para que queden más anchas)
+    // Layout: 2 tarjetas por fila en A4 horizontal
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const W = doc.internal.pageSize.getWidth();   // 297mm
     const H = doc.internal.pageSize.getHeight();  // 210mm
@@ -156,23 +156,23 @@ export const exportProductsCatalogPDF = async (products, businessName = 'Mi Nego
     // ── Portada ────────────────────────────────────────────────────────────────
     let y = drawPDFHeader(doc, `Catálogo de Productos`, `${businessName} · ${today()}`);
 
-    // Banda de resumen
+    // Banda de resumen (Sin emojis)
     const totalValue = products.reduce((s, p) => s + ((parseFloat(p.precio || p.price) || 0) * (parseInt(p.stock_actual || p.stock) || 0)), 0);
-    doc.setFillColor(...BRAND.light);
+    doc.setFillColor(...BRAND.lightGray);
     doc.rect(0, y + 2, W, 14, 'F');
-    doc.setTextColor(...BRAND.primary);
+    doc.setTextColor(...BRAND.black);
     doc.setFontSize(8.5);
     doc.setFont('helvetica', 'bold');
-    doc.text(`📦 ${products.length} productos`, 14, y + 11);
-    doc.text(`💰 Valor inventario: ${fmtCurrency(totalValue)}`, 80, y + 11);
-    doc.text(`📅 ${today()}`, W - 14, y + 11, { align: 'right' });
+    doc.text(`Total productos: ${products.length}`, 14, y + 11);
+    doc.text(`Valor de inventario: ${fmtCurrency(totalValue)}`, 80, y + 11);
+    doc.text(`Fecha: ${today()}`, W - 14, y + 11, { align: 'right' });
     y += 22;
 
     // Layout: 2 cols × N rows de tarjetas
     const COLS = 2;
     const CARD_W = (W - 18) / COLS;   // ~139mm
-    const CARD_H = 44;                 // altura por tarjeta
-    const IMG_SIZE = 36;               // mm de imagen cuadrada
+    const CARD_H = 46;                 // altura por tarjeta
+    const IMG_SIZE = 40;               // mm de imagen cuadrada (más grande y PRO)
     const MARGIN = 6;
 
     let col = 0;
@@ -183,7 +183,7 @@ export const exportProductsCatalogPDF = async (products, businessName = 'Mi Nego
 
         // Calcular posición
         const cx = MARGIN + col * (CARD_W + MARGIN / 2);
-        const cy = y + row * (CARD_H + 4);
+        const cy = y + row * (CARD_H + 5);
 
         // Si ya no cabe en la página, nueva página
         if (cy + CARD_H > H - 16) {
@@ -193,82 +193,85 @@ export const exportProductsCatalogPDF = async (products, businessName = 'Mi Nego
             col = 0; row = 0;
         }
 
-        const cardY = y + row * (CARD_H + 4);
+        const cardY = y + row * (CARD_H + 5);
         const cardX = MARGIN + col * (CARD_W + MARGIN / 2);
 
-        // Fondo tarjeta
+        // Fondo tarjeta (Plano y Minimalista)
         const available = (parseInt(p.stock_actual || p.stock) || 0) > 0;
         doc.setFillColor(...BRAND.white);
-        doc.setDrawColor(...(available ? BRAND.primary : [200, 200, 200]));
-        doc.setLineWidth(0.4);
-        doc.roundedRect(cardX, cardY, CARD_W, CARD_H, 2.5, 2.5, 'FD');
+        doc.setDrawColor(220, 220, 225); // Borde gris sutil
+        doc.setLineWidth(0.3);
+        doc.roundedRect(cardX, cardY, CARD_W, CARD_H, 2, 2, 'FD');
 
-        // Franja lateral izquierda de color
-        doc.setFillColor(...(available ? BRAND.primary : [180, 180, 180]));
-        doc.roundedRect(cardX, cardY, 3, CARD_H, 1.5, 1.5, 'F');
+        // Línea sutil superior para color acento
+        doc.setFillColor(...(available ? [16, 185, 129] : [220, 220, 225]));
+        doc.rect(cardX, cardY, CARD_W, 1.5, 'F');
 
         // Imagen
         const pid = p._id || p.id || p.codigo || p.code;
         const imgData = imgDataMap[pid];
-        const imgX = cardX + 6;
-        const imgY = cardY + (CARD_H - IMG_SIZE) / 2;
+        const imgX = cardX + 4;
+        const imgY = cardY + (CARD_H - IMG_SIZE) / 2 + 1; // Centrada verticalmente
 
         if (imgData) {
-            // Marco de imagen
-            doc.setFillColor(...BRAND.lightGray);
-            doc.roundedRect(imgX - 1, imgY - 1, IMG_SIZE + 2, IMG_SIZE + 2, 2, 2, 'F');
             doc.addImage(imgData, 'JPEG', imgX, imgY, IMG_SIZE, IMG_SIZE, '', 'FAST');
         } else {
-            // Placeholder con inicial
-            doc.setFillColor(230, 230, 240);
-            doc.roundedRect(imgX, imgY, IMG_SIZE, IMG_SIZE, 2, 2, 'F');
-            doc.setTextColor(...BRAND.primary);
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
+            // Placeholder muy suave
+            doc.setFillColor(245, 245, 248);
+            doc.roundedRect(imgX, imgY, IMG_SIZE, IMG_SIZE, 1, 1, 'F');
+            doc.setTextColor(200, 200, 200);
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'normal');
             const initial = (p.nombre || p.name || '?')[0].toUpperCase();
-            doc.text(initial, imgX + IMG_SIZE / 2, imgY + IMG_SIZE / 2 + 3, { align: 'center' });
+            doc.text(initial, imgX + IMG_SIZE / 2, imgY + IMG_SIZE / 2 + 4, { align: 'center' });
         }
 
-        // Texto: nombre
-        const textX = cardX + 8 + IMG_SIZE;
-        const textW = CARD_W - IMG_SIZE - 12;
+        // TEXTOS AL LADO DE LA IMAGEN
+        const textX = imgX + IMG_SIZE + 6;
+        const textW = CARD_W - IMG_SIZE - 14;
+
+        // Categoría (Arriba)
+        if (p.categoria || p.category) {
+            doc.setFontSize(7);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(140, 140, 150); // Gris claro legible
+            doc.text((p.categoria || p.category).toUpperCase(), textX, cardY + 10);
+        }
+
+        // Título del producto
         doc.setTextColor(...BRAND.black);
-        doc.setFontSize(9);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        const nombre = p.nombre || p.name || '—';
-        doc.text(doc.splitTextToSize(nombre, textW)[0], textX, cardY + 9);
-        if (doc.splitTextToSize(nombre, textW).length > 1) {
-            doc.text(doc.splitTextToSize(nombre, textW)[1], textX, cardY + 15);
+        const nombre = (p.nombre || p.name || '—').trim();
+        const splitNombre = doc.splitTextToSize(nombre, textW);
+        doc.text(splitNombre[0], textX, cardY + 16);
+        if (splitNombre.length > 1) {
+            doc.text(splitNombre[1], textX, cardY + 21);
         }
 
-        // Código
+        // Código / SKU
         doc.setFontSize(7);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...BRAND.gray);
-        doc.text(`SKU: ${p.codigo || p.code || '—'}`, textX, cardY + 21);
+        doc.text(`Cod: ${p.codigo || p.code || '—'}`, textX, cardY + 27);
 
-        // Categoría
-        if (p.categoria || p.category) {
-            doc.setFontSize(7);
-            doc.setTextColor(99, 102, 241); // índigo
-            doc.text(p.categoria || p.category, textX, cardY + 27);
-        }
-
-        // Precio (grande)
-        doc.setFontSize(12);
+        // Precio (Grande, limpio)
+        doc.setFontSize(13);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...BRAND.primary);
-        doc.text(fmtCurrency(p.precio || p.price || 0), textX, cardY + 36);
+        // Usar un azul/gris oscuro elegante o rojo oscuro
+        doc.setTextColor(20, 20, 20);
+        doc.text(fmtCurrency(p.precio || p.price || 0), textX, cardY + 37);
 
-        // Stock
+        // Stock y Estado (Esquina inferior derecha)
         doc.setFontSize(7);
-        doc.setFont('helvetica', 'normal');
-        const stockColor = available ? BRAND.success : [200, 50, 50];
-        doc.setTextColor(...stockColor);
-        doc.text(
-            available ? `✓ Stock: ${parseInt(p.stock_actual || p.stock) || 0}` : '✗ Agotado',
-            textX, cardY + 42
-        );
+        doc.setFont('helvetica', 'bold');
+        if (available) {
+            doc.setTextColor(16, 185, 129); // Verde éxito
+            doc.text(`Disponible (${parseInt(p.stock_actual || p.stock) || 0})`, cardX + CARD_W - 4, cardY + 41, { align: 'right' });
+        } else {
+            doc.setTextColor(220, 50, 50); // Rojo suave
+            doc.text(`Agotado`, cardX + CARD_W - 4, cardY + 41, { align: 'right' });
+        }
 
         // Siguiente columna / fila
         col++;
