@@ -778,545 +778,750 @@ const QuickSale = () => {
     }
   };
 
-};
-
-const handleAddToCart = (product) => {
-  if (product.stock <= 0) {
-    enqueueSnackbar('Producto sin stock disponible', { variant: 'warning' });
-    return;
-  }
-
-  // Usar el método del contexto (que maneja duplicados)
-  addProductToCart({
-    id: product._id || product.id,
-    name: product.nombre || product.name,
-    price: product.precio || product.price,
-    stock: product.stock_actual || product.stock,
-    code: product.codigo || product.code
-  });
-  setSkipPromotions(false);
-};
-
-const handleRemoveFromCart = (itemId) => {
-  removeFromCart(itemId);
-};
-
-const handleUpdateQuantity = (itemId, newQuantity) => {
-  if (newQuantity < 1) {
-    removeFromCart(itemId);
-    return;
-  }
-
-  // Verificar stock solo para items de producto (no reparaciones)
-  const item = cart.find(i => i.id === itemId);
-  if (item?.meta?.type === 'product') {
-    const product = products.find(p => p._id === itemId || p.id === itemId);
-    const maxStock = product?.stock_actual || product?.stock || 0;
-    if (newQuantity > maxStock) {
-      enqueueSnackbar('Stock insuficiente', { variant: 'warning' });
+  const handleAddToCart = (product) => {
+    if (product.stock <= 0) {
+      enqueueSnackbar('Producto sin stock disponible', { variant: 'warning' });
       return;
     }
-  }
 
-  updateQuantity(itemId, newQuantity);
-};
+    // Usar el método del contexto (que maneja duplicados)
+    addProductToCart({
+      id: product._id || product.id,
+      name: product.nombre || product.name,
+      price: product.precio || product.price,
+      stock: product.stock_actual || product.stock,
+      code: product.codigo || product.code
+    });
+    setSkipPromotions(false);
+  };
 
-const calculateSubtotal = () => {
-  return cart.reduce((total, item) => {
-    const itemTotal = item.price * item.quantity;
+  const handleRemoveFromCart = (itemId) => {
+    removeFromCart(itemId);
+  };
+
+  const handleUpdateQuantity = (itemId, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromCart(itemId);
+      return;
+    }
+
+    // Verificar stock solo para items de producto (no reparaciones)
+    const item = cart.find(i => i.id === itemId);
+    if (item?.meta?.type === 'product') {
+      const product = products.find(p => p._id === itemId || p.id === itemId);
+      const maxStock = product?.stock_actual || product?.stock || 0;
+      if (newQuantity > maxStock) {
+        enqueueSnackbar('Stock insuficiente', { variant: 'warning' });
+        return;
+      }
+    }
+
+    updateQuantity(itemId, newQuantity);
+  };
+
+  const calculateSubtotal = () => {
+    return cart.reduce((total, item) => {
+      const itemTotal = item.price * item.quantity;
+      const itemDiscount = item.discount || 0;
+      return total + (itemTotal - itemDiscount);
+    }, 0);
+  };
+
+  const calculateTotal = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal - (subtotal * discount / 100);
+  };
+
+  const calculateItemTotal = (item) => {
+    const subtotal = item.price * item.quantity;
     const itemDiscount = item.discount || 0;
-    return total + (itemTotal - itemDiscount);
-  }, 0);
-};
+    return subtotal - itemDiscount;
+  };
 
-const calculateTotal = () => {
-  const subtotal = calculateSubtotal();
-  return subtotal - (subtotal * discount / 100);
-};
+  const handleCompleteSale = async () => {
+    // Si ya está procesando, no hacer nada
+    if (processingPayment) return;
 
-const calculateItemTotal = (item) => {
-  const subtotal = item.price * item.quantity;
-  const itemDiscount = item.discount || 0;
-  return subtotal - itemDiscount;
-};
+    try {
+      setProcessingPayment(true);
+      setError(null);
 
-const handleCompleteSale = async () => {
-  // Si ya está procesando, no hacer nada
-  if (processingPayment) return;
-
-  try {
-    setProcessingPayment(true);
-    setError(null);
-
-    // Validaciones adicionales
-    if (!selectedRepair && cart.length === 0) {
-      throw new Error('El carrito está vacío');
-    }
-
-    // LOGICA DE COBRO DE REPARACION
-    if (selectedRepair) {
-      // 1. Actualizar estado y precio
-      await axios.patch(`${process.env.REACT_APP_API_URL}/api/repairs/${selectedRepair._id}`, {
-        estado: repairStatus,
-        precio: Number(repairPrice)
-      });
-
-      // 2. Marcar como pagada
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/repairs/${selectedRepair._id}/mark-paid`);
-
-      // 3. Crear registro de venta (Opcional, para contabilidad unificada)
-      const saleData = {
-        items: [{
-          tipo: 'repair',
-          repair_id: selectedRepair._id, // Referencia
-          cantidad: 1,
-          precio_unitario: Number(repairPrice),
-          subtotal: Number(repairPrice),
-          descuento: 0,
-          nombre: `Reparación: ${selectedRepair.modelo || selectedRepair.device}`
-        }],
-        subtotal: Number(repairPrice),
-        total: Number(repairPrice),
-        cliente_id: selectedRepair.cliente_id || (selectedCustomer ? selectedCustomer._id : null),
-        metodo_pago: paymentMethod,
-        estado: 'completada',
-        es_reparacion: true
-      };
-
-      const response = await api.post('/sales', saleData);
-
-      setLastSale({
-        ...saleData,
-        _id: response.data.data?._id || 'TEMP',
-        fecha: new Date(),
-        items: saleData.items.map(i => ({ ...i, name: i.nombre, price: i.precio_unitario, quantity: 1 }))
-      });
-
-      enqueueSnackbar('Reparación cobrada correctamente', { variant: 'success' });
-      setPreInvoiceDialog(true);
-      setPaymentDialog(false);
-      setProcessingPayment(false);
-      handleClearRepair();
-      return; // FIN DEL FLUJO DE REPARACIÓN
-    }
-
-    // Verificar stock actual antes de procesar usando API de MongoDB
-    const stockChecks = [];
-
-    // Verificar el stock actual de cada producto
-    for (const item of cart) {
-      // Si el item es una reparación, no verificar stock
-      if (item.meta?.type === 'repair' || item.meta?.repair === true) continue;
-
-      // Buscar el producto en la lista de productos cargados
-      const product = products.find(p => p.id === item.id);
-
-      if (!product) {
-        throw new Error(`El producto ${item.name} ya no existe`);
+      // Validaciones adicionales
+      if (!selectedRepair && cart.length === 0) {
+        throw new Error('El carrito está vacío');
       }
 
-      const currentStock = product.stock;
-      if (currentStock < item.quantity) {
-        throw new Error(`Stock insuficiente para ${item.name}. Stock actual: ${currentStock}`);
-      }
+      // LOGICA DE COBRO DE REPARACION
+      if (selectedRepair) {
+        // 1. Actualizar estado y precio
+        await axios.patch(`${process.env.REACT_APP_API_URL}/api/repairs/${selectedRepair._id}`, {
+          estado: repairStatus,
+          precio: Number(repairPrice)
+        });
 
-      stockChecks.push({
-        productId: product.id,
-        currentStock,
-        newStock: currentStock - item.quantity,
-        productData: product
-      });
-    }
+        // 2. Marcar como pagada
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/repairs/${selectedRepair._id}/mark-paid`);
 
-    // Las notificaciones de WhatsApp son opcionales, no bloquean la venta
-    // Preparar datos de la venta para el backend MongoDB
-    const saleData = {
-      items: cart.map(item => {
-        if (item.meta?.type === 'repair' || item.meta?.repair === true) {
-          return {
+        // 3. Crear registro de venta (Opcional, para contabilidad unificada)
+        const saleData = {
+          items: [{
             tipo: 'repair',
-            repair: item.meta?.repairData || item.meta,
+            repair_id: selectedRepair._id, // Referencia
+            cantidad: 1,
+            precio_unitario: Number(repairPrice),
+            subtotal: Number(repairPrice),
+            descuento: 0,
+            nombre: `Reparación: ${selectedRepair.modelo || selectedRepair.device}`
+          }],
+          subtotal: Number(repairPrice),
+          total: Number(repairPrice),
+          cliente_id: selectedRepair.cliente_id || (selectedCustomer ? selectedCustomer._id : null),
+          metodo_pago: paymentMethod,
+          estado: 'completada',
+          es_reparacion: true
+        };
+
+        const response = await api.post('/sales', saleData);
+
+        setLastSale({
+          ...saleData,
+          _id: response.data.data?._id || 'TEMP',
+          fecha: new Date(),
+          items: saleData.items.map(i => ({ ...i, name: i.nombre, price: i.precio_unitario, quantity: 1 }))
+        });
+
+        enqueueSnackbar('Reparación cobrada correctamente', { variant: 'success' });
+        setPreInvoiceDialog(true);
+        setPaymentDialog(false);
+        setProcessingPayment(false);
+        handleClearRepair();
+        return; // FIN DEL FLUJO DE REPARACIÓN
+      }
+
+      // Verificar stock actual antes de procesar usando API de MongoDB
+      const stockChecks = [];
+
+      // Verificar el stock actual de cada producto
+      for (const item of cart) {
+        // Si el item es una reparación, no verificar stock
+        if (item.meta?.type === 'repair' || item.meta?.repair === true) continue;
+
+        // Buscar el producto en la lista de productos cargados
+        const product = products.find(p => p.id === item.id);
+
+        if (!product) {
+          throw new Error(`El producto ${item.name} ya no existe`);
+        }
+
+        const currentStock = product.stock;
+        if (currentStock < item.quantity) {
+          throw new Error(`Stock insuficiente para ${item.name}. Stock actual: ${currentStock}`);
+        }
+
+        stockChecks.push({
+          productId: product.id,
+          currentStock,
+          newStock: currentStock - item.quantity,
+          productData: product
+        });
+      }
+
+      // Las notificaciones de WhatsApp son opcionales, no bloquean la venta
+      // Preparar datos de la venta para el backend MongoDB
+      const saleData = {
+        items: cart.map(item => {
+          if (item.meta?.type === 'repair' || item.meta?.repair === true) {
+            return {
+              tipo: 'repair',
+              repair: item.meta?.repairData || item.meta,
+              cantidad: item.quantity,
+              precio_unitario: item.price,
+              subtotal: item.price * item.quantity,
+              descuento: item.discount || 0
+            };
+          }
+
+          return {
+            tipo: 'product',
+            producto_id: item.id,
             cantidad: item.quantity,
             precio_unitario: item.price,
             subtotal: item.price * item.quantity,
             descuento: item.discount || 0
           };
+        }),
+        subtotal: calculateSubtotal(),
+        total: calculateTotal(),
+        cliente_id: selectedCustomer?.id || null,
+        metodo_pago: paymentMethod,
+        estado: 'completada'
+      };
+
+      console.log('📦 Preparando venta para backend:', saleData);
+
+      // Guardar la venta en el backend MongoDB
+      const response = await api.post('/sales', saleData);
+      const saleId = response.data.data?._id || response.data.data?.numero_venta || 'N/A';
+
+      console.log('✅ Venta creada exitosamente:', response.data);
+
+      // Actualizar el estado local de productos con el nuevo stock
+      setProducts(prevProducts =>
+        prevProducts.map(product => {
+          const update = stockChecks.find(u => u.productId === product.id);
+          if (update) {
+            return {
+              ...product,
+              stock: update.newStock
+            };
+          }
+          return product;
+        })
+      );
+
+      // Enviar notificaciones de stock bajo/agotado
+      for (const check of stockChecks) {
+        const productData = check.productData;
+
+        if (check.newStock <= productData.minStock) {
+          if (notifyLowStock) {
+            try {
+              await notifyLowStock({
+                name: productData.name,
+                currentStock: check.newStock,
+                minStock: productData.minStock
+              });
+            } catch (error) {
+              console.error('Error al enviar notificación de stock bajo:', error);
+            }
+          }
         }
 
-        return {
-          tipo: 'product',
-          producto_id: item.id,
-          cantidad: item.quantity,
-          precio_unitario: item.price,
+        if (check.newStock <= 0) {
+          if (notifyOutOfStock && typeof notifyOutOfStock === 'function') {
+            try {
+              await notifyOutOfStock({
+                name: productData.name,
+                code: productData.code || 'N/A'
+              });
+            } catch (error) {
+              console.error('Error al enviar notificación de stock agotado:', error);
+            }
+          }
+        }
+      }
+
+      // Notificación de venta: ahora la envia el backend después de guardar la venta para evitar duplicados
+      console.log('🔔 La notificación de venta será enviada por el servidor (evitando duplicados).');
+
+      // Limpiar el carrito y mostrar mensaje de éxito
+      setPaymentDialog(false);
+
+      // Preparar datos del recibo con formato correcto
+      const receiptSale = {
+        items: cart.map(item => ({
+          name: item.name,
+          code: item.code || 'N/A',
+          quantity: item.quantity,
+          price: item.price,
           subtotal: item.price * item.quantity,
-          descuento: item.discount || 0
-        };
-      }),
-      subtotal: calculateSubtotal(),
-      total: calculateTotal(),
-      cliente_id: selectedCustomer?.id || null,
-      metodo_pago: paymentMethod,
-      estado: 'completada'
-    };
+          discount: item.discount || 0,
+          total: calculateItemTotal(item),
+          isRepair: item.meta?.type === 'repair' || item.meta?.repair
+        })),
+        subtotal: calculateSubtotal(),
+        discount: discount,
+        total: calculateTotal(),
+        date: new Date().toISOString(),
+        customer: selectedCustomer?.name || 'Cliente General',
+        id: saleId // Añadir el ID real de la venta
+      };
 
-    console.log('📦 Preparando venta para backend:', saleData);
-
-    // Guardar la venta en el backend MongoDB
-    const response = await api.post('/sales', saleData);
-    const saleId = response.data.data?._id || response.data.data?.numero_venta || 'N/A';
-
-    console.log('✅ Venta creada exitosamente:', response.data);
-
-    // Actualizar el estado local de productos con el nuevo stock
-    setProducts(prevProducts =>
-      prevProducts.map(product => {
-        const update = stockChecks.find(u => u.productId === product.id);
-        if (update) {
-          return {
-            ...product,
-            stock: update.newStock
-          };
-        }
-        return product;
-      })
-    );
-
-    // Enviar notificaciones de stock bajo/agotado
-    for (const check of stockChecks) {
-      const productData = check.productData;
-
-      if (check.newStock <= productData.minStock) {
-        if (notifyLowStock) {
-          try {
-            await notifyLowStock({
-              name: productData.name,
-              currentStock: check.newStock,
-              minStock: productData.minStock
-            });
-          } catch (error) {
-            console.error('Error al enviar notificación de stock bajo:', error);
-          }
-        }
-      }
-
-      if (check.newStock <= 0) {
-        if (notifyOutOfStock && typeof notifyOutOfStock === 'function') {
-          try {
-            await notifyOutOfStock({
-              name: productData.name,
-              code: productData.code || 'N/A'
-            });
-          } catch (error) {
-            console.error('Error al enviar notificación de stock agotado:', error);
-          }
-        }
-      }
-    }
-
-    // Notificación de venta: ahora la envia el backend después de guardar la venta para evitar duplicados
-    console.log('🔔 La notificación de venta será enviada por el servidor (evitando duplicados).');
-
-    // Limpiar el carrito y mostrar mensaje de éxito
-    setPaymentDialog(false);
-
-    // Preparar datos del recibo con formato correcto
-    const receiptSale = {
-      items: cart.map(item => ({
-        name: item.name,
-        code: item.code || 'N/A',
-        quantity: item.quantity,
-        price: item.price,
-        subtotal: item.price * item.quantity,
-        discount: item.discount || 0,
-        total: calculateItemTotal(item),
-        isRepair: item.meta?.type === 'repair' || item.meta?.repair
-      })),
-      subtotal: calculateSubtotal(),
-      discount: discount,
-      total: calculateTotal(),
-      date: new Date().toISOString(),
-      customer: selectedCustomer?.name || 'Cliente General',
-      id: saleId // Añadir el ID real de la venta
-    };
-
-    clearCart();
-    setSelectedCustomer(null);
-    setLastSale(receiptSale);
-    setPreInvoiceDialog(true);
-
-    enqueueSnackbar('Venta completada correctamente', {
-      variant: 'success'
-    });
-  } catch (error) {
-    console.error('Error al completar la venta:', error);
-    setError(error.message);
-    enqueueSnackbar(error.message || 'Error al completar la venta', {
-      variant: 'error'
-    });
-  } finally {
-    setProcessingPayment(false);
-  }
-};
-
-const handleCreateNewCustomer = () => {
-  // Cerrar el diálogo de selección
-  setCustomerDialogOpen(false);
-  // Emitir evento o llamar callback para abrir el modal de creación de cliente
-  if (typeof window.openCustomerModal === 'function') {
-    setTimeout(() => window.openCustomerModal(), 300);
-  }
-};
-
-const handleSelectCustomer = (customer) => {
-  setSelectedCustomer(customer);
-  enqueueSnackbar(`Cliente seleccionado: ${customer.name}`, { variant: 'success' });
-};
-
-// Funciones para Reparaciones
-const fetchRepairs = async () => {
-  try {
-    const response = await api.get('/repairs');
-    if (response.data.success) {
-      // Filtramos las que NO están pagadas y NO terminadas/entregadas hace mucho
-      // Por ahora traemos todas las NO pagadas y NO canceladas
-      const pending = response.data.data.filter(r => !r.pagado && r.status !== 'cancelled' && r.status !== 'cancelado');
-      setRepairs(pending);
-    }
-  } catch (error) {
-    console.error('Error fetching repairs:', error);
-    enqueueSnackbar('Error cargando reparaciones', { variant: 'error' });
-  }
-};
-
-const handleSelectRepair = (repair) => {
-  setSelectedRepair(repair);
-  setRepairStatus(repair.status || repair.estado || 'pending');
-  setRepairPrice(repair.precio || repair.cost || 0);
-
-  // Si la reparación tiene cliente, intentamos seleccionarlo también
-  if (repair.cliente_id) {
-    const costumerObj = customers.find(c => c._id === repair.cliente_id || c.id === repair.cliente_id);
-    if (costumerObj) setSelectedCustomer(costumerObj);
-  } else if (repair.cliente) {
-    // Si no hay ID pero hay nombre, creamos un objeto temporal
-    setSelectedCustomer({ name: repair.cliente, _id: 'temp', isTemp: true });
-  }
-
-  setRepairDialogOpen(false);
-};
-
-const handleClearRepair = () => {
-  setSelectedRepair(null);
-  setRepairStatus('');
-  setRepairPrice('');
-  if (selectedCustomer?.isTemp) {
-    setSelectedCustomer(null);
-  }
-};
-
-const handleRepeatOrder = async (saleId) => {
-  try {
-    setLoading(true);
-    enqueueSnackbar('Buscando venta anterior...', { variant: 'info' });
-
-    // Intentar buscar tanto por ID como por numero_venta
-    const response = await api.get(`/sales/${saleId}`);
-
-    if (response.data.success && response.data.data) {
-      const sale = response.data.data;
-
-      if (!sale.items || sale.items.length === 0) {
-        throw new Error('La venta no contiene productos');
-      }
-
-      // Limpiar carrito actual
       clearCart();
+      setSelectedCustomer(null);
+      setLastSale(receiptSale);
+      setPreInvoiceDialog(true);
 
-      // Seleccionar cliente si existe
-      if (sale.cliente_id) {
-        const customer = typeof sale.cliente_id === 'object' ? sale.cliente_id : { _id: sale.cliente_id, nombre: sale.cliente_nombre || 'Cliente' };
-        setSelectedCustomer({
-          id: customer._id || customer.id,
-          ...customer,
-          name: customer.nombre || customer.name || ''
-        });
+      enqueueSnackbar('Venta completada correctamente', {
+        variant: 'success'
+      });
+    } catch (error) {
+      console.error('Error al completar la venta:', error);
+      setError(error.message);
+      enqueueSnackbar(error.message || 'Error al completar la venta', {
+        variant: 'error'
+      });
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  const handleCreateNewCustomer = () => {
+    // Cerrar el diálogo de selección
+    setCustomerDialogOpen(false);
+    // Emitir evento o llamar callback para abrir el modal de creación de cliente
+    if (typeof window.openCustomerModal === 'function') {
+      setTimeout(() => window.openCustomerModal(), 300);
+    }
+  };
+
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    enqueueSnackbar(`Cliente seleccionado: ${customer.name}`, { variant: 'success' });
+  };
+
+  // Funciones para Reparaciones
+  const fetchRepairs = async () => {
+    try {
+      const response = await api.get('/repairs');
+      if (response.data.success) {
+        // Filtramos las que NO están pagadas y NO terminadas/entregadas hace mucho
+        // Por ahora traemos todas las NO pagadas y NO canceladas
+        const pending = response.data.data.filter(r => !r.pagado && r.status !== 'cancelled' && r.status !== 'cancelado');
+        setRepairs(pending);
       }
+    } catch (error) {
+      console.error('Error fetching repairs:', error);
+      enqueueSnackbar('Error cargando reparaciones', { variant: 'error' });
+    }
+  };
 
-      // Agregar items al carrito
-      for (const item of sale.items) {
-        // Solo repetir productos, no reparaciones
-        if (item.item_type !== 'repair') {
-          const product = products.find(p => (p._id || p.id) === (item.producto_id?._id || item.producto_id));
+  const handleSelectRepair = (repair) => {
+    setSelectedRepair(repair);
+    setRepairStatus(repair.status || repair.estado || 'pending');
+    setRepairPrice(repair.precio || repair.cost || 0);
 
-          addProductToCart({
-            id: item.producto_id?._id || item.producto_id,
-            name: item.nombre,
-            price: item.precio_unitario,
-            stock: product?.stock || 999,
-            code: item.codigo,
-            quantity: item.cantidad
+    // Si la reparación tiene cliente, intentamos seleccionarlo también
+    if (repair.cliente_id) {
+      const costumerObj = customers.find(c => c._id === repair.cliente_id || c.id === repair.cliente_id);
+      if (costumerObj) setSelectedCustomer(costumerObj);
+    } else if (repair.cliente) {
+      // Si no hay ID pero hay nombre, creamos un objeto temporal
+      setSelectedCustomer({ name: repair.cliente, _id: 'temp', isTemp: true });
+    }
+
+    setRepairDialogOpen(false);
+  };
+
+  const handleClearRepair = () => {
+    setSelectedRepair(null);
+    setRepairStatus('');
+    setRepairPrice('');
+    if (selectedCustomer?.isTemp) {
+      setSelectedCustomer(null);
+    }
+  };
+
+  const handleRepeatOrder = async (saleId) => {
+    try {
+      setLoading(true);
+      enqueueSnackbar('Buscando venta anterior...', { variant: 'info' });
+
+      // Intentar buscar tanto por ID como por numero_venta
+      const response = await api.get(`/sales/${saleId}`);
+
+      if (response.data.success && response.data.data) {
+        const sale = response.data.data;
+
+        if (!sale.items || sale.items.length === 0) {
+          throw new Error('La venta no contiene productos');
+        }
+
+        // Limpiar carrito actual
+        clearCart();
+
+        // Seleccionar cliente si existe
+        if (sale.cliente_id) {
+          const customer = typeof sale.cliente_id === 'object' ? sale.cliente_id : { _id: sale.cliente_id, nombre: sale.cliente_nombre || 'Cliente' };
+          setSelectedCustomer({
+            id: customer._id || customer.id,
+            ...customer,
+            name: customer.nombre || customer.name || ''
           });
         }
-      }
 
-      enqueueSnackbar('Pedido cargado para repetir. Verifique stock antes de cobrar.', { variant: 'success' });
-    } else {
-      throw new Error('No se encontró la venta');
-    }
-  } catch (error) {
-    console.error('Error al repetir venta:', error);
-    enqueueSnackbar('No se pudo repetir la venta: ' + error.message, { variant: 'error' });
-  } finally {
-    setLoading(false);
-  }
-};
+        // Agregar items al carrito
+        for (const item of sale.items) {
+          // Solo repetir productos, no reparaciones
+          if (item.item_type !== 'repair') {
+            const product = products.find(p => (p._id || p.id) === (item.producto_id?._id || item.producto_id));
 
-// Manejar el código detectado por el escáner
-const handleCodeDetected = (code) => {
-  setScannerOpen(false);
-
-  // Si el código parece un ID de venta o tiene el prefijo REPEAT:
-  if (code.startsWith('REPEAT:') || code.startsWith('V-')) {
-    const saleId = code.replace('REPEAT:', '');
-    handleRepeatOrder(saleId);
-    return;
-  }
-
-  // Buscar el producto por código y agregarlo al carrito automáticamente
-  const found = products.find(p => p.code === code);
-  if (found) {
-    handleAddToCart(found);
-  } else {
-    enqueueSnackbar('Producto no encontrado', { variant: 'warning' });
-  }
-};
-
-// Hook de detección de escáner USB (Teclado) - TEMPORARILY DISABLED due to Webpack issues
-/*
-try {
-  if (typeof useScanDetection === 'function') {
-    useScanDetection({
-      onComplete: (code) => {
-        // Ignorar si el foco está en un input de texto para evitar conflictos
-        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
-          return;
+            addProductToCart({
+              id: item.producto_id?._id || item.producto_id,
+              name: item.nombre,
+              price: item.precio_unitario,
+              stock: product?.stock || 999,
+              code: item.codigo,
+              quantity: item.cantidad
+            });
+          }
         }
-        console.log('Barcode detected via USB:', code);
-        handleCodeDetected(code);
-      },
-      minLength: 3 // Mínimo de caracteres para considerar un código válido
-    });
+
+        enqueueSnackbar('Pedido cargado para repetir. Verifique stock antes de cobrar.', { variant: 'success' });
+      } else {
+        throw new Error('No se encontró la venta');
+      }
+    } catch (error) {
+      console.error('Error al repetir venta:', error);
+      enqueueSnackbar('No se pudo repetir la venta: ' + error.message, { variant: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Manejar el código detectado por el escáner
+  const handleCodeDetected = (code) => {
+    setScannerOpen(false);
+
+    // Si el código parece un ID de venta o tiene el prefijo REPEAT:
+    if (code.startsWith('REPEAT:') || code.startsWith('V-')) {
+      const saleId = code.replace('REPEAT:', '');
+      handleRepeatOrder(saleId);
+      return;
+    }
+
+    // Buscar el producto por código y agregarlo al carrito automáticamente
+    const found = products.find(p => p.code === code);
+    if (found) {
+      handleAddToCart(found);
+    } else {
+      enqueueSnackbar('Producto no encontrado', { variant: 'warning' });
+    }
+  };
+
+  // Hook de detección de escáner USB (Teclado) - TEMPORARILY DISABLED due to Webpack issues
+  /*
+  try {
+    if (typeof useScanDetection === 'function') {
+      useScanDetection({
+        onComplete: (code) => {
+          // Ignorar si el foco está en un input de texto para evitar conflictos
+          if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+            return;
+          }
+          console.log('Barcode detected via USB:', code);
+          handleCodeDetected(code);
+        },
+        minLength: 3 // Mínimo de caracteres para considerar un código válido
+      });
+    }
+  } catch (e) {
+    console.error('Scanner hook error:', e);
   }
-} catch (e) {
-  console.error('Scanner hook error:', e);
-}
-*/
+  */
 
-const handleUpdateTotalManually = (targetTotal) => {
-  if (!targetTotal || targetTotal <= 0 || cart.length === 0) return;
+  const handleUpdateTotalManually = (targetTotal) => {
+    if (!targetTotal || targetTotal <= 0 || cart.length === 0) return;
 
-  // Calcular el total bruto (suma de precio * cantidad sin descuentos de items previos)
-  const grossTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calcular el total bruto (suma de precio * cantidad sin descuentos de items previos)
+    const grossTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-  if (grossTotal <= 0) return;
+    if (grossTotal <= 0) return;
 
-  // El descuento total que necesitamos aplicar para llegar al targetTotal
-  const totalDiscountToApply = Math.max(0, grossTotal - targetTotal);
+    // El descuento total que necesitamos aplicar para llegar al targetTotal
+    const totalDiscountToApply = Math.max(0, grossTotal - targetTotal);
 
-  // Distribuir el descuento proporcionalmente según el peso de cada item en el total bruto
-  const updatedCart = cart.map(item => {
-    const itemGross = item.price * item.quantity;
-    const proportion = itemGross / grossTotal;
-    const itemDiscount = totalDiscountToApply * proportion;
-    return { ...item, discount: itemDiscount };
-  });
+    // Distribuir el descuento proporcionalmente según el peso de cada item en el total bruto
+    const updatedCart = cart.map(item => {
+      const itemGross = item.price * item.quantity;
+      const proportion = itemGross / grossTotal;
+      const itemDiscount = totalDiscountToApply * proportion;
+      return { ...item, discount: itemDiscount };
+    });
 
-  setCart(updatedCart);
+    setCart(updatedCart);
 
-  // Al hacer un ajuste manual, limpiamos cualquier promoción automática seleccionada
-  // para evitar que se aplique un descuento doble.
-  setDiscount(0);
-  setSelectedPromotion(null);
-  setSkipPromotions(true); // Activar modo manual
+    // Al hacer un ajuste manual, limpiamos cualquier promoción automática seleccionada
+    // para evitar que se aplique un descuento doble.
+    setDiscount(0);
+    setSelectedPromotion(null);
+    setSkipPromotions(true); // Activar modo manual
 
-  enqueueSnackbar(`Total ajustado a $${targetTotal.toFixed(2)}. Descuentos distribuidos.`, { variant: 'info' });
-};
+    enqueueSnackbar(`Total ajustado a $${targetTotal.toFixed(2)}. Descuentos distribuidos.`, { variant: 'info' });
+  };
 
-if (loading) {
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button variant="contained" onClick={loadData}>
+          Reintentar
+        </Button>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <CircularProgress />
-    </Box>
-  );
-}
+    <Box sx={{
+      p: { xs: 1, md: 2 },
+      height: { xs: 'auto', md: 'calc(100vh - 64px)' },
+      minHeight: { xs: 'calc(100vh - 64px)', md: 'auto' },
+      overflow: { xs: 'visible', md: 'hidden' },
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative' // For absolute positioning of FAB if needed
+    }}>
+      {/* Mobile Cart FAB */}
+      <Zoom in={isMobile && cart.length > 0}>
+        <Fab
+          variant="extended"
+          color="primary"
+          aria-label="cart"
+          onClick={() => setMobileDrawerOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1300,
+            fontWeight: 700,
+            px: 3
+          }}
+        >
+          <Badge badgeContent={cart.length} color="error" sx={{ mr: 2 }}>
+            <ShoppingCartIcon />
+          </Badge>
+          Total: ${calculateTotal().toFixed(2)}
+        </Fab>
+      </Zoom>
 
-if (error) {
-  return (
-    <Box sx={{ p: 3 }}>
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error}
-      </Alert>
-      <Button variant="contained" onClick={loadData}>
-        Reintentar
-      </Button>
-    </Box>
-  );
-}
-
-return (
-  <Box sx={{
-    p: { xs: 1, md: 2 },
-    height: { xs: 'auto', md: 'calc(100vh - 64px)' },
-    minHeight: { xs: 'calc(100vh - 64px)', md: 'auto' },
-    overflow: { xs: 'visible', md: 'hidden' },
-    display: 'flex',
-    flexDirection: 'column',
-    position: 'relative' // For absolute positioning of FAB if needed
-  }}>
-    {/* Mobile Cart FAB */}
-    <Zoom in={isMobile && cart.length > 0}>
-      <Fab
-        variant="extended"
-        color="primary"
-        aria-label="cart"
-        onClick={() => setMobileDrawerOpen(true)}
-        sx={{
-          position: 'fixed',
-          bottom: 16,
-          right: 16,
-          zIndex: 1300,
-          fontWeight: 700,
-          px: 3
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="bottom"
+        open={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            height: '85vh',
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16
+          }
         }}
       >
-        <Badge badgeContent={cart.length} color="error" sx={{ mr: 2 }}>
-          <ShoppingCartIcon />
-        </Badge>
-        Total: ${calculateTotal().toFixed(2)}
-      </Fab>
-    </Zoom>
+        <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 0 }}>
+          <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
+            <Box sx={{ width: 40, height: 4, bgcolor: 'grey.300', borderRadius: 2 }} />
+          </Box>
+          <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
 
-    {/* Mobile Drawer */}
-    <Drawer
-      anchor="bottom"
-      open={mobileDrawerOpen}
-      onClose={() => setMobileDrawerOpen(false)}
-      PaperProps={{
-        sx: {
-          height: '85vh',
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16
-        }
-      }}
-    >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 0 }}>
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
-          <Box sx={{ width: 40, height: 4, bgcolor: 'grey.300', borderRadius: 2 }} />
+            {/* Sale Details in Drawer */}
+            <Box sx={{ mb: 2 }}>
+              <SaleDetailsSection
+                selectedCustomer={selectedCustomer}
+                onSelectCustomer={() => setCustomerDialogOpen(true)}
+                notes={notes}
+                onNotesChange={(e) => setNotes(e.target.value)}
+                promotions={promotions}
+                selectedPromotion={selectedPromotion}
+                onPromotionChange={e => {
+                  const promo = promotions.find(p => (p._id || p.id) === e.target.value);
+                  setSelectedPromotion(promo || null);
+                  // Logic copied from original component
+                  if (promo) {
+                    if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
+                      setDiscount(Number(promo.descuentoPorcentaje));
+                    } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
+                      const subtotal = calculateSubtotal();
+                      setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
+                    } else {
+                      setDiscount(0);
+                    }
+                  } else {
+                    setDiscount(0);
+                  }
+                }}
+                isMobile={true}
+              />
+            </Box>
+
+            {/* Cart Logic in Drawer */}
+            <CartSection
+              cart={cart}
+              darkMode={darkMode}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveFromCart={handleRemoveFromCart}
+              subtotal={calculateSubtotal()}
+              total={calculateTotal()}
+              discount={discount}
+              discountAmount={calculateSubtotal() * discount / 100}
+              onCheckout={() => setPaymentDialog(true)}
+              processingPayment={processingPayment}
+              isMobile={true}
+              onUpdateDiscount={updateDiscount}
+              onUpdateTotalManually={handleUpdateTotalManually}
+            />
+          </Box>
         </Box>
-        <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
+      </Drawer>
+      {/* Título - Compacto */}
+      <Box sx={{ mb: 2, flexShrink: 0 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Punto de Venta
+        </Typography>
+      </Box>
 
-          {/* Sale Details in Drawer */}
-          <Box sx={{ mb: 2 }}>
+      {/* Layout Flexbox Robusto (Garantiza 3 columnas) */}
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: 2,
+        height: '100%',
+        overflow: { xs: 'visible', md: 'hidden' },
+        alignItems: 'stretch'
+      }}>
+
+        {/* COLUMNA 1: PRODUCTOS (Flexible, ocupa el resto) */}
+        <Box sx={{
+          flex: 1,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          height: { xs: '500px', md: 'auto' } // Altura fija en móvil para scroll interno
+        }}>
+          {/* Barra de Búsqueda Integrada */}
+          <Box sx={{ p: 1, pb: 0, mb: 1, display: 'flex', gap: 1 }}>
+            <Autocomplete
+              fullWidth
+              options={products}
+              getOptionLabel={(option) => option.name}
+              value={selectedProduct}
+              onChange={(event, newValue) => {
+                if (newValue) {
+                  handleAddToCart(newValue);
+                  setSelectedProduct(null);
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  size="small"
+                  placeholder="Buscar productos..."
+                  sx={{
+                    bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
+                    '& .MuiOutlinedInput-root': { borderRadius: 1.5 }
+                  }}
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              )}
+            />
+            <Tooltip title="Escanear">
+              <IconButton
+                onClick={() => setScannerOpen(true)}
+                sx={{
+                  bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                  color: theme.palette.secondary.main,
+                  borderRadius: 1.5,
+                  aspectRatio: '1/1'
+                }}
+              >
+                <CameraAltIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          {/* Grid de Productos */}
+          <Paper
+            elevation={0}
+            sx={{
+              flexGrow: 1,
+              overflowY: 'auto',
+              p: 1.5,
+              bgcolor: 'transparent',
+              borderRadius: 2
+            }}
+          >
+            <Grid container spacing={1.5}>
+              {products.map((product) => (
+                <Grid item xs={6} sm={4} md={4} lg={3} xl={3} key={product.id}>
+                  <Card
+                    elevation={0}
+                    sx={{
+                      cursor: 'pointer',
+                      height: '100%',
+                      transition: 'all 0.2s',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        transform: 'translateY(-2px)',
+                        boxShadow: 4
+                      },
+                    }}
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: 80,
+                          mb: 1,
+                          borderRadius: 1.5,
+                          overflow: 'hidden',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          bgcolor: darkMode ? '#333' : '#f5f5f5',
+                        }}
+                      >
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                          />
+                        ) : null}
+                        <Box sx={{ display: product.imageUrl ? 'none' : 'flex', fontSize: '1.5rem' }}>📦</Box>
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 32, mb: 0.5 }}>
+                        {product.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700 }}>
+                          ${product.price}
+                        </Typography>
+                        <Chip
+                          label={product.stock}
+                          size="small"
+                          color={product.stock > 0 ? 'success' : 'error'}
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600 }}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Paper>
+        </Box>
+
+        {/* COLUMNA 2: DETALLES (Fija 300px en desktop) - SOLO VISIBLE EN DESKTOP */}
+        {!isMobile && (
+          <Box sx={{
+            width: { xs: '100%', md: 300 },
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            order: { xs: 3, md: 2 }
+          }}>
             <SaleDetailsSection
               selectedCustomer={selectedCustomer}
               onSelectCustomer={() => setCustomerDialogOpen(true)}
@@ -1327,7 +1532,6 @@ return (
               onPromotionChange={e => {
                 const promo = promotions.find(p => (p._id || p.id) === e.target.value);
                 setSelectedPromotion(promo || null);
-                // Logic copied from original component
                 if (promo) {
                   if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
                     setDiscount(Number(promo.descuentoPorcentaje));
@@ -1341,378 +1545,172 @@ return (
                   setDiscount(0);
                 }
               }}
-              isMobile={true}
+              isMobile={false}
             />
           </Box>
+        )}
 
-          {/* Cart Logic in Drawer */}
-          <CartSection
-            cart={cart}
-            darkMode={darkMode}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveFromCart={handleRemoveFromCart}
-            subtotal={calculateSubtotal()}
-            total={calculateTotal()}
-            discount={discount}
-            discountAmount={calculateSubtotal() * discount / 100}
-            onCheckout={() => setPaymentDialog(true)}
-            processingPayment={processingPayment}
-            isMobile={true}
-            onUpdateDiscount={updateDiscount}
-            onUpdateTotalManually={handleUpdateTotalManually}
-          />
-        </Box>
+        {/* COLUMNA 3: CARRITO (Fija 350px en desktop) - SOLO VISIBLE EN DESKTOP */}
+        {!isMobile && (
+          <Box sx={{
+            width: { xs: '100%', md: 350 },
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0,
+            height: { xs: 'auto', md: '100%' },
+            order: { xs: 2, md: 3 }
+          }}>
+            <CartSection
+              cart={cart}
+              darkMode={darkMode}
+              onUpdateQuantity={handleUpdateQuantity}
+              onRemoveFromCart={handleRemoveFromCart}
+              subtotal={calculateSubtotal()}
+              total={calculateTotal()}
+              discount={discount}
+              discountAmount={calculateSubtotal() * discount / 100}
+              onCheckout={() => setPaymentDialog(true)}
+              processingPayment={processingPayment}
+              isMobile={false}
+              onUpdateDiscount={updateDiscount}
+              onUpdateTotalManually={handleUpdateTotalManually}
+            />
+          </Box>
+        )}
       </Box>
-    </Drawer>
-    {/* Título - Compacto */}
-    <Box sx={{ mb: 2, flexShrink: 0 }}>
-      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-        Punto de Venta
-      </Typography>
-    </Box>
 
-    {/* Layout Flexbox Robusto (Garantiza 3 columnas) */}
-    <Box sx={{
-      display: 'flex',
-      flexDirection: { xs: 'column', md: 'row' },
-      gap: 2,
-      height: '100%',
-      overflow: { xs: 'visible', md: 'hidden' },
-      alignItems: 'stretch'
-    }}>
-
-      {/* COLUMNA 1: PRODUCTOS (Flexible, ocupa el resto) */}
-      <Box sx={{
-        flex: 1,
-        minWidth: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        height: { xs: '500px', md: 'auto' } // Altura fija en móvil para scroll interno
-      }}>
-        {/* Barra de Búsqueda Integrada */}
-        <Box sx={{ p: 1, pb: 0, mb: 1, display: 'flex', gap: 1 }}>
-          <Autocomplete
-            fullWidth
-            options={products}
-            getOptionLabel={(option) => option.name}
-            value={selectedProduct}
-            onChange={(event, newValue) => {
-              if (newValue) {
-                handleAddToCart(newValue);
-                setSelectedProduct(null);
-              }
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                size="small"
-                placeholder="Buscar productos..."
-                sx={{
-                  bgcolor: darkMode ? 'rgba(255,255,255,0.05)' : '#fff',
-                  '& .MuiOutlinedInput-root': { borderRadius: 1.5 }
-                }}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            )}
-          />
-          <Tooltip title="Escanear">
-            <IconButton
-              onClick={() => setScannerOpen(true)}
-              sx={{
-                bgcolor: alpha(theme.palette.secondary.main, 0.1),
-                color: theme.palette.secondary.main,
-                borderRadius: 1.5,
-                aspectRatio: '1/1'
-              }}
+      {/* Diálogos (sin cambios en lógica) */}
+      <Dialog
+        open={paymentDialog}
+        onClose={() => !processingPayment && setPaymentDialog(false)}
+        disableEscapeKeyDown={processingPayment}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Cobrar ${calculateTotal().toFixed(2)}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Button
+              fullWidth
+              size="large"
+              variant={paymentMethod === 'efectivo' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('efectivo')}
+              startIcon={<MoneyIcon />}
             >
-              <CameraAltIcon />
-            </IconButton>
-          </Tooltip>
-        </Box>
+              Efectivo
+            </Button>
+            <Button
+              fullWidth
+              size="large"
+              variant={paymentMethod === 'tarjeta' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('tarjeta')}
+              startIcon={<PaymentIcon />}
+            >
+              Tarjeta
+            </Button>
+            <Button
+              fullWidth
+              size="large"
+              variant={paymentMethod === 'transferencia' ? 'contained' : 'outlined'}
+              onClick={() => setPaymentMethod('transferencia')}
+            >
+              Transferencia
+            </Button>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentDialog(false)} disabled={processingPayment}>Atrás</Button>
+          <LoadingButton
+            variant="contained"
+            color="success"
+            onClick={handleCompleteSale}
+            loading={processingPayment}
+          >
+            Confirmar Pago
+          </LoadingButton>
+        </DialogActions>
+      </Dialog>
 
-        {/* Grid de Productos */}
-        <Paper
-          elevation={0}
-          sx={{
-            flexGrow: 1,
-            overflowY: 'auto',
-            p: 1.5,
-            bgcolor: 'transparent',
-            borderRadius: 2
-          }}
-        >
-          <Grid container spacing={1.5}>
-            {products.map((product) => (
-              <Grid item xs={6} sm={4} md={4} lg={3} xl={3} key={product.id}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    cursor: 'pointer',
-                    height: '100%',
-                    transition: 'all 0.2s',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 2,
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      transform: 'translateY(-2px)',
-                      boxShadow: 4
-                    },
-                  }}
-                  onClick={() => handleAddToCart(product)}
+      <PreInvoiceDialog
+        open={preInvoiceDialog}
+        onClose={() => setPreInvoiceDialog(false)}
+        sale={lastSale}
+      />
+
+      <CustomerDialog
+        open={customerDialogOpen}
+        onClose={() => setCustomerDialogOpen(false)}
+        customers={customers}
+        onSelect={handleSelectCustomer}
+        onCreateNew={handleCreateNewCustomer}
+      />
+
+      <BarcodeScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleCodeDetected}
+      />
+
+      {/* Dialog para seleccionar Reparación */}
+      <Dialog
+        open={repairDialogOpen}
+        onClose={() => setRepairDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <HistoryIcon /> Cargar Reparación Pendiente
+        </DialogTitle>
+        <DialogContent dividers>
+          {repairs.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 3, opacity: 0.6 }}>
+              <BuildIcon sx={{ fontSize: 50, mb: 1 }} />
+              <Typography>No se encontraron reparaciones pendientes.</Typography>
+            </Box>
+          ) : (
+            <List>
+              {repairs.map((repair) => (
+                <ListItem
+                  key={repair._id}
+                  button
+                  divider
+                  onClick={() => handleSelectRepair(repair)}
                 >
-                  <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                    <Box
-                      sx={{
-                        width: '100%',
-                        height: 80,
-                        mb: 1,
-                        borderRadius: 1.5,
-                        overflow: 'hidden',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: darkMode ? '#333' : '#f5f5f5',
-                      }}
-                    >
-                      {product.imageUrl ? (
-                        <img
-                          src={product.imageUrl}
-                          alt={product.name}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                        />
-                      ) : null}
-                      <Box sx={{ display: product.imageUrl ? 'none' : 'flex', fontSize: '1.5rem' }}>📦</Box>
-                    </Box>
-                    <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.2, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 32, mb: 0.5 }}>
-                      {product.name}
-                    </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700 }}>
-                        ${product.price}
+                  <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography fontWeight={600} variant="body1">
+                        {repair.modelo || repair.device} ({repair.marca || repair.brand})
                       </Typography>
                       <Chip
-                        label={product.stock}
+                        label={repair.estado || repair.status}
                         size="small"
-                        color={product.stock > 0 ? 'success' : 'error'}
+                        color={(repair.estado === 'completed' || repair.status === 'completed') ? 'success' : 'warning'}
                         variant="outlined"
-                        sx={{ height: 20, fontSize: '0.7rem', fontWeight: 600 }}
                       />
                     </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      </Box>
-
-      {/* COLUMNA 2: DETALLES (Fija 300px en desktop) - SOLO VISIBLE EN DESKTOP */}
-      {!isMobile && (
-        <Box sx={{
-          width: { xs: '100%', md: 300 },
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          order: { xs: 3, md: 2 }
-        }}>
-          <SaleDetailsSection
-            selectedCustomer={selectedCustomer}
-            onSelectCustomer={() => setCustomerDialogOpen(true)}
-            notes={notes}
-            onNotesChange={(e) => setNotes(e.target.value)}
-            promotions={promotions}
-            selectedPromotion={selectedPromotion}
-            onPromotionChange={e => {
-              const promo = promotions.find(p => (p._id || p.id) === e.target.value);
-              setSelectedPromotion(promo || null);
-              if (promo) {
-                if (promo.tipo === 'DESCUENTO_PORCENTAJE' && promo.descuentoPorcentaje) {
-                  setDiscount(Number(promo.descuentoPorcentaje));
-                } else if (promo.tipo === 'DESCUENTO_FIJO' && promo.descuentoFijo) {
-                  const subtotal = calculateSubtotal();
-                  setDiscount(subtotal > 0 ? (100 * Number(promo.descuentoFijo) / subtotal) : 0);
-                } else {
-                  setDiscount(0);
-                }
-              } else {
-                setDiscount(0);
-              }
-            }}
-            isMobile={false}
-          />
-        </Box>
-      )}
-
-      {/* COLUMNA 3: CARRITO (Fija 350px en desktop) - SOLO VISIBLE EN DESKTOP */}
-      {!isMobile && (
-        <Box sx={{
-          width: { xs: '100%', md: 350 },
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          height: { xs: 'auto', md: '100%' },
-          order: { xs: 2, md: 3 }
-        }}>
-          <CartSection
-            cart={cart}
-            darkMode={darkMode}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemoveFromCart={handleRemoveFromCart}
-            subtotal={calculateSubtotal()}
-            total={calculateTotal()}
-            discount={discount}
-            discountAmount={calculateSubtotal() * discount / 100}
-            onCheckout={() => setPaymentDialog(true)}
-            processingPayment={processingPayment}
-            isMobile={false}
-            onUpdateDiscount={updateDiscount}
-            onUpdateTotalManually={handleUpdateTotalManually}
-          />
-        </Box>
-      )}
-    </Box>
-
-    {/* Diálogos (sin cambios en lógica) */}
-    <Dialog
-      open={paymentDialog}
-      onClose={() => !processingPayment && setPaymentDialog(false)}
-      disableEscapeKeyDown={processingPayment}
-      maxWidth="xs"
-      fullWidth
-    >
-      <DialogTitle>Cobrar ${calculateTotal().toFixed(2)}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Button
-            fullWidth
-            size="large"
-            variant={paymentMethod === 'efectivo' ? 'contained' : 'outlined'}
-            onClick={() => setPaymentMethod('efectivo')}
-            startIcon={<MoneyIcon />}
-          >
-            Efectivo
-          </Button>
-          <Button
-            fullWidth
-            size="large"
-            variant={paymentMethod === 'tarjeta' ? 'contained' : 'outlined'}
-            onClick={() => setPaymentMethod('tarjeta')}
-            startIcon={<PaymentIcon />}
-          >
-            Tarjeta
-          </Button>
-          <Button
-            fullWidth
-            size="large"
-            variant={paymentMethod === 'transferencia' ? 'contained' : 'outlined'}
-            onClick={() => setPaymentMethod('transferencia')}
-          >
-            Transferencia
-          </Button>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setPaymentDialog(false)} disabled={processingPayment}>Atrás</Button>
-        <LoadingButton
-          variant="contained"
-          color="success"
-          onClick={handleCompleteSale}
-          loading={processingPayment}
-        >
-          Confirmar Pago
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
-
-    <PreInvoiceDialog
-      open={preInvoiceDialog}
-      onClose={() => setPreInvoiceDialog(false)}
-      sale={lastSale}
-    />
-
-    <CustomerDialog
-      open={customerDialogOpen}
-      onClose={() => setCustomerDialogOpen(false)}
-      customers={customers}
-      onSelect={handleSelectCustomer}
-      onCreateNew={handleCreateNewCustomer}
-    />
-
-    <BarcodeScanner
-      open={scannerOpen}
-      onClose={() => setScannerOpen(false)}
-      onDetected={handleCodeDetected}
-    />
-
-    {/* Dialog para seleccionar Reparación */}
-    <Dialog
-      open={repairDialogOpen}
-      onClose={() => setRepairDialogOpen(false)}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-        <HistoryIcon /> Cargar Reparación Pendiente
-      </DialogTitle>
-      <DialogContent dividers>
-        {repairs.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 3, opacity: 0.6 }}>
-            <BuildIcon sx={{ fontSize: 50, mb: 1 }} />
-            <Typography>No se encontraron reparaciones pendientes.</Typography>
-          </Box>
-        ) : (
-          <List>
-            {repairs.map((repair) => (
-              <ListItem
-                key={repair._id}
-                button
-                divider
-                onClick={() => handleSelectRepair(repair)}
-              >
-                <Box sx={{ width: '100%' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography fontWeight={600} variant="body1">
-                      {repair.modelo || repair.device} ({repair.marca || repair.brand})
+                    <Typography variant="caption" color="text.secondary">
+                      Cliente: {repair.cliente || repair.customer_name || 'Desconocido'}
                     </Typography>
-                    <Chip
-                      label={repair.estado || repair.status}
-                      size="small"
-                      color={(repair.estado === 'completed' || repair.status === 'completed') ? 'success' : 'warning'}
-                      variant="outlined"
-                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
+                        {repair.problema || repair.problem || repair.descripcion_problema || 'Sin problema detallado'}
+                      </Typography>
+                      <Typography variant="body2" fontWeight={700} color="primary">
+                        ${repair.precio || repair.cost || 0}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Cliente: {repair.cliente || repair.customer_name || 'Desconocido'}
-                  </Typography>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
-                      {repair.problema || repair.problem || repair.descripcion_problema || 'Sin problema detallado'}
-                    </Typography>
-                    <Typography variant="body2" fontWeight={700} color="primary">
-                      ${repair.precio || repair.cost || 0}
-                    </Typography>
-                  </Box>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setRepairDialogOpen(false)}>Cancelar</Button>
-      </DialogActions>
-    </Dialog>
-  </Box >
-);
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRepairDialogOpen(false)}>Cancelar</Button>
+        </DialogActions>
+      </Dialog>
+    </Box >
+  );
 };
 
 export default QuickSale; 
