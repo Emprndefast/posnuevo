@@ -31,27 +31,33 @@ const printStyles = `
     margin: 0;
   }
   @media print {
-    html, body {
-      width: 50mm;
-      height: 25mm;
+    body {
       margin: 0;
       padding: 0;
+      background: white;
     }
-    body * {
-      visibility: hidden;
+    header, footer, nav, aside, .no-print, .MuiDialog-container {
+      display: none !important;
     }
-    .print-content, .print-content * {
-      visibility: visible;
-    }
-    .print-content {
-      position: absolute;
+    .print-only {
+      display: block !important;
+      position: fixed;
       left: 0;
       top: 0;
       width: 50mm;
       height: 25mm;
+      z-index: 9999;
+      background: white;
     }
-    .no-print {
-      display: none !important;
+    .label-page {
+      width: 50mm;
+      height: 25mm;
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      page-break-after: always;
+      overflow: hidden;
     }
   }
 `;
@@ -61,9 +67,16 @@ const LabelPreview = ({ open, onClose, product, products = [] }) => {
   const [showQR, setShowQR] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copies, setCopies] = useState(1);
+  const [useStockCount, setUseStockCount] = useState(false);
 
   // Determinar qué productos imprimir
   const itemsToPrint = products.length > 0 ? products : (product ? [product] : []);
+
+  // Calcular total real de etiquetas
+  const totalLabels = itemsToPrint.reduce((acc, item) => {
+    const qty = useStockCount ? (parseInt(item.stock) || 1) : copies;
+    return acc + qty;
+  }, 0);
 
   const handlePrint = async () => {
     try {
@@ -121,19 +134,35 @@ const LabelPreview = ({ open, onClose, product, products = [] }) => {
         </DialogTitle>
 
         <DialogContent sx={{ p: 3 }}>
-          <Box className="no-print" sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>Copias por etiqueta:</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1 }}>
-              <IconButton size="small" onClick={() => setCopies(Math.max(1, copies - 1))}>
-                <RemoveIcon />
-              </IconButton>
-              <Typography sx={{ px: 2, fontWeight: 'bold' }}>{copies}</Typography>
-              <IconButton size="small" onClick={() => setCopies(copies + 1)}>
-                <AddIcon />
-              </IconButton>
+          <Box className="no-print" sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>Copias por etiqueta:</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                <IconButton size="small" onClick={() => { setCopies(Math.max(1, copies - 1)); setUseStockCount(false); }}>
+                  <RemoveIcon />
+                </IconButton>
+                <Typography sx={{ px: 2, fontWeight: 'bold' }}>{useStockCount ? '--' : copies}</Typography>
+                <IconButton size="small" onClick={() => { setCopies(copies + 1); setUseStockCount(false); }}>
+                  <AddIcon />
+                </IconButton>
+              </Box>
             </Box>
-            <Typography variant="caption" color="text.secondary">
-              Total etiquetas: {itemsToPrint.length * copies}
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <input
+                type="checkbox"
+                id="use-stock-count"
+                checked={useStockCount}
+                onChange={(e) => setUseStockCount(e.target.checked)}
+                style={{ width: 18, height: 18, cursor: 'pointer' }}
+              />
+              <Typography component="label" htmlFor="use-stock-count" variant="body2" sx={{ cursor: 'pointer' }}>
+                Usar cantidad de stock actual
+              </Typography>
+            </Box>
+
+            <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold' }}>
+              Total etiquetas a imprimir: {totalLabels}
             </Typography>
           </Box>
 
@@ -246,21 +275,11 @@ const LabelPreview = ({ open, onClose, product, products = [] }) => {
             </Box>
 
             {/* Contenido oculto que solo se ve al imprimir para generar todas las etiquetas */}
-            <Box sx={{ display: 'none', '@media print': { display: 'block' } }}>
-              {itemsToPrint.map((item) => (
-                Array.from({ length: copies }).map((_, idx) => (
-                  <Box key={`${item.id}-${idx}`} sx={{
-                    width: '50mm',
-                    height: '25mm',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    pageBreakAfter: 'always',
-                    m: 0,
-                    p: 0,
-                    visibility: 'visible !important'
-                  }}>
+            <Box className="print-only" sx={{ display: 'none' }}>
+              {itemsToPrint.map((item) => {
+                const qty = useStockCount ? (parseInt(item.stock) || 1) : copies;
+                return Array.from({ length: qty }).map((_, idx) => (
+                  <Box key={`${item.id}-${idx}`} className="label-page">
                     <Typography
                       align="center"
                       sx={{
@@ -269,7 +288,9 @@ const LabelPreview = ({ open, onClose, product, products = [] }) => {
                         fontWeight: 'bold',
                         mb: 0.5,
                         maxWidth: '100%',
-                        color: 'black'
+                        color: 'black',
+                        wordBreak: 'break-word',
+                        px: 1
                       }}
                     >
                       {item.name}
@@ -306,8 +327,8 @@ const LabelPreview = ({ open, onClose, product, products = [] }) => {
                       {formatCurrency(item.price || 0)}
                     </Typography>
                   </Box>
-                ))
-              ))}
+                ));
+              })}
             </Box>
           </Box>
         </DialogContent>
