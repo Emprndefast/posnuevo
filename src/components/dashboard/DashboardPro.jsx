@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, startTransition } from 'react'
 import {
   Box, Grid, Card, CardContent, Typography, Button, Chip,
   useTheme, alpha, IconButton, Tooltip, LinearProgress,
-  CircularProgress, Divider, Stack, useMediaQuery, Collapse,
+  CircularProgress, Divider, Stack, useMediaQuery, Collapse, Avatar,
 } from '@mui/material';
 import {
   TrendingUp, TrendingDown, AttachMoney, ShoppingCart, People,
