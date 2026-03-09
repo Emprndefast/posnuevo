@@ -32,28 +32,48 @@ const StatCard = ({ title, value, icon: Icon, trend, subtitle, gradient, theme }
   return (
     <Card sx={{
       height: '100%',
-      background: `linear-gradient(135deg, ${g[0]} 0%, ${g[1]} 100%)`,
-      color: 'white', position: 'relative', overflow: 'hidden', borderRadius: 3,
-      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-      '&:hover': { transform: 'translateY(-4px)', boxShadow: `0 16px 40px ${alpha(g[0], 0.45)}` },
-      '&::before': { content: '""', position: 'absolute', top: -40, right: -40, width: 160, height: 160, background: 'rgba(255,255,255,0.08)', borderRadius: '50%' },
-      '&::after': { content: '""', position: 'absolute', bottom: -30, left: -30, width: 100, height: 100, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' },
+      backgroundColor: 'background.paper',
+      color: theme.palette.text.primary,
+      position: 'relative',
+      overflow: 'hidden',
+      borderRadius: 4,
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+      '&:hover': {
+        transform: 'translateY(-4px)',
+        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+        borderColor: alpha(g[0], 0.3),
+      },
     }}>
-      <CardContent sx={{ p: { xs: 1.8, md: 2.5 }, position: 'relative', zIndex: 1 }}>
+      <CardContent sx={{ p: { xs: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, fontSize: '0.62rem', display: 'block', mb: 0.5 }}>{title}</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1.2rem', md: '1.45rem' }, lineHeight: 1.1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</Typography>
-            {subtitle && <Typography variant="caption" sx={{ opacity: 0.75, fontSize: '0.68rem', mt: 0.3, display: 'block' }}>{subtitle}</Typography>}
+            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.65rem', display: 'block', mb: 0.5 }}>{title}</Typography>
+            <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 800, fontSize: { xs: '1.4rem', md: '1.75rem' }, lineHeight: 1.1 }}>{value}</Typography>
+            {subtitle && <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 0.5, display: 'block', fontWeight: 500 }}>{subtitle}</Typography>}
           </Box>
-          <Box sx={{ width: 42, height: 42, borderRadius: 2.5, background: 'rgba(255,255,255,0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)', flexShrink: 0, ml: 1 }}>
-            <Icon sx={{ fontSize: 22 }} />
+          <Box sx={{
+            width: 48, height: 48, borderRadius: 3,
+            background: `linear-gradient(135deg, ${alpha(g[0], 0.1)} 0%, ${alpha(g[1], 0.1)} 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: g[0], flexShrink: 0, ml: 1,
+            border: `1px solid ${alpha(g[0], 0.1)}`
+          }}>
+            <Icon sx={{ fontSize: 26 }} />
           </Box>
         </Box>
         {trend !== undefined && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {trend > 0 ? <TrendingUp sx={{ fontSize: 13 }} /> : trend < 0 ? <TrendingDown sx={{ fontSize: 13 }} /> : <TrendingFlat sx={{ fontSize: 13 }} />}
-            <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.68rem', opacity: 0.9 }}>{Math.abs(trend)}% vs mes anterior</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 1 }}>
+            <Box sx={{
+              display: 'flex', alignItems: 'center', px: 1, py: 0.3, borderRadius: 1.5,
+              bgcolor: trend >= 0 ? alpha('#10b981', 0.1) : alpha('#ef4444', 0.1),
+              color: trend >= 0 ? '#10b981' : '#ef4444'
+            }}>
+              {trend > 0 ? <TrendingUp sx={{ fontSize: 14 }} /> : trend < 0 ? <TrendingDown sx={{ fontSize: 14 }} /> : <TrendingFlat sx={{ fontSize: 14 }} />}
+              <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.75rem', ml: 0.5 }}>{Math.abs(trend)}%</Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.75rem' }}>vs mes anterior</Typography>
           </Box>
         )}
       </CardContent>
@@ -68,22 +88,29 @@ const QuickAction = ({ icon: Icon, label, color, onClick, variant = 'filled' }) 
     <Button onClick={onClick} fullWidth sx={{
       display: 'flex', flexDirection: { xs: 'column', sm: 'row' },
       alignItems: 'center', justifyContent: { xs: 'center', sm: 'flex-start' },
-      gap: { xs: 0.4, sm: 1 }, p: { xs: '10px 6px', sm: '10px 14px' },
-      borderRadius: 2.5, textTransform: 'none', fontWeight: 700,
-      fontSize: { xs: '0.68rem', sm: '0.8rem' }, lineHeight: 1.2,
-      minHeight: { xs: 58, sm: 46 },
-      color: isFilled ? 'white' : color,
-      background: isFilled ? `linear-gradient(135deg, ${color} 0%, ${alpha(color, 0.78)} 100%)` : 'transparent',
-      border: isFilled ? 'none' : `2px solid ${color}`,
-      boxShadow: isFilled ? `0 4px 14px ${alpha(color, 0.32)}` : 'none',
-      transition: 'all 0.22s ease',
+      gap: { xs: 0.5, sm: 1.5 }, p: { xs: '12px 8px', sm: '12px 20px' },
+      borderRadius: '50px', textTransform: 'none', fontWeight: 800,
+      fontSize: { xs: '0.65rem', sm: '0.85rem' }, lineHeight: 1.2,
+      minHeight: { xs: 64, sm: 52 },
+      color: isFilled ? 'white' : 'text.primary',
+      background: isFilled ? `linear-gradient(135deg, ${color} 0%, ${alpha(color, 0.85)} 100%)` : 'transparent',
+      border: isFilled ? 'none' : `1px solid ${alpha(color, 0.3)}`,
+      boxShadow: isFilled ? `0 4px 12px ${alpha(color, 0.25)}` : 'none',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
       '&:hover': {
-        transform: 'translateY(-2px)',
-        boxShadow: isFilled ? `0 8px 20px ${alpha(color, 0.42)}` : `0 4px 14px ${alpha(color, 0.22)}`,
-        background: isFilled ? `linear-gradient(135deg, ${color} 0%, ${alpha(color, 0.88)} 100%)` : alpha(color, 0.08),
+        transform: 'translateY(-2px) scale(1.02)',
+        boxShadow: isFilled ? `0 8px 25px ${alpha(color, 0.35)}` : `0 4px 12px ${alpha(color, 0.15)}`,
+        background: isFilled ? `linear-gradient(135deg, ${color} 0.2, ${alpha(color, 0.95)} 100%)` : alpha(color, 0.05),
+        borderColor: isFilled ? 'none' : color,
       },
     }}>
-      <Icon sx={{ fontSize: { xs: 19, sm: 17 }, flexShrink: 0 }} />
+      <Box sx={{
+        width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, borderRadius: '50%',
+        bgcolor: isFilled ? 'rgba(255,255,255,0.2)' : alpha(color, 0.1),
+        display: 'flex', alignItems: 'center', justifyContent: 'center'
+      }}>
+        <Icon sx={{ fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
+      </Box>
       <span style={{ textAlign: 'center' }}>{label}</span>
     </Button>
   );
@@ -338,30 +365,50 @@ const DashboardPro = () => {
         <Box sx={{
           display: 'flex', alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between', flexDirection: { xs: 'column', sm: 'row' },
-          gap: 1.5, mb: 2, p: { xs: 1.5, md: 2 },
-          bgcolor: 'background.paper', borderRadius: 3, boxShadow: 1, border: `1px solid ${theme.palette.divider}`,
+          gap: 1.5, mb: 3, p: { xs: 2, md: 3 },
+          bgcolor: 'background.paper', borderRadius: 4,
+          boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Box sx={{ width: { xs: 36, md: 42 }, height: { xs: 36, md: 42 }, borderRadius: 2.5, background: 'linear-gradient(135deg,#667eea,#764ba2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <DashboardIcon sx={{ color: 'white', fontSize: { xs: 20, md: 23 } }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{
+              width: { xs: 44, md: 54 }, height: { xs: 44, md: 54 },
+              borderRadius: 3.5,
+              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)'
+            }}>
+              <DashboardIcon sx={{ color: 'white', fontSize: { xs: 24, md: 28 } }} />
             </Box>
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                <Typography variant="h5" sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', md: '1.35rem' }, lineHeight: 1 }}>Dashboard</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Typography variant="h4" sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.75rem' }, letterSpacing: '-0.02em', color: 'text.primary' }}>Dashboard</Typography>
                 <Tooltip title="Actualizar">
-                  <IconButton onClick={fetchDashboardData} size="small" sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main', width: 26, height: 26, transition: 'all 0.3s', '&:hover': { bgcolor: 'primary.main', color: 'white', transform: 'rotate(180deg)' } }}>
-                    <Refresh sx={{ fontSize: 14 }} />
+                  <IconButton onClick={fetchDashboardData} size="small" sx={{ bgcolor: alpha(theme.palette.primary.main, 0.06), color: 'primary.main', border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, '&:hover': { bgcolor: 'primary.main', color: 'white', transform: 'rotate(180deg)' } }}>
+                    <Refresh sx={{ fontSize: 16 }} />
                   </IconButton>
                 </Tooltip>
               </Box>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es })}
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', mt: 0.5 }}>
+                {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es }).replace(/^\w/, (c) => c.toUpperCase())}
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Chip label={user?.nombre || user?.displayName || 'Usuario'} size="small" sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main', fontWeight: 700, fontSize: '0.68rem' }} />
-            <Chip label={userRole?.toUpperCase() || 'USER'} size="small" color="primary" sx={{ fontWeight: 800, fontSize: '0.65rem' }} />
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center' }}>
+            <Box sx={{ textAlign: 'right', mr: 1, display: { xs: 'none', md: 'block' } }}>
+              <Typography variant="body2" sx={{ fontWeight: 800, lineHeight: 1 }}>{user?.nombre || user?.displayName || 'Usuario'}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{userRole?.toUpperCase() || 'USER'}</Typography>
+            </Box>
+            <Avatar sx={{
+              width: 44, height: 44,
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: 'primary.main',
+              fontWeight: 800,
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`
+            }}>
+              {(user?.nombre || user?.displayName || 'U')[0].toUpperCase()}
+            </Avatar>
           </Box>
         </Box>
 

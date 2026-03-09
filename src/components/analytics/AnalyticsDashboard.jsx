@@ -73,58 +73,74 @@ const PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6
 const MetricCard = ({ title, value, subtitle, icon: Icon, trend, gradient, loading }) => {
   const theme = useTheme();
   const g = gradient || [theme.palette.primary.main, theme.palette.primary.dark];
-  const trendColor = trend > 0 ? '#4ade80' : trend < 0 ? '#f87171' : '#94a3b8';
+  const trendColor = trend > 0 ? '#10b981' : trend < 0 ? '#ef4444' : '#94a3b8';
 
   return (
     <Card sx={{
       height: '100%',
-      background: `linear-gradient(135deg, ${g[0]} 0%, ${g[1]} 100%)`,
-      color: 'white',
+      backgroundColor: 'background.paper',
+      color: theme.palette.text.primary,
       position: 'relative',
       overflow: 'hidden',
-      borderRadius: 3,
-      transition: 'transform 0.25s ease, box-shadow 0.25s ease',
-      '&:hover': { transform: 'translateY(-5px)', boxShadow: `0 20px 40px ${alpha(g[0], 0.4)}` },
-      '&::before': { content: '""', position: 'absolute', top: -50, right: -50, width: 180, height: 180, background: 'rgba(255,255,255,0.08)', borderRadius: '50%' },
-      '&::after': { content: '""', position: 'absolute', bottom: -30, left: -30, width: 120, height: 120, background: 'rgba(255,255,255,0.05)', borderRadius: '50%' },
+      borderRadius: 4,
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+      boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
+        borderColor: alpha(g[0], 0.3)
+      },
     }}>
       <CardContent sx={{ p: { xs: 2, md: 3 }, position: 'relative', zIndex: 1 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="overline" sx={{ opacity: 0.9, fontWeight: 700, letterSpacing: 1.5, fontSize: '0.7rem' }}>
+            <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 800, letterSpacing: 1.5, fontSize: '0.65rem' }}>
               {title}
             </Typography>
             {loading ? (
               <>
-                <Skeleton variant="text" width={120} height={48} sx={{ bgcolor: 'rgba(255,255,255,0.2)', mt: 0.5 }} />
-                <Skeleton variant="text" width={80} height={20} sx={{ bgcolor: 'rgba(255,255,255,0.15)' }} />
+                <Skeleton variant="text" width="80%" height={40} sx={{ mt: 1 }} />
+                <Skeleton variant="text" width="40%" height={20} />
               </>
             ) : (
               <>
-                <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.5, lineHeight: 1.2, fontSize: { xs: '1.4rem', md: '1.8rem' } }}>
+                <Typography variant="h4" sx={{ color: 'text.primary', fontWeight: 900, mt: 0.5, lineHeight: 1.2, fontSize: { xs: '1.4rem', md: '1.85rem' }, letterSpacing: '-0.025em' }}>
                   {value}
                 </Typography>
                 {subtitle && (
-                  <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.72rem', mt: 0.3, display: 'block' }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 0.5, display: 'block', fontWeight: 600 }}>
                     {subtitle}
                   </Typography>
                 )}
               </>
             )}
           </Box>
-          <Avatar sx={{ bgcolor: 'rgba(255,255,255,0.2)', width: 52, height: 52, backdropFilter: 'blur(8px)', flexShrink: 0, ml: 1 }}>
+          <Box sx={{
+            width: 52, height: 52, borderRadius: 3,
+            background: `linear-gradient(135deg, ${alpha(g[0], 0.12)} 0%, ${alpha(g[1], 0.08)} 100%)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: g[0], flexShrink: 0, ml: 1,
+            border: `1px solid ${alpha(g[0], 0.1)}`
+          }}>
             <Icon sx={{ fontSize: 28 }} />
-          </Avatar>
+          </Box>
         </Box>
         {!loading && trend !== undefined && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 1 }}>
-            {trend > 0 ? <TrendingUpIcon sx={{ fontSize: 16, color: trendColor }} /> :
-              trend < 0 ? <TrendingDownIcon sx={{ fontSize: 16, color: trendColor }} /> :
-                <TrendingFlatIcon sx={{ fontSize: 16, color: trendColor }} />}
-            <Typography variant="caption" sx={{ fontWeight: 700, color: trendColor, fontSize: '0.78rem' }}>
-              {trend > 0 ? '+' : ''}{trend?.toFixed(1)}%
-            </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.75, fontSize: '0.7rem' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Box sx={{
+              display: 'flex', alignItems: 'center', px: 1, py: 0.4, borderRadius: 1.5,
+              bgcolor: alpha(trendColor, 0.1),
+              color: trendColor
+            }}>
+              {trend > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> :
+                trend < 0 ? <TrendingDownIcon sx={{ fontSize: 14 }} /> :
+                  <TrendingFlatIcon sx={{ fontSize: 14 }} />}
+              <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.75rem', ml: 0.5 }}>
+                {trend > 0 ? '+' : ''}{trend?.toFixed(1)}%
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.7rem' }}>
               vs. período anterior
             </Typography>
           </Box>
@@ -191,61 +207,87 @@ const GlobalFilterBar = ({
 
   return (
     <Box sx={{
-      display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center',
-      p: { xs: 1.5, md: 2 }, bgcolor: 'background.paper',
-      borderRadius: 3, boxShadow: 1, border: `1px solid ${theme.palette.divider}`,
-      mb: 3,
+      display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center',
+      p: { xs: 2, md: 2.5 }, bgcolor: 'background.paper',
+      borderRadius: 4, boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+      mb: 4,
     }}>
-      {/* Selector de rango */}
-      <FormControl size="small" sx={{ minWidth: 170 }}>
-        <InputLabel>Período</InputLabel>
-        <Select value={timeRange} onChange={e => onTimeRangeChange(e.target.value)} label="Período">
-          {TIME_RANGES.map(r => <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>)}
-        </Select>
-      </FormControl>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', flex: 1 }}>
+        {/* Selector de rango con estilo pill */}
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel sx={{ fontWeight: 700 }}>Seleccionar Período</InputLabel>
+          <Select
+            value={timeRange}
+            onChange={e => onTimeRangeChange(e.target.value)}
+            label="Seleccionar Período"
+            sx={{ borderRadius: 3, fontWeight: 700, bgcolor: alpha(theme.palette.action.hover, 0.4) }}
+          >
+            {TIME_RANGES.map(r => <MenuItem key={r.value} value={r.value} sx={{ fontWeight: 600 }}>{r.label}</MenuItem>)}
+          </Select>
+        </FormControl>
 
-      {/* Fechas personalizadas */}
-      {timeRange === 'custom' && (
-        <>
-          <TextField
-            type="date" label="Desde" size="small"
-            value={customStart} onChange={e => onCustomStartChange(e.target.value)}
-            InputLabelProps={{ shrink: true }} sx={{ width: 145 }}
-          />
-          <TextField
-            type="date" label="Hasta" size="small"
-            value={customEnd} onChange={e => onCustomEndChange(e.target.value)}
-            InputLabelProps={{ shrink: true }} sx={{ width: 145 }}
-          />
-        </>
-      )}
+        {/* Fechas personalizadas */}
+        {timeRange === 'custom' && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <TextField
+              type="date" label="Desde" size="small"
+              value={customStart} onChange={e => onCustomStartChange(e.target.value)}
+              InputLabelProps={{ shrink: true }} sx={{ width: 160, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+            />
+            <TextField
+              type="date" label="Hasta" size="small"
+              value={customEnd} onChange={e => onCustomEndChange(e.target.value)}
+              InputLabelProps={{ shrink: true }} sx={{ width: 160, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
+            />
+          </Box>
+        )}
 
-      {/* Label del período activo */}
-      {timeRange !== 'custom' && startDate && endDate && (
-        <Chip
-          icon={<DateRangeIcon fontSize="small" />}
-          label={`${format(startDate, 'd MMM', { locale: es })} – ${format(endDate, 'd MMM yyyy', { locale: es })}`}
-          size="small" variant="outlined"
-          sx={{ fontWeight: 600, fontSize: '0.72rem' }}
-        />
-      )}
+        {/* Label del período activo */}
+        {timeRange !== 'custom' && startDate && endDate && (
+          <Box sx={{
+            display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 0.8,
+            borderRadius: '50px', bgcolor: alpha(theme.palette.primary.main, 0.05),
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`
+          }}>
+            <DateRangeIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+            <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: 'primary.main' }}>
+              {format(startDate, 'd MMM', { locale: es })} – {format(endDate, 'd MMM yyyy', { locale: es })}
+            </Typography>
+          </Box>
+        )}
+      </Box>
 
-      <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
-        {/* Refresh */}
+      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
         <Tooltip title="Actualizar datos">
-          <IconButton onClick={onRefresh} disabled={loading} size="small"
-            sx={{ bgcolor: alpha(theme.palette.primary.main, 0.08), color: 'primary.main', '&:hover': { bgcolor: 'primary.main', color: 'white', transform: 'rotate(180deg)', transition: 'all 0.3s' } }}>
-            {loading ? <CircularProgress size={16} /> : <RefreshIcon fontSize="small" />}
+          <IconButton onClick={onRefresh} disabled={loading} size="medium"
+            sx={{
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              color: 'primary.main',
+              borderRadius: 3,
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+              '&:hover': { bgcolor: 'primary.main', color: 'white', transform: 'rotate(180deg)' }
+            }}>
+            {loading ? <CircularProgress size={20} color="inherit" /> : <RefreshIcon fontSize="small" />}
           </IconButton>
         </Tooltip>
 
-        {/* Exportar */}
         <Button
-          variant="contained" startIcon={<DownloadIcon />} size="small"
-          onClick={e => setExportAnchor(e.currentTarget)} disabled={exportLoading}
-          sx={{ fontWeight: 700, borderRadius: 2, textTransform: 'none' }}
+          variant="contained"
+          startIcon={<DownloadIcon />}
+          size="medium"
+          onClick={e => setExportAnchor(e.currentTarget)}
+          disabled={exportLoading}
+          sx={{
+            fontWeight: 800,
+            borderRadius: '50px',
+            textTransform: 'none',
+            px: 3,
+            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+            '&:hover': { boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)' }
+          }}
         >
-          Exportar
+          {exportLoading ? 'Exportando...' : 'Exportar Reporte'}
         </Button>
       </Box>
 
