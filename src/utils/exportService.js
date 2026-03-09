@@ -417,6 +417,55 @@ export const exportAnalyticsPDF = async (data, rangeLabel = '') => {
     saveAs(doc.output('blob'), `POSENT-Analytics-${todayFile()}.pdf`);
 };
 
+/**
+ * EXCEL ANALYTICS - Datos contables
+ */
+export const exportAnalyticsExcel = async (rawData, rangeLabel = '') => {
+    const XLSX = await getXLSX();
+    const wb = XLSX.utils.book_new();
+    const { summary: s, tables, saleDetails } = rawData || {};
+
+    // Hoja 1: Resumen
+    const summarySheet = [
+        ['REPORTE DE VENTAS - POSENT PRO'],
+        ['Período', rangeLabel],
+        ['Generado', today()],
+        [],
+        ['Métrica', 'Valor'],
+        ['Facturación Total', s.totalRevenue],
+        ['Total Pedidos', s.totalOrders],
+        ['Ticket Promedio', s.avgTicket],
+        ['Unidades Vendidas', s.totalItems],
+        ['Crecimiento (%)', s.revenueTrend]
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summarySheet), 'Resumen Ejecutivo');
+
+    // Hoja 2: Top Productos
+    if (tables?.topProducts) {
+        const prodRows = tables.topProducts.map(p => ({
+            'Producto': p.name,
+            'Unidades': p.quantity,
+            'Ingresos': p.revenue
+        }));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prodRows), 'Top Productos');
+    }
+
+    // Hoja 3: Detalle de Ventas
+    if (saleDetails) {
+        const details = saleDetails.map(d => ({
+            'Referencia': d.numero || d.id,
+            'Fecha': d.fecha,
+            'Cliente': d.cliente,
+            'Pago': d.metodo_pago,
+            'Total': d.total
+        }));
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(details), 'Detalle Transacciones');
+    }
+
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saveAs(new Blob([buf], { type: 'application/octet-stream' }), `Analytics-Contable-${todayFile()}.xlsx`);
+};
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  4. VENTAS DETALLADAS — EXCEL
 // ═══════════════════════════════════════════════════════════════════════════════
