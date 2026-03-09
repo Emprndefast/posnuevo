@@ -62,7 +62,7 @@ const BarcodeScanner = ({ open, onClose, onDetected }) => {
               // Ignorar errores de lectura - seguir escaneando
             });
         }
-      }, 500);
+      }, 300);
     }
     return () => {
       if (scanInterval) {
@@ -76,8 +76,8 @@ const BarcodeScanner = ({ open, onClose, onDetected }) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
@@ -88,9 +88,9 @@ const BarcodeScanner = ({ open, onClose, onDetected }) => {
         }
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <DialogTitle sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         pb: 1
       }}>
@@ -117,9 +117,9 @@ const BarcodeScanner = ({ open, onClose, onDetected }) => {
           </Alert>
         ) : (
           <Box sx={{ position: 'relative', width: '100%', mt: 2 }}>
-            <Paper 
-              elevation={3} 
-              sx={{ 
+            <Paper
+              elevation={3}
+              sx={{
                 p: 2,
                 display: 'flex',
                 flexDirection: 'column',
@@ -128,13 +128,13 @@ const BarcodeScanner = ({ open, onClose, onDetected }) => {
               }}
             >
               <Typography variant="body1" color="text.secondary" align="center">
-                {selectedTab === 0 
+                {selectedTab === 0
                   ? "Coloca el código QR frente a la cámara"
                   : "Coloca el código de barras frente a la cámara"}
               </Typography>
-              
-              <Box 
-                sx={{ 
+
+              <Box
+                sx={{
                   width: '100%',
                   height: 300,
                   position: 'relative',

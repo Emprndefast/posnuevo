@@ -1173,19 +1173,25 @@ const QuickSale = () => {
   const handleCodeDetected = (code) => {
     setScannerOpen(false);
 
+    // Limpiar el código detectado (trim)
+    const cleanedCode = code?.toString().trim() || '';
+    if (!cleanedCode) return;
+
+    console.log('Código escaneado detectado:', cleanedCode);
+
     // Si el código parece un ID de venta o tiene el prefijo REPEAT:
-    if (code.startsWith('REPEAT:') || code.startsWith('V-')) {
-      const saleId = code.replace('REPEAT:', '');
+    if (cleanedCode.startsWith('REPEAT:') || cleanedCode.startsWith('V-')) {
+      const saleId = cleanedCode.replace('REPEAT:', '').trim();
       handleRepeatOrder(saleId);
       return;
     }
 
     // Buscar el producto por código y agregarlo al carrito automáticamente
-    const found = products.find(p => p.code === code);
+    const found = products.find(p => (p.code === cleanedCode) || (p.codigo === cleanedCode));
     if (found) {
       handleAddToCart(found);
     } else {
-      enqueueSnackbar('Producto no encontrado', { variant: 'warning' });
+      enqueueSnackbar(`Producto no encontrado: ${cleanedCode}`, { variant: 'warning' });
     }
   };
 

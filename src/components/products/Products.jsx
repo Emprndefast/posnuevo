@@ -1420,6 +1420,7 @@ const Products = () => {
   const [searchByCode, setSearchByCode] = useState(false);
   const [isListOpen, setIsListOpen] = useState(false);
   const [labelOpen, setLabelOpen] = useState(false);
+  const [bulkLabelMode, setBulkLabelMode] = useState(false);
   const [detailModalProduct, setDetailModalProduct] = useState(null);
 
   const { darkMode } = useCustomTheme();
@@ -1855,14 +1856,17 @@ const Products = () => {
   // Añadir la función para manejar el código detectado
   const handleCodeDetected = (code) => {
     setScannerOpen(false);
-    setSearchTerm(code);
-    setSearchByCode(true);
+    const cleanedCode = code?.toString().trim() || '';
+    if (cleanedCode) {
+      setSearchTerm(cleanedCode);
+      setSearchByCode(true);
+    }
   };
 
   // Modificar useEffect para la búsqueda por código
   useEffect(() => {
     if (searchByCode && searchTerm) {
-      const product = products.find(p => p.code === searchTerm);
+      const product = products.find(p => p.code === searchTerm || p.codigo === searchTerm);
       if (product) {
         setSelectedProduct(product);
         setShowDetails(true);
@@ -2459,6 +2463,27 @@ const Products = () => {
           <Button
             variant="outlined"
             fullWidth
+            startIcon={<QrCode2Icon />}
+            onClick={() => {
+              setLabelOpen(true);
+              setBulkLabelMode(true);
+            }}
+            sx={{
+              height: 48,
+              borderRadius: 2,
+              color: 'secondary.main',
+              borderColor: 'secondary.main',
+              '&:hover': {
+                borderColor: 'secondary.dark',
+                bgcolor: theme => alpha(theme.palette.secondary.main, 0.04)
+              }
+            }}
+          >
+            Etiquetas Masivas
+          </Button>
+          <Button
+            variant="outlined"
+            fullWidth
             component="label"
             startIcon={<UploadIcon />}
             sx={{
@@ -2744,11 +2769,15 @@ const Products = () => {
       )}
 
       {/* Modal de impresión de etiquetas */}
-      {labelOpen && selectedProduct && (
+      {labelOpen && (selectedProduct || bulkLabelMode) && (
         <LabelPreview
           open={labelOpen}
-          onClose={() => setLabelOpen(false)}
-          product={selectedProduct}
+          onClose={() => {
+            setLabelOpen(false);
+            setBulkLabelMode(false);
+          }}
+          product={bulkLabelMode ? null : selectedProduct}
+          products={bulkLabelMode ? filteredProducts : []}
         />
       )}
       <BarcodeScanner
