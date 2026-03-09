@@ -255,16 +255,25 @@ const Sales = () => {
       console.log('✅ Normalized sales:', normalizedSales.length);
       setSales(normalizedSales);
 
-      // Calcular estadísticas
-      const totalAmount = normalizedSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
-      const uniqueCustomers = new Set(normalizedSales.map(sale => sale.customerId).filter(Boolean)).size;
+      // Calcular estadísticas solo si hay ventas
+      if (normalizedSales.length > 0) {
+        const totalAmount = normalizedSales.reduce((sum, sale) => sum + (sale.total || 0), 0);
+        const uniqueCustomers = new Set(normalizedSales.map(sale => sale.customerId).filter(Boolean)).size;
 
-      setStats({
-        totalSales: normalizedSales.length,
-        totalAmount,
-        averageTicket: normalizedSales.length > 0 ? totalAmount / normalizedSales.length : 0,
-        uniqueCustomers
-      });
+        setStats({
+          totalSales: normalizedSales.length,
+          totalAmount,
+          averageTicket: normalizedSales.length > 0 ? totalAmount / normalizedSales.length : 0,
+          uniqueCustomers
+        });
+      } else {
+        setStats({
+          totalSales: 0,
+          totalAmount: 0,
+          averageTicket: 0,
+          uniqueCustomers: 0
+        });
+      }
 
     } catch (err) {
       console.error('Error loading sales:', err);
@@ -275,20 +284,8 @@ const Sales = () => {
   };
 
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        setLoading(true);
-        await fetchSales();
-      } finally {
-        setIsInitialLoad(false);
-        setLoading(false);
-      }
-    };
-
-    if (isInitialLoad) {
-      loadInitialData();
-    }
-  }, [isInitialLoad]);
+    fetchSales();
+  }, [dateRange]);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -1381,12 +1378,12 @@ const Sales = () => {
                         sx={{ py: 1 }}
                       >
                         <ListItemText
-                          primary={item.name}
-                          secondary={`Cantidad: ${item.quantity}`}
+                          primary={item.nombre || item.name}
+                          secondary={`Cantidad: ${item.cantidad || item.quantity}`}
                         />
                         <ListItemSecondaryAction>
                           <Typography variant="subtitle2" color="text.primary">
-                            {formatCurrency(item.price * item.quantity)}
+                            {formatCurrency((item.precio_unitario || item.price || 0) * (item.cantidad || item.quantity || 0))}
                           </Typography>
                         </ListItemSecondaryAction>
                       </ListItem>

@@ -190,8 +190,27 @@ const DashboardPro = () => {
         salesGrowth: 0, topProducts: salesData?.data?.top_productos || [],
         cajaActual: dailySales, stockBajo, metaDia: 50000,
         promedioHora: dailySales / 8,
-        ultimasVentas: (salesData?.data?.recentSales || []).slice(0, 5),
+        ultimasVentas: (salesData?.data?.recentSales || salesData?.data?.ultimas_ventas || []).length > 0
+          ? (salesData?.data?.recentSales || salesData?.data?.ultimas_ventas || [])
+          : [],
+        customerStats: {
+          total: customersData?.data?.total_clientes || 0,
+          today: customersData?.data?.todayCount || 0,
+          newLastMonth: customersData?.data?.newLastMonth || 0
+        }
       };
+
+      // Si no hay ventas hoy, intentar cargar las últimas 5 ventas globales
+      if (newData.ultimasVentas.length === 0) {
+        try {
+          const r = await api.get('/sales', { params: { limit: 5 } });
+          if (r.data?.success && r.data?.data) {
+            newData.ultimasVentas = r.data.data;
+          }
+        } catch (e) {
+          console.error('Error fetching fallback sales:', e);
+        }
+      }
       setDashboardData(newData);
       setHasData(productsList.length > 0 || newData.dailySales > 0 || newData.inventoryValue > 0);
       setLoading(false);
@@ -613,35 +632,35 @@ const DashboardPro = () => {
             </Card>
           </Grid>
 
-          {/* RESUMEN DE INVENTARIO */}
+          {/* RESUMEN DE CLIENTES (Reemplaza al inventario repetido) */}
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 1, border: `1px solid ${theme.palette.divider}`, transition: 'all 0.3s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 3 } }}>
               <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <InventoryIcon sx={{ fontSize: 19, color: '#f59e0b' }} />
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Inventario</Typography>
+                  <People sx={{ fontSize: 19, color: '#3b82f6' }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.8rem' }}>Clientes</Typography>
                 </Box>
 
                 <Stack spacing={2} sx={{ mt: 2 }}>
                   <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 0.5 }}>Valor Total del Inventario</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mb: 0.5 }}>Total de Clientes</Typography>
                     <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', fontSize: '1.1rem' }}>
-                      ${dashboardData.inventoryValue.toLocaleString('es-DO')}
+                      {dashboardData.customerStats?.total || 0} Registrados
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${alpha(theme.palette.divider, 0.4)}` }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem' }}>Total Productos</Typography>
-                    <Chip label={`${productos.length} SKUs`} size="small" color="default" sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }} />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.success.main, 0.05), border: `1px solid ${alpha(theme.palette.success.main, 0.2)}` }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'success.main' }}>Nuevos Hoy</Typography>
+                    <Chip label={`+${dashboardData.customerStats?.today || 0}`} size="small" color="success" sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }} />
                   </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.error.main, 0.05), border: `1px solid ${alpha(theme.palette.error.main, 0.2)}` }}>
-                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem', color: 'error.main' }}>Stock Bajo (&lt; 10 uds)</Typography>
-                    <Chip label={dashboardData.stockBajo} size="small" color={dashboardData.stockBajo > 0 ? "error" : "success"} sx={{ fontSize: '0.65rem', height: 18, fontWeight: 700 }} />
+                  <Box sx={{ p: 1, borderRadius: 1.5, bgcolor: alpha(theme.palette.background.default, 0.5), border: `1px solid ${alpha(theme.palette.divider, 0.4)}` }}>
+                    <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.75rem', display: 'block' }}>Fidelización</Typography>
+                    <LinearProgress variant="determinate" value={75} sx={{ mt: 1, height: 4, borderRadius: 2 }} />
                   </Box>
                 </Stack>
-                <Button fullWidth size="small" variant="text" onClick={() => navigate('/products')} sx={{ mt: 2, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none' }}>
-                  Ir a Productos
+                <Button fullWidth size="small" variant="text" onClick={() => navigate('/customers')} sx={{ mt: 2, fontSize: '0.7rem', fontWeight: 700, textTransform: 'none' }}>
+                  Ver Clientes
                 </Button>
               </CardContent>
             </Card>
