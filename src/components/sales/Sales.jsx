@@ -94,6 +94,7 @@ import QuickExpenseModal from '../expenses/QuickExpenseModal';
 import cashRegisterService from '../../services/cashRegisterService';
 import OpenCashRegisterModal from '../cash-register/OpenCashRegisterModal';
 import { useBranch } from '../../context/BranchContext';
+import { useBusiness } from '../../context/BusinessContext';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -109,6 +110,7 @@ const Sales = () => {
     uniqueCustomers: 0
   });
   const { user } = useAuth();
+  const { businessData } = useBusiness();
   const [selectedSale, setSelectedSale] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -353,9 +355,16 @@ const Sales = () => {
             .header {
               background: linear-gradient(135deg, #7209f5 0%, #9d4edd 100%);
               color: white;
-              padding: 30px 20px;
+              padding: 20px;
               text-align: center;
               position: relative;
+            }
+            
+            .header img {
+              max-width: 150px;
+              max-height: 60px;
+              margin-bottom: 10px;
+              filter: brightness(0) invert(1);
             }
             
             .header::after {
@@ -562,8 +571,11 @@ const Sales = () => {
         <body>
           <div class="ticket">
             <div class="header">
-              <div class="company-name">POSENT PRO</div>
-              <div class="ticket-title">Comprobante de Venta</div>
+              ${(businessData?.logo || businessData?.logoUrl) ? `<img src="${businessData.logo || businessData.logoUrl}" alt="Logo">` : ''}
+              <div class="company-name">${businessData?.nombre || businessData?.name || 'POSENT PRO'}</div>
+              <div class="ticket-title">${businessData?.direccion || businessData?.address || 'Comprobante de Venta'}</div>
+              ${(businessData?.telefono || businessData?.phone) ? `<div style="font-size: 10px; opacity: 0.8; margin-top: 4px;">Tel: ${businessData.telefono || businessData.phone}</div>` : ''}
+              ${(businessData?.rnc || businessData?.taxId) ? `<div style="font-size: 10px; opacity: 0.8;">RNC: ${businessData.rnc || businessData.taxId}</div>` : ''}
             </div>
             
             <div class="content">
@@ -580,8 +592,8 @@ const Sales = () => {
                 </div>
                 <div class="info-row">
                   <span class="info-label">Estado:</span>
-                  <span class="status-badge status-${sale.status === 'completed' ? 'completed' : sale.status === 'pending' ? 'pending' : 'cancelled'}">
-                    ${sale.status === 'completed' ? 'Completada' : sale.status === 'pending' ? 'Pendiente' : 'Cancelada'}
+                  <span class="status-badge status-${['completed', 'completada'].includes(sale.status?.toLowerCase()) ? 'completed' : ['pending', 'pendiente'].includes(sale.status?.toLowerCase()) ? 'pending' : 'cancelled'}">
+                    ${['completed', 'completada'].includes(sale.status?.toLowerCase()) ? 'Completada' : ['pending', 'pendiente'].includes(sale.status?.toLowerCase()) ? 'Pendiente' : 'Cancelada'}
                   </span>
                 </div>
               </div>

@@ -100,12 +100,14 @@ import { telegramService } from '../../services/telegramService';
 import BarcodeScanner from '../products/BarcodeScanner';
 import api from '../../api/api';
 import { useCart } from '../../context/CartContext';
+import { useBusiness } from '../../context/BusinessContext';
 
 const PreInvoiceDialog = ({ open, onClose, sale }) => {
   const { isConnected } = usePrinter();
   const { print, isPrinting } = usePrint();
   const { user } = useAuth();
   const theme = useMuiTheme();
+  const { businessData } = useBusiness();
   const [businessInfo, setBusinessInfo] = useState(null);
   const [printing, setPrinting] = useState(false);
   const [copies, setCopies] = useState(1);
@@ -113,38 +115,10 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
   const [invoiceType, setInvoiceType] = useState('pre'); // 'pre' o 'fiscal'
 
   useEffect(() => {
-    const fetchBusinessInfo = async () => {
-      if (!user?.uid && !user?._id && !user?.id) return;
-
-      try {
-        // Obtener configuración empresarial desde MongoDB
-        const response = await api.get('/settings/business');
-        if (response.data.success && response.data.data) {
-          setBusinessInfo(response.data.data);
-        } else {
-          // Si no hay configuración, usar valores por defecto
-          setBusinessInfo({
-            name: 'POSENT PRO',
-            address: 'Dirección no disponible',
-            phone: 'N/A',
-            ruc: 'N/A'
-          });
-        }
-      } catch (err) {
-        console.error('Error al cargar información del negocio:', err);
-        setError('Error al cargar información del negocio');
-        // Usar valores por defecto en caso de error
-        setBusinessInfo({
-          name: 'POSENT PRO',
-          address: 'Dirección no disponible',
-          phone: 'N/A',
-          ruc: 'N/A'
-        });
-      }
-    };
-
-    fetchBusinessInfo();
-  }, [user]);
+    if (businessData) {
+      setBusinessInfo(businessData);
+    }
+  }, [businessData]);
 
   const formatDate = (timestamp) => {
     try {
@@ -176,9 +150,9 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
       date: formatDate(sale.date),
       total: sale.total || 0,
       items: sale.items?.length || 0,
-      business: businessInfo?.name || 'N/A',
+      business: businessInfo?.nombre || businessInfo?.name || 'N/A',
       customer: sale.customer || 'N/A',
-      seller: user?.displayName || 'N/A'
+      seller: user?.displayName || user?.nombre || 'N/A'
     });
   };
 
@@ -251,12 +225,12 @@ const PreInvoiceDialog = ({ open, onClose, sale }) => {
         
         <!-- ENCABEZADO -->
         <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
-          ${businessInfo?.logo ? `
-            <img src="${businessInfo.logo}" alt="Logo" style="max-width: 120px; max-height: 40px; margin-bottom: 6px;">
+          ${(businessInfo?.logo || businessInfo?.logoUrl) ? `
+            <img src="${businessInfo.logo || businessInfo.logoUrl}" alt="Logo" style="max-width: 120px; max-height: 40px; margin-bottom: 6px;">
           ` : ''}
-          <p style="margin: 4px 0; font-size: 11pt; font-weight: bold;">${businessInfo?.name || 'POSENT POS'}</p>
-          <p style="margin: 2px 0; font-size: 8pt;">${businessInfo?.address || 'Dirección no disponible'}</p>
-          <p style="margin: 2px 0; font-size: 8pt;">Tel: ${businessInfo?.phone || 'N/A'} | RUC: ${businessInfo?.ruc || 'N/A'}</p>
+          <p style="margin: 4px 0; font-size: 11pt; font-weight: bold;">${businessInfo?.nombre || businessInfo?.name || 'POSENT POS'}</p>
+          <p style="margin: 2px 0; font-size: 8pt;">${businessInfo?.direccion || businessInfo?.address || 'Dirección no disponible'}</p>
+          <p style="margin: 2px 0; font-size: 8pt;">Tel: ${businessInfo?.telefono || businessInfo?.phone || 'N/A'} | RNC: ${businessInfo?.rnc || businessInfo?.ruc || businessInfo?.taxId || 'N/A'}</p>
           <p style="margin: 4px 0; font-size: 10pt; font-weight: bold; letter-spacing: 1px;">${title}</p>
         </div>
 

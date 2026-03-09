@@ -16,13 +16,13 @@ import QRCode from 'qrcode.react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-const InvoiceTemplate = ({ 
-  businessInfo, 
-  invoiceData, 
-  items, 
-  totals, 
+const InvoiceTemplate = ({
+  businessInfo,
+  invoiceData,
+  items,
+  totals,
   customer,
-  fiscalInfo 
+  fiscalInfo
 }) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('es-DO', {
@@ -40,24 +40,24 @@ const InvoiceTemplate = ({
       {/* Encabezado */}
       <Grid container spacing={2}>
         <Grid item xs={6}>
-          {businessInfo?.logo && (
-            <img 
-              src={businessInfo.logo} 
-              alt="Logo" 
-              style={{ maxWidth: 200, height: 'auto' }} 
+          {(businessInfo?.logo || businessInfo?.logoUrl) && (
+            <img
+              src={businessInfo.logo || businessInfo.logoUrl}
+              alt="Logo"
+              style={{ maxWidth: 200, height: 'auto' }}
             />
           )}
           <Typography variant="h5" gutterBottom>
-            {businessInfo?.name || 'Nombre de la Empresa'}
+            {businessInfo?.nombre || businessInfo?.name || 'Nombre de la Empresa'}
           </Typography>
           <Typography variant="body2">
-            {businessInfo?.address || 'Dirección de la Empresa'}
+            {businessInfo?.direccion || businessInfo?.address || 'Dirección de la Empresa'}
           </Typography>
           <Typography variant="body2">
-            Tel: {businessInfo?.phone || 'N/A'}
+            Tel: {businessInfo?.telefono || businessInfo?.phone || 'N/A'}
           </Typography>
           <Typography variant="body2">
-            RNC: {businessInfo?.rnc || 'N/A'}
+            RNC: {businessInfo?.rnc || businessInfo?.taxId || 'N/A'}
           </Typography>
         </Grid>
         <Grid item xs={6} sx={{ textAlign: 'right' }}>
@@ -227,7 +227,7 @@ const InvoiceTemplate = ({
       <Box sx={{ mt: 4, textAlign: 'center' }}>
         <Grid container spacing={2} justifyContent="center">
           <Grid item xs={4}>
-            <QRCode 
+            <QRCode
               value={JSON.stringify({
                 invoice: invoiceData.invoiceNumber,
                 business: businessInfo?.rnc,

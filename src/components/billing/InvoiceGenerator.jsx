@@ -31,6 +31,7 @@ import {
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useAuth } from '../../context/AuthContextMongo';
+import { useBusiness } from '../../context/BusinessContext';
 import api from '../../api/api';
 
 export const InvoiceGenerator = () => {
@@ -49,10 +50,22 @@ export const InvoiceGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
+  const { businessData } = useBusiness();
 
   useEffect(() => {
-    loadBusinessInfo();
     generateInvoiceNumber();
+  }, []);
+
+  useEffect(() => {
+    if (businessData) {
+      setInvoiceData(prev => ({
+        ...prev,
+        businessInfo: businessData
+      }));
+    }
+  }, [businessData]);
+
+  useEffect(() => {
     // Calcular totales
     const newSubtotal = invoiceData.items.reduce(
       (sum, item) => sum + item.quantity * item.price,
@@ -65,20 +78,6 @@ export const InvoiceGenerator = () => {
     setVat(newVat);
     setTotal(newTotal);
   }, [invoiceData.items]);
-
-  const loadBusinessInfo = async () => {
-    try {
-      const response = await api.get('/settings/business');
-      if (response.data && response.data.data) {
-        setInvoiceData(prevData => ({
-          ...prevData,
-          businessInfo: response.data.data
-        }));
-      }
-    } catch (err) {
-      console.error('Error loading business info:', err);
-    }
-  };
 
   const generateInvoiceNumber = () => {
     const date = new Date();
