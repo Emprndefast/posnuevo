@@ -1607,17 +1607,35 @@ const Products = () => {
     if (!selectedProduct) return;
 
     try {
-      await deleteDoc(doc(db, 'products', selectedProduct.id));
-      setProducts(products.filter(p => p.id !== selectedProduct.id));
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No hay sesión activa');
+
+      const productId = selectedProduct.id || selectedProduct._id;
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3002/api';
+
+      const response = await axios.delete(`${API_BASE_URL}/products/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Error al eliminar el producto');
+      }
+
+      // Remover del estado local
+      setProducts(prev => prev.filter(p => (p.id || p._id) !== productId));
       setSnackbar({
         open: true,
         message: 'Producto eliminado correctamente',
         severity: 'success'
       });
     } catch (err) {
+      console.error('Error al eliminar producto:', err);
       setSnackbar({
         open: true,
-        message: 'Error al eliminar el producto',
+        message: err.response?.data?.message || err.message || 'Error al eliminar el producto',
         severity: 'error'
       });
     } finally {

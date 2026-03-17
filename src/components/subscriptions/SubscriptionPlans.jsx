@@ -128,7 +128,7 @@ const plans = [
     title: 'Plan Básico',
     buttonText: 'Elegir Básico',
     highlighted: false,
-    hostedButtonId: 'R9AUWJE3LPB4J',
+    hostedButtonId: 'R9AUWJE3LPB4J', // Botón actualizado para Plan Básico
     description: 'Para negocios pequeños',
   },
   {
@@ -156,7 +156,7 @@ const plans = [
     title: 'Plan Profesional',
     buttonText: 'Elegir Profesional',
     highlighted: true,
-    hostedButtonId: '4YT6DN8ENNZEG',
+    hostedButtonId: '4YT6DN8ENNZEG', // Botón actualizado para Plan Profesional
     description: 'Para negocios establecidos',
   },
   {
@@ -183,7 +183,7 @@ const plans = [
     title: 'Plan Empresarial',
     buttonText: 'Elegir Empresarial',
     highlighted: false,
-    hostedButtonId: 'M3BQWFCN9ELSQ',
+    hostedButtonId: 'M3BQWFCN9ELSQ', // Botón actualizado para Plan Empresarial
     description: 'Para grandes empresas',
   }
 ];
@@ -205,7 +205,7 @@ const PlanHighlight = ({ text, color = 'primary' }) => (
     label={text}
     color={color}
     size="small"
-    sx={{ 
+    sx={{
       ml: 1,
       height: 20,
       '& .MuiChip-label': {
@@ -363,19 +363,19 @@ export const SubscriptionPlans = () => {
 
   // Efecto para renderizar el botón de PayPal según el plan seleccionado
   useEffect(() => {
-    if (
-      openDialog &&
-      selectedPlan?.hostedButtonId &&
-      document.getElementById(`paypal-container-${selectedPlan.hostedButtonId}`)
-    ) {
+    if (openDialog && selectedPlan?.hostedButtonId) {
+      const containerId = `paypal-container-${selectedPlan.hostedButtonId}`;
       const interval = setInterval(() => {
-        if (window.paypal && window.paypal.HostedButtons) {
-          window.paypal.HostedButtons({
-            hostedButtonId: selectedPlan.hostedButtonId
-          }).render(`#paypal-container-${selectedPlan.hostedButtonId}`);
+        const container = document.getElementById(containerId);
+        if (container && window.paypal && window.paypal.HostedButtons) {
+          if (container.innerHTML === '') {
+            window.paypal.HostedButtons({
+              hostedButtonId: selectedPlan.hostedButtonId
+            }).render(`#${containerId}`);
+          }
           clearInterval(interval);
         }
-      }, 200);
+      }, 500);
       return () => clearInterval(interval);
     }
   }, [openDialog, selectedPlan]);
@@ -476,18 +476,18 @@ export const SubscriptionPlans = () => {
       setLoading(true);
       setError(null);
       setSuccessMessage(null);
-      
+
       if (!subscription?.isActive) {
         setError('No hay una suscripción activa para cancelar');
         return;
       }
 
       await cancelSubscription();
-      
+
       // Cerrar el diálogo y mostrar mensaje de éxito
       setOpenCancelDialog(false);
       setSuccessMessage('Tu suscripción ha sido cancelada exitosamente. Tendrás una semana para renovar tu suscripción o el sistema se bloqueará. Tus datos permanecerán en el servidor por 30 días, después de este período serán eliminados permanentemente.');
-      
+
       // Recargar el estado de la suscripción
       await checkSubscription();
     } catch (err) {
@@ -513,22 +513,22 @@ export const SubscriptionPlans = () => {
   // Fallback visual si no hay suscripción activa o está cancelada
   if (!subscription || !subscription.isActive) {
     return (
-      <Box sx={{ 
+      <Box sx={{
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
         py: { xs: 4, sm: 6, md: 8 },
         px: { xs: 2, sm: 3, md: 4 }
       }}>
         <Container maxWidth="lg">
-          <Box sx={{ 
-            textAlign: 'center', 
+          <Box sx={{
+            textAlign: 'center',
             mb: { xs: 4, sm: 6, md: 8 }
           }}>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom 
-              sx={{ 
+            <Typography
+              variant="h3"
+              component="h1"
+              gutterBottom
+              sx={{
                 fontWeight: 700,
                 fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
                 mb: 2
@@ -536,9 +536,9 @@ export const SubscriptionPlans = () => {
             >
               Planes de Suscripción
             </Typography>
-            <Typography 
-              variant="h6" 
-              color="text.secondary" 
+            <Typography
+              variant="h6"
+              color="text.secondary"
               paragraph
               sx={{
                 fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
@@ -549,17 +549,17 @@ export const SubscriptionPlans = () => {
             >
               Comienza gratis y escala según las necesidades de tu negocio
             </Typography>
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'center', 
+              justifyContent: 'center',
               alignItems: 'center',
               gap: 2,
               mb: 4
             }}>
-              <Paper 
-                elevation={0} 
-                sx={{ 
+              <Paper
+                elevation={0}
+                sx={{
                   px: 3,
                   py: 1.5,
                   bgcolor: 'success.light',
@@ -567,9 +567,9 @@ export const SubscriptionPlans = () => {
                   width: { xs: '100%', sm: 'auto' }
                 }}
               >
-                <Typography variant="body2" sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Typography variant="body2" sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   color: 'success.dark',
                   whiteSpace: 'nowrap'
@@ -578,9 +578,9 @@ export const SubscriptionPlans = () => {
                   Actualizaciones gratuitas
                 </Typography>
               </Paper>
-              <Paper 
-                elevation={0} 
-                sx={{ 
+              <Paper
+                elevation={0}
+                sx={{
                   px: 3,
                   py: 1.5,
                   bgcolor: 'info.light',
@@ -588,9 +588,9 @@ export const SubscriptionPlans = () => {
                   width: { xs: '100%', sm: 'auto' }
                 }}
               >
-                <Typography variant="body2" sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Typography variant="body2" sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   color: 'info.dark',
                   whiteSpace: 'nowrap'
@@ -599,9 +599,9 @@ export const SubscriptionPlans = () => {
                   Cumplimiento fiscal
                 </Typography>
               </Paper>
-              <Paper 
-                elevation={0} 
-                sx={{ 
+              <Paper
+                elevation={0}
+                sx={{
                   px: 3,
                   py: 1.5,
                   bgcolor: 'warning.light',
@@ -609,9 +609,9 @@ export const SubscriptionPlans = () => {
                   width: { xs: '100%', sm: 'auto' }
                 }}
               >
-                <Typography variant="body2" sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <Typography variant="body2" sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   color: 'warning.dark',
                   whiteSpace: 'nowrap'
@@ -623,9 +623,9 @@ export const SubscriptionPlans = () => {
             </Box>
           </Box>
           {error && (
-            <Alert 
+            <Alert
               severity="error"
-              sx={{ 
+              sx={{
                 mb: 4,
                 maxWidth: '800px',
                 mx: 'auto',
@@ -637,9 +637,9 @@ export const SubscriptionPlans = () => {
             </Alert>
           )}
           {successMessage && (
-            <Alert 
+            <Alert
               severity="success"
-              sx={{ 
+              sx={{
                 mb: 4,
                 maxWidth: '800px',
                 mx: 'auto',
@@ -650,9 +650,9 @@ export const SubscriptionPlans = () => {
               {successMessage}
             </Alert>
           )}
-          <Grid 
-            container 
-            spacing={{ xs: 2, sm: 3, md: 4 }} 
+          <Grid
+            container
+            spacing={{ xs: 2, sm: 3, md: 4 }}
             justifyContent="center"
             alignItems="stretch"
             sx={{
@@ -662,8 +662,8 @@ export const SubscriptionPlans = () => {
           >
             {plans.map((plan) => (
               <Grid item xs={12} sm={6} md={4} key={plan.id}>
-                <Card 
-                  sx={{ 
+                <Card
+                  sx={{
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
@@ -700,13 +700,13 @@ export const SubscriptionPlans = () => {
                     </Box>
                   )}
 
-                  <CardContent sx={{ 
-                    p: { xs: 2, sm: 3, md: 4 }, 
-                    flexGrow: 1 
+                  <CardContent sx={{
+                    p: { xs: 2, sm: 3, md: 4 },
+                    flexGrow: 1
                   }}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
                       mb: 3,
                       flexDirection: { xs: 'column', sm: 'row' },
                       textAlign: { xs: 'center', sm: 'left' }
@@ -716,7 +716,7 @@ export const SubscriptionPlans = () => {
                           p: 1.5,
                           borderRadius: 2,
                           bgcolor: plan.id === 'free' ? 'success.light' :
-                                  plan.id === 'pro' ? 'secondary.light' : 'primary.light',
+                            plan.id === 'pro' ? 'secondary.light' : 'primary.light',
                           mb: { xs: 2, sm: 0 },
                           mr: { sm: 2 }
                         }}
@@ -724,7 +724,7 @@ export const SubscriptionPlans = () => {
                         {plan.icon}
                       </Box>
                       <Box>
-                        <Typography variant="h5" component="h2" sx={{ 
+                        <Typography variant="h5" component="h2" sx={{
                           fontWeight: 600,
                           fontSize: { xs: '1.5rem', sm: '1.75rem' }
                         }}>
@@ -736,13 +736,13 @@ export const SubscriptionPlans = () => {
                       </Box>
                     </Box>
 
-                    <Box 
-                      sx={{ 
+                    <Box
+                      sx={{
                         mb: 4,
                         pb: 3,
                         borderBottom: '2px solid',
                         borderColor: plan.id === 'free' ? 'success.light' :
-                                   plan.id === 'pro' ? 'secondary.light' : 'primary.light'
+                          plan.id === 'pro' ? 'secondary.light' : 'primary.light'
                       }}
                     >
                       <Typography variant="h3" component="div" sx={{ fontWeight: 700 }}>
@@ -768,10 +768,10 @@ export const SubscriptionPlans = () => {
                       <Grid container spacing={2}>
                         <Grid item xs={6}>
                           <Tooltip title="Número máximo de productos que puedes gestionar" arrow>
-                            <Paper 
-                              elevation={0} 
-                              sx={{ 
-                                p: 1.5, 
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
                                 textAlign: 'center',
                                 bgcolor: theme => theme.palette.background.paper,
                                 borderRadius: 2
@@ -789,10 +789,10 @@ export const SubscriptionPlans = () => {
                         </Grid>
                         <Grid item xs={6}>
                           <Tooltip title="Número de usuarios permitidos" arrow>
-                            <Paper 
-                              elevation={0} 
-                              sx={{ 
-                                p: 1.5, 
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
                                 textAlign: 'center',
                                 bgcolor: theme => theme.palette.background.paper,
                                 borderRadius: 2
@@ -810,10 +810,10 @@ export const SubscriptionPlans = () => {
                         </Grid>
                         <Grid item xs={6}>
                           <Tooltip title="Tiempo de respuesta del soporte" arrow>
-                            <Paper 
-                              elevation={0} 
-                              sx={{ 
-                                p: 1.5, 
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
                                 textAlign: 'center',
                                 bgcolor: theme => theme.palette.background.paper,
                                 borderRadius: 2
@@ -831,10 +831,10 @@ export const SubscriptionPlans = () => {
                         </Grid>
                         <Grid item xs={6}>
                           <Tooltip title="Frecuencia de respaldo de datos" arrow>
-                            <Paper 
-                              elevation={0} 
-                              sx={{ 
-                                p: 1.5, 
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 1.5,
                                 textAlign: 'center',
                                 bgcolor: theme => theme.palette.background.paper,
                                 borderRadius: 2
@@ -855,23 +855,23 @@ export const SubscriptionPlans = () => {
 
                     <Divider sx={{ my: 3 }} />
 
-                    <FeatureCategory 
-                      title="Punto de Venta" 
+                    <FeatureCategory
+                      title="Punto de Venta"
                       icon={<SpeedIcon color="primary" sx={{ fontSize: 20 }} />}
                     >
                       <List disablePadding>
-                        {plan.features.filter(f => 
+                        {plan.features.filter(f =>
                           f.includes('POS') || f.includes('caja') || f.includes('pago')
                         ).map((feature, index) => (
                           <ListItem key={index} sx={{ py: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 36 }}>
-                              <CheckCircleIcon sx={{ 
+                              <CheckCircleIcon sx={{
                                 fontSize: 20,
-                                color: plan.id === 'free' ? 'success.main' : 
-                                      plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                                color: plan.id === 'free' ? 'success.main' :
+                                  plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                               }} />
                             </ListItemIcon>
-                            <ListItemText 
+                            <ListItemText
                               primary={feature}
                               primaryTypographyProps={{
                                 variant: 'body2',
@@ -883,23 +883,23 @@ export const SubscriptionPlans = () => {
                       </List>
                     </FeatureCategory>
 
-                    <FeatureCategory 
-                      title="Facturación e Impuestos" 
+                    <FeatureCategory
+                      title="Facturación e Impuestos"
                       icon={<ReceiptIcon color="primary" sx={{ fontSize: 20 }} />}
                     >
                       <List disablePadding>
-                        {plan.features.filter(f => 
+                        {plan.features.filter(f =>
                           f.includes('factur') || f.includes('impuesto') || f.includes('fiscal')
                         ).map((feature, index) => (
                           <ListItem key={index} sx={{ py: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 36 }}>
-                              <CheckCircleIcon sx={{ 
+                              <CheckCircleIcon sx={{
                                 fontSize: 20,
-                                color: plan.id === 'free' ? 'success.main' : 
-                                      plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                                color: plan.id === 'free' ? 'success.main' :
+                                  plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                               }} />
                             </ListItemIcon>
-                            <ListItemText 
+                            <ListItemText
                               primary={feature}
                               primaryTypographyProps={{
                                 variant: 'body2',
@@ -911,24 +911,24 @@ export const SubscriptionPlans = () => {
                       </List>
                     </FeatureCategory>
 
-                    <FeatureCategory 
-                      title="Otras Características" 
+                    <FeatureCategory
+                      title="Otras Características"
                       icon={<StarIcon color="primary" sx={{ fontSize: 20 }} />}
                     >
                       <List disablePadding>
-                        {plan.features.filter(f => 
+                        {plan.features.filter(f =>
                           !f.includes('POS') && !f.includes('caja') && !f.includes('pago') &&
                           !f.includes('factur') && !f.includes('impuesto') && !f.includes('fiscal')
                         ).map((feature, index) => (
                           <ListItem key={index} sx={{ py: 0.5 }}>
                             <ListItemIcon sx={{ minWidth: 36 }}>
-                              <CheckCircleIcon sx={{ 
+                              <CheckCircleIcon sx={{
                                 fontSize: 20,
-                                color: plan.id === 'free' ? 'success.main' : 
-                                      plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                                color: plan.id === 'free' ? 'success.main' :
+                                  plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                               }} />
                             </ListItemIcon>
-                            <ListItemText 
+                            <ListItemText
                               primary={feature}
                               primaryTypographyProps={{
                                 variant: 'body2',
@@ -941,8 +941,8 @@ export const SubscriptionPlans = () => {
                     </FeatureCategory>
                   </CardContent>
 
-                  <CardActions sx={{ 
-                    p: { xs: 2, sm: 3, md: 4 }, 
+                  <CardActions sx={{
+                    p: { xs: 2, sm: 3, md: 4 },
                     pt: 0,
                     flexDirection: 'column'
                   }}>
@@ -988,8 +988,8 @@ export const SubscriptionPlans = () => {
               </Grid>
             ))}
           </Grid>
-          <Dialog 
-            open={openDialog} 
+          <Dialog
+            open={openDialog}
             onClose={() => !loading && setOpenDialog(false)}
           >
             <DialogTitle>
@@ -1023,22 +1023,31 @@ export const SubscriptionPlans = () => {
                 </Alert>
               )}
               {selectedPlan?.hostedButtonId && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    setPaypalPaid(false);
-                    openPayPalPopup(selectedPlan.hostedButtonId, user?.uid, selectedPlan.id);
-                  }}
-                  style={{ marginTop: 16, marginBottom: 16 }}
-                >
-                  Pagar con PayPal
-                </Button>
+                <Box sx={{ my: 3, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
+                    O utiliza el botón de pago seguro:
+                  </Typography>
+                  <div
+                    id={`paypal-container-${selectedPlan.hostedButtonId}`}
+                    style={{ minHeight: '150px', display: 'flex', justifyContent: 'center' }}
+                  ></div>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    onClick={() => {
+                      setPaypalPaid(false);
+                      openPayPalPopup(selectedPlan.hostedButtonId, user?.uid, selectedPlan.id);
+                    }}
+                    sx={{ mt: 2 }}
+                  >
+                    Abrir ventana de pago PayPal
+                  </Button>
+                </Box>
               )}
             </DialogContent>
             <DialogActions>
-              <Button 
-                onClick={() => setOpenDialog(false)} 
+              <Button
+                onClick={() => setOpenDialog(false)}
                 disabled={loading}
               >
                 Cancelar
@@ -1106,7 +1115,7 @@ export const SubscriptionPlans = () => {
         </Box>
 
         {error && (
-          <Alert 
+          <Alert
             severity="error"
             sx={{ mb: 4 }}
             onClose={() => setError(null)}
@@ -1116,7 +1125,7 @@ export const SubscriptionPlans = () => {
         )}
 
         {successMessage && (
-          <Alert 
+          <Alert
             severity="success"
             sx={{ mb: 4 }}
             onClose={() => setSuccessMessage(null)}
@@ -1126,14 +1135,14 @@ export const SubscriptionPlans = () => {
         )}
 
         {/* Mostrar siempre el plan actual, aunque esté expirado */}
-        <Alert 
+        <Alert
           severity={isExpired ? "warning" : "info"}
           sx={{ mb: 4 }}
           action={
             subscription.isActive && !isExpired && (
-              <Button 
-                color="inherit" 
-                size="small" 
+              <Button
+                color="inherit"
+                size="small"
                 onClick={() => {
                   setError(null);
                   setSuccessMessage(null);
@@ -1176,8 +1185,8 @@ export const SubscriptionPlans = () => {
         <Grid container spacing={4} justifyContent="center">
           {plans.map((plan) => (
             <Grid item xs={12} md={4} key={plan.id}>
-              <Card 
-                sx={{ 
+              <Card
+                sx={{
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1223,8 +1232,8 @@ export const SubscriptionPlans = () => {
                     right: 0,
                     bottom: 0,
                     border: 3,
-                    borderColor: plan.id === 'free' ? 'success.main' : 
-                               plan.id === 'pro' ? 'secondary.main' : 'primary.main',
+                    borderColor: plan.id === 'free' ? 'success.main' :
+                      plan.id === 'pro' ? 'secondary.main' : 'primary.main',
                     borderRadius: 'inherit',
                     pointerEvents: 'none',
                     zIndex: 0
@@ -1235,8 +1244,8 @@ export const SubscriptionPlans = () => {
                 {subscription?.planId === plan.id && (
                   <Chip
                     label="Plan Actual"
-                    color={plan.id === 'free' ? 'success' : 
-                           plan.id === 'pro' ? 'secondary' : 'primary'}
+                    color={plan.id === 'free' ? 'success' :
+                      plan.id === 'pro' ? 'secondary' : 'primary'}
                     sx={{
                       position: 'absolute',
                       top: 16,
@@ -1253,13 +1262,13 @@ export const SubscriptionPlans = () => {
                   />
                 )}
 
-                <CardContent sx={{ 
-                  p: { xs: 2, sm: 3, md: 4 }, 
-                  flexGrow: 1 
+                <CardContent sx={{
+                  p: { xs: 2, sm: 3, md: 4 },
+                  flexGrow: 1
                 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
                     mb: 3,
                     flexDirection: { xs: 'column', sm: 'row' },
                     textAlign: { xs: 'center', sm: 'left' }
@@ -1269,7 +1278,7 @@ export const SubscriptionPlans = () => {
                         p: 1.5,
                         borderRadius: 2,
                         bgcolor: plan.id === 'free' ? 'success.light' :
-                                plan.id === 'pro' ? 'secondary.light' : 'primary.light',
+                          plan.id === 'pro' ? 'secondary.light' : 'primary.light',
                         mb: { xs: 2, sm: 0 },
                         mr: { sm: 2 }
                       }}
@@ -1277,7 +1286,7 @@ export const SubscriptionPlans = () => {
                       {plan.icon}
                     </Box>
                     <Box>
-                      <Typography variant="h5" component="h2" sx={{ 
+                      <Typography variant="h5" component="h2" sx={{
                         fontWeight: 600,
                         fontSize: { xs: '1.5rem', sm: '1.75rem' }
                       }}>
@@ -1289,13 +1298,13 @@ export const SubscriptionPlans = () => {
                     </Box>
                   </Box>
 
-                  <Box 
-                    sx={{ 
+                  <Box
+                    sx={{
                       mb: 4,
                       pb: 3,
                       borderBottom: '2px solid',
                       borderColor: plan.id === 'free' ? 'success.light' :
-                                 plan.id === 'pro' ? 'secondary.light' : 'primary.light'
+                        plan.id === 'pro' ? 'secondary.light' : 'primary.light'
                     }}
                   >
                     <Typography variant="h3" component="div" sx={{ fontWeight: 700 }}>
@@ -1321,10 +1330,10 @@ export const SubscriptionPlans = () => {
                     <Grid container spacing={2}>
                       <Grid item xs={6}>
                         <Tooltip title="Número máximo de productos que puedes gestionar" arrow>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: 1.5, 
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.5,
                               textAlign: 'center',
                               bgcolor: theme => theme.palette.background.paper,
                               borderRadius: 2
@@ -1342,10 +1351,10 @@ export const SubscriptionPlans = () => {
                       </Grid>
                       <Grid item xs={6}>
                         <Tooltip title="Número de usuarios permitidos" arrow>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: 1.5, 
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.5,
                               textAlign: 'center',
                               bgcolor: theme => theme.palette.background.paper,
                               borderRadius: 2
@@ -1363,10 +1372,10 @@ export const SubscriptionPlans = () => {
                       </Grid>
                       <Grid item xs={6}>
                         <Tooltip title="Tiempo de respuesta del soporte" arrow>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: 1.5, 
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.5,
                               textAlign: 'center',
                               bgcolor: theme => theme.palette.background.paper,
                               borderRadius: 2
@@ -1384,10 +1393,10 @@ export const SubscriptionPlans = () => {
                       </Grid>
                       <Grid item xs={6}>
                         <Tooltip title="Frecuencia de respaldo de datos" arrow>
-                          <Paper 
-                            elevation={0} 
-                            sx={{ 
-                              p: 1.5, 
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.5,
                               textAlign: 'center',
                               bgcolor: theme => theme.palette.background.paper,
                               borderRadius: 2
@@ -1408,23 +1417,23 @@ export const SubscriptionPlans = () => {
 
                   <Divider sx={{ my: 3 }} />
 
-                  <FeatureCategory 
-                    title="Punto de Venta" 
+                  <FeatureCategory
+                    title="Punto de Venta"
                     icon={<SpeedIcon color="primary" sx={{ fontSize: 20 }} />}
                   >
                     <List disablePadding>
-                      {plan.features.filter(f => 
+                      {plan.features.filter(f =>
                         f.includes('POS') || f.includes('caja') || f.includes('pago')
                       ).map((feature, index) => (
                         <ListItem key={index} sx={{ py: 0.5 }}>
                           <ListItemIcon sx={{ minWidth: 36 }}>
-                            <CheckCircleIcon sx={{ 
+                            <CheckCircleIcon sx={{
                               fontSize: 20,
-                              color: plan.id === 'free' ? 'success.main' : 
-                                    plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                              color: plan.id === 'free' ? 'success.main' :
+                                plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                             }} />
                           </ListItemIcon>
-                          <ListItemText 
+                          <ListItemText
                             primary={feature}
                             primaryTypographyProps={{
                               variant: 'body2',
@@ -1436,23 +1445,23 @@ export const SubscriptionPlans = () => {
                     </List>
                   </FeatureCategory>
 
-                  <FeatureCategory 
-                    title="Facturación e Impuestos" 
+                  <FeatureCategory
+                    title="Facturación e Impuestos"
                     icon={<ReceiptIcon color="primary" sx={{ fontSize: 20 }} />}
                   >
                     <List disablePadding>
-                      {plan.features.filter(f => 
+                      {plan.features.filter(f =>
                         f.includes('factur') || f.includes('impuesto') || f.includes('fiscal')
                       ).map((feature, index) => (
                         <ListItem key={index} sx={{ py: 0.5 }}>
                           <ListItemIcon sx={{ minWidth: 36 }}>
-                            <CheckCircleIcon sx={{ 
+                            <CheckCircleIcon sx={{
                               fontSize: 20,
-                              color: plan.id === 'free' ? 'success.main' : 
-                                    plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                              color: plan.id === 'free' ? 'success.main' :
+                                plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                             }} />
                           </ListItemIcon>
-                          <ListItemText 
+                          <ListItemText
                             primary={feature}
                             primaryTypographyProps={{
                               variant: 'body2',
@@ -1464,24 +1473,24 @@ export const SubscriptionPlans = () => {
                     </List>
                   </FeatureCategory>
 
-                  <FeatureCategory 
-                    title="Otras Características" 
+                  <FeatureCategory
+                    title="Otras Características"
                     icon={<StarIcon color="primary" sx={{ fontSize: 20 }} />}
                   >
                     <List disablePadding>
-                      {plan.features.filter(f => 
+                      {plan.features.filter(f =>
                         !f.includes('POS') && !f.includes('caja') && !f.includes('pago') &&
                         !f.includes('factur') && !f.includes('impuesto') && !f.includes('fiscal')
                       ).map((feature, index) => (
                         <ListItem key={index} sx={{ py: 0.5 }}>
                           <ListItemIcon sx={{ minWidth: 36 }}>
-                            <CheckCircleIcon sx={{ 
+                            <CheckCircleIcon sx={{
                               fontSize: 20,
-                              color: plan.id === 'free' ? 'success.main' : 
-                                    plan.id === 'pro' ? 'secondary.main' : 'primary.main'
+                              color: plan.id === 'free' ? 'success.main' :
+                                plan.id === 'pro' ? 'secondary.main' : 'primary.main'
                             }} />
                           </ListItemIcon>
-                          <ListItemText 
+                          <ListItemText
                             primary={feature}
                             primaryTypographyProps={{
                               variant: 'body2',
@@ -1494,8 +1503,8 @@ export const SubscriptionPlans = () => {
                   </FeatureCategory>
                 </CardContent>
 
-                <CardActions sx={{ 
-                  p: { xs: 2, sm: 3, md: 4 }, 
+                <CardActions sx={{
+                  p: { xs: 2, sm: 3, md: 4 },
                   pt: 0,
                   flexDirection: 'column'
                 }}>
@@ -1561,7 +1570,7 @@ export const SubscriptionPlans = () => {
                 <ListItemIcon>
                   <TimerIcon color="warning" />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="Tienes 7 días para renovar tu suscripción"
                   secondary="Después de este período, el sistema se bloqueará"
                 />
@@ -1570,7 +1579,7 @@ export const SubscriptionPlans = () => {
                 <ListItemIcon>
                   <StorageIcon color="warning" />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="Tus datos se mantendrán por 30 días"
                   secondary="Después de este período, todos tus datos serán eliminados permanentemente"
                 />
@@ -1579,15 +1588,15 @@ export const SubscriptionPlans = () => {
                 <ListItemIcon>
                   <LocalOfferIcon color="error" />
                 </ListItemIcon>
-                <ListItemText 
+                <ListItemText
                   primary="No podrás acceder al sistema sin una suscripción activa"
                   secondary="Renueva tu suscripción para mantener el acceso completo"
                 />
               </ListItem>
             </List>
             {error && (
-              <Alert 
-                severity="error" 
+              <Alert
+                severity="error"
                 sx={{ mt: 2 }}
                 onClose={() => setError(null)}
               >
@@ -1596,11 +1605,11 @@ export const SubscriptionPlans = () => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button 
+            <Button
               onClick={() => {
                 setOpenCancelDialog(false);
                 setError(null);
-              }} 
+              }}
               disabled={loading}
             >
               Mantener Suscripción

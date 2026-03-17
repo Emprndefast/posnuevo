@@ -176,7 +176,7 @@ const DashboardPro = () => {
 
       const productsList = productos || [];
       let totalInventoryValue = 0;
-      productsList.forEach(p => { totalInventoryValue += (parseFloat(p.precio) || 0) * ((parseInt(p.stock) || 0) > 0 ? parseInt(p.stock) : 1); });
+      productsList.forEach(p => { totalInventoryValue += (parseFloat(p.precio) || 0) * (parseInt(p.stock) || 0); });
 
       const dailySales = salesData?.success ? (salesData?.data?.resumen?.monto_total || 0) : 0;
       const averageTicket = salesData?.success ? (salesData?.data?.resumen?.promedio_venta || 0) : 0;
@@ -186,7 +186,7 @@ const DashboardPro = () => {
         dailySales, averageTicket: parseFloat(averageTicket.toFixed(2)),
         monthlyRevenue: totalInventoryValue,
         customersServed: customersData?.data?.todayCount || customersData?.data?.total_clientes || 0,
-        inventoryValue: productsData?.data?.total_value || totalInventoryValue,
+        inventoryValue: productsData?.data?.totalValue ?? totalInventoryValue,
         salesGrowth: 0, topProducts: salesData?.data?.top_productos || [],
         cajaActual: dailySales, stockBajo, metaDia: 50000,
         promedioHora: dailySales / 8,
