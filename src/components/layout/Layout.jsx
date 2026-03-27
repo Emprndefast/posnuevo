@@ -46,7 +46,8 @@ import { NotificacionesModal } from '../notifications/NotificacionesModal';
 import { SoporteTecnicoModal } from '../support/SoporteTecnicoModal';
 import { ProductDetailModal } from '../products/ProductDetailModal';
 import { useBusiness } from '../../context/BusinessContext';
-import { useNotifications } from '../../context/NotificationsContext';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 import axios from 'axios';
 import CanvaFlyerGenerator from '../tools/CanvaFlyerGenerator';
 
@@ -55,9 +56,26 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const { businessData } = useBusiness();
-  const { unreadCount: notificacionesNoLeidas } = useNotifications();
+  const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // Lógica de Notificaciones en Tiempo Real
+  useEffect(() => {
+    if (!user) return;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const q = query(
+      collection(db, 'notificaciones'),
+      where('uid', '==', (user.uid || user.id)),
+      where('fecha', '>=', hoy.toISOString().slice(0, 10)),
+      where('leida', '==', false)
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setNotificacionesNoLeidas(snap.size);
+    });
+    return () => unsub();
+  }, [user]);
   const [openNotificaciones, setOpenNotificaciones] = useState(false);
   const [openSoporte, setOpenSoporte] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
