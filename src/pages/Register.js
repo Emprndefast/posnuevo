@@ -195,7 +195,7 @@ function Register() {
           </Button>
         </form>
         <Button
-          onClick={() => startTransition(() => navigate('/login'))}
+          onClick={() => navigate('/login')}
           sx={{ mt: 2 }}
         >
           Ya tengo una cuenta
