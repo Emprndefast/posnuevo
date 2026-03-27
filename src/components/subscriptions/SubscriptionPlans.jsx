@@ -1104,7 +1104,86 @@ export const SubscriptionPlans = () => {
               )}
             </DialogActions>
           </Dialog>
+
+          {/* Diálogo de Pago/Cambio (PayPal) */}
+          <Dialog
+            open={openDialog}
+            onClose={() => !loading && setOpenDialog(false)}
+          >
+            <DialogTitle>
+              {(subscription && subscription.isActive && subscription.planId === selectedPlan?.id)
+                ? 'Plan Actual'
+                : 'Confirmar Cambio de Plan'}
+            </DialogTitle>
+            <DialogContent>
+              {(subscription && subscription.isActive && subscription.planId === selectedPlan?.id) ? (
+                <Typography variant="body1">
+                  Ya tienes el plan {selectedPlan?.name} activo. ¿Deseas elegir un plan diferente?
+                </Typography>
+              ) : (
+                <>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    ¿Estás seguro de que deseas {subscription ? 'cambiar al' : 'suscribirte al'} {selectedPlan?.name} por {formatPrice(selectedPlan?.price)}/{selectedPlan?.period}?
+                  </Typography>
+                  {subscription && subscription.isActive && (
+                    <Typography variant="body2" color="warning.main" sx={{ mb: 2 }}>
+                      Tu plan actual será reemplazado por el nuevo plan inmediatamente.
+                    </Typography>
+                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    Al confirmar, se procesará el pago y se activará tu nueva suscripción inmediatamente.
+                  </Typography>
+                </>
+              )}
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
+              {selectedPlan?.hostedButtonId && (
+                <Box sx={{ my: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
+                    Paga de forma segura con PayPal:
+                  </Typography>
+                  {!paypalSuccess ? (
+                    <PayPalButton
+                      planId={selectedPlan.id}
+                      userId={user?._id || user?.id || user?.uid}
+                      amount={selectedPlan.priceUSD || undefined}
+                      onSuccess={handlePayPalSuccess}
+                      onError={handlePayPalError}
+                    />
+                  ) : (
+                    <Alert severity="success" sx={{ mt: 1 }}>
+                      ✅ Pago confirmado. Tu suscripción se está activando...
+                    </Alert>
+                  )}
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setOpenDialog(false)}
+                disabled={loading || paypalSuccess}
+              >
+                Cancelar
+              </Button>
+              {!selectedPlan?.hostedButtonId && (
+                <Button
+                  variant="contained"
+                  onClick={handleSubscribe}
+                  disabled={
+                    loading ||
+                    (selectedPlan?.id === 'free' && (subscription?.freePlanUsed || subscription?.canUseFreePlan === false))
+                  }
+                >
+                  {loading ? <CircularProgress size={24} /> : subscription ? 'Confirmar Cambio' : 'Confirmar Suscripción'}
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
         </Container>
+
       </Box>
     );
   }
@@ -1589,6 +1668,84 @@ export const SubscriptionPlans = () => {
             </Grid>
           ))}
         </Grid>
+
+          {/* Diálogo de Pago/Cambio (PayPal) */}
+          <Dialog
+            open={openDialog}
+            onClose={() => !loading && setOpenDialog(false)}
+          >
+            <DialogTitle>
+              {(subscription && subscription.isActive && subscription.planId === selectedPlan?.id)
+                ? 'Plan Actual'
+                : 'Confirmar Cambio de Plan'}
+            </DialogTitle>
+            <DialogContent>
+              {(subscription && subscription.isActive && subscription.planId === selectedPlan?.id) ? (
+                <Typography variant="body1">
+                  Ya tienes el plan {selectedPlan?.name} activo. ¿Deseas elegir un plan diferente?
+                </Typography>
+              ) : (
+                <>
+                  <Typography variant="body1" sx={{ mb: 2 }}>
+                    ¿Estás seguro de que deseas {subscription ? 'cambiar al' : 'suscribirte al'} {selectedPlan?.name} por {formatPrice(selectedPlan?.price)}/{selectedPlan?.period}?
+                  </Typography>
+                  {subscription && subscription.isActive && (
+                    <Typography variant="body2" color="warning.main" sx={{ mb: 2 }}>
+                      Tu plan actual será reemplazado por el nuevo plan inmediatamente.
+                    </Typography>
+                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    Al confirmar, se procesará el pago y se activará tu nueva suscripción inmediatamente.
+                  </Typography>
+                </>
+              )}
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
+              {selectedPlan?.hostedButtonId && (
+                <Box sx={{ my: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
+                    Paga de forma segura con PayPal:
+                  </Typography>
+                  {!paypalSuccess ? (
+                    <PayPalButton
+                      planId={selectedPlan.id}
+                      userId={user?._id || user?.id || user?.uid}
+                      amount={selectedPlan.priceUSD || undefined}
+                      onSuccess={handlePayPalSuccess}
+                      onError={handlePayPalError}
+                    />
+                  ) : (
+                    <Alert severity="success" sx={{ mt: 1 }}>
+                      ✅ Pago confirmado. Tu suscripción se está activando...
+                    </Alert>
+                  )}
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setOpenDialog(false)}
+                disabled={loading || paypalSuccess}
+              >
+                Cancelar
+              </Button>
+              {!selectedPlan?.hostedButtonId && (
+                <Button
+                  variant="contained"
+                  onClick={handleSubscribe}
+                  disabled={
+                    loading ||
+                    (selectedPlan?.id === 'free' && (subscription?.freePlanUsed || subscription?.canUseFreePlan === false))
+                  }
+                >
+                  {loading ? <CircularProgress size={24} /> : subscription ? 'Confirmar Cambio' : 'Confirmar Suscripción'}
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
 
         <Dialog
           open={openCancelDialog}
