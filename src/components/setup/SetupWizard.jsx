@@ -69,9 +69,17 @@ const SetupWizard = () => {
     setPrinterData(prev => ({ ...prev, [name]: value }));
   };
 
-  const validateBusinessData = () => {
-    if (!businessData.name || !businessData.address || !businessData.phone) {
-      setError('¡Ey! Nos faltan algunos campos clave como el Nombre de tu tienda, Dirección y Teléfono 🧐');
+  const validateBusinessDataStep0 = () => {
+    if (!businessData.name || !businessData.address) {
+      setError('¡Ey! Nos faltan algunos campos clave como el Nombre de tu tienda y Dirección 🧐');
+      return false;
+    }
+    return true;
+  };
+
+  const validateBusinessDataStep1 = () => {
+    if (!businessData.phone) {
+      setError('Por favor, ingresa tu teléfono o WhatsApp para continuar 📱');
       return false;
     }
     return true;
@@ -83,7 +91,10 @@ const SetupWizard = () => {
     
     try {
       if (activeStep === 0 || activeStep === 1) {
-        if (activeStep === 0 && !validateBusinessData()) {
+        if (activeStep === 0 && !validateBusinessDataStep0()) {
+          setIsSubmitting(false); return;
+        }
+        if (activeStep === 1 && !validateBusinessDataStep1()) {
           setIsSubmitting(false); return;
         }
         
