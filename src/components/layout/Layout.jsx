@@ -44,7 +44,7 @@ import { useAuth } from '../../context/AuthContextMongo';
 import { Navigation } from './Navigation';
 import NotificacionesModal from '../common/NotificacionesModal';
 import SoporteTecnicoModal from '../SoporteTecnicoModal';
-import { ProductDetailModal } from '../products/ProductDetailModal';
+import ProductDetailModal from '../products/ProductDetailModal';
 import { useBusiness } from '../../context/BusinessContext';
 import api from '../../api/api';
 import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
