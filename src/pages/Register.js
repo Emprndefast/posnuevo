@@ -53,25 +53,35 @@ function Register() {
       
       if (response.success) {
         // Activar automáticamente el plan gratuito al registrar el usuario
-        await subscriptionService.createSubscription(response.data.id || response.data._id, {
-          id: 'free',
-          name: 'Prueba Gratis',
-          price: 0,
-          period: 'mes',
-          features: [
-            'Facturación básica',
-            'Gestión limitada de productos',
-          ],
-          limitations: {
-            products: 20,
-            users: 1,
-            support: '48h',
-            backup: 'manual',
-            registers: 1
-          }
-        });
-        setSnackbar({ open: true, message: 'Usuario registrado correctamente', severity: 'success' });
-        setTimeout(() => navigate('/login'), 1200);
+        const userId = response.user?._id || response.user?.id || response.user?.uid;
+        if (userId) {
+          await subscriptionService.createSubscription(userId, {
+            id: 'free',
+            name: 'Prueba Gratis',
+            price: 0,
+            period: 'mes',
+            features: [
+              'Facturación básica',
+              'Gestión limitada de productos',
+            ],
+            limitations: {
+              products: 20,
+              users: 1,
+              support: '48h',
+              backup: 'manual',
+              registers: 1
+            }
+          });
+        }
+        
+        // Autologin inyectando el token que envia la API
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+        }
+
+        setSnackbar({ open: true, message: 'Usuario registrado correctamente 🎉', severity: 'success' });
+        // Redirigir al onboarding en lugar del login
+        setTimeout(() => navigate('/setup-wizard'), 1200);
       } else {
         setError(response.message || 'Error al registrar usuario');
         setSnackbar({ open: true, message: response.message || 'Error al registrar usuario', severity: 'error' });
