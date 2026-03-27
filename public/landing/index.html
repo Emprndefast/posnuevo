@@ -81,8 +81,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- Toastify CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" crossorigin="anonymous">
-    <!-- Agregar el script de PayPal en el head si no existe -->
-    <script src="https://www.paypal.com/sdk/js?client-id=BAA3zpEv3CRtJ-4mmbdJzPmFa2zr-gnJyTDSqQhL5eAlp08l21b3HqgVV1sJLYCj6YLf4rLsFDyg7oSAz0&components=hosted-buttons&disable-funding=venmo&currency=USD"></script>
+
     <!-- Google Analytics - DISABLED -->
     <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
@@ -836,12 +835,7 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('basico','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
                             </div>
                         </div>
-                        <div class="paypal-botones">
-                            <div class="paypal-mensual" id="paypal-container-R9AUWJE3LPB4J"></div>
-                            <div class="paypal-anual d-none" id="paypal-container-SWWLZ8E3U7QWC"></div>
-                        </div>
-                        <script>paypal.HostedButtons({hostedButtonId: "R9AUWJE3LPB4J"}).render("#paypal-container-R9AUWJE3LPB4J")</script>
-                        <script>paypal.HostedButtons({hostedButtonId: "SWWLZ8E3U7QWC"}).render("#paypal-container-SWWLZ8E3U7QWC")</script>
+                        <a href="/register" class="btn btn-primary btn-gradient w-100">Comenzar Ahora</a>
                     </div>
                 </div>
                 
@@ -880,12 +874,7 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('profesional','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
                             </div>
                         </div>
-                        <div class="paypal-botones">
-                            <div class="paypal-mensual" id="paypal-container-4YT6DN8ENNZEG"></div>
-                            <div class="paypal-anual d-none" id="paypal-container-QQ57DZS3HXGA2"></div>
-                        </div>
-                        <script>paypal.HostedButtons({hostedButtonId: "4YT6DN8ENNZEG"}).render("#paypal-container-4YT6DN8ENNZEG")</script>
-                        <script>paypal.HostedButtons({hostedButtonId: "QQ57DZS3HXGA2"}).render("#paypal-container-QQ57DZS3HXGA2")</script>
+                        <a href="/register" class="btn btn-primary btn-gradient w-100">Comenzar Ahora</a>
                     </div>
                 </div>
                 
@@ -921,12 +910,7 @@
                                 <button type="button" class="btn btn-outline-primary" onclick="mostrarSoloModoPlan('empresarial','anual', this)">Pago anual <span class="badge bg-success ms-1">20% OFF</span></button>
                             </div>
                         </div>
-                        <div class="paypal-botones">
-                            <div class="paypal-mensual" id="paypal-container-M3BQWFCN9ELSQ"></div>
-                            <div class="paypal-anual d-none" id="paypal-container-KEBPY8STHKJUY"></div>
-                        </div>
-                        <script>paypal.HostedButtons({hostedButtonId: "M3BQWFCN9ELSQ"}).render("#paypal-container-M3BQWFCN9ELSQ")</script>
-                        <script>paypal.HostedButtons({hostedButtonId: "KEBPY8STHKJUY"}).render("#paypal-container-KEBPY8STHKJUY")</script>
+                        <a href="/register" class="btn btn-primary btn-gradient w-100">Comenzar Ahora</a>
                     </div>
                 </div>
             </div>
@@ -1598,18 +1582,6 @@
                     btns[1].classList.add('active');
                 } else {
                     btns[0].classList.add('active');
-                }
-            });
-            // Cambia la visibilidad de todos los botones PayPal
-            document.querySelectorAll('.paypal-botones').forEach(grupo => {
-                const mensual = grupo.querySelector('.paypal-mensual');
-                const anual = grupo.querySelector('.paypal-anual');
-                if (modo === 'anual') {
-                    mensual.classList.add('d-none');
-                    anual.classList.remove('d-none');
-                } else {
-                    mensual.classList.remove('d-none');
-                    anual.classList.add('d-none');
                 }
             });
         }

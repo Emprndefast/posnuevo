@@ -47,6 +47,7 @@ import { useAuth } from '../../context/AuthContextMongo';
 import { styled } from '@mui/material/styles';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useLocation, useNavigate } from 'react-router-dom';
+import PayPalButton from './PayPalButton';
 
 const StyledCard = styled(Card)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -128,7 +129,8 @@ const plans = [
     title: 'Plan Básico',
     buttonText: 'Elegir Básico',
     highlighted: false,
-    hostedButtonId: 'R9AUWJE3LPB4J', // Botón actualizado para Plan Básico
+    hostedButtonId: 'R9AUWJE3LPB4J',
+    priceUSD: 17.00,
     description: 'Para negocios pequeños',
   },
   {
@@ -156,7 +158,8 @@ const plans = [
     title: 'Plan Profesional',
     buttonText: 'Elegir Profesional',
     highlighted: true,
-    hostedButtonId: '4YT6DN8ENNZEG', // Botón actualizado para Plan Profesional
+    hostedButtonId: '4YT6DN8ENNZEG',
+    priceUSD: 34.00,
     description: 'Para negocios establecidos',
   },
   {
@@ -183,7 +186,8 @@ const plans = [
     title: 'Plan Empresarial',
     buttonText: 'Elegir Empresarial',
     highlighted: false,
-    hostedButtonId: 'M3BQWFCN9ELSQ', // Botón actualizado para Plan Empresarial
+    hostedButtonId: 'M3BQWFCN9ELSQ',
+    priceUSD: 56.00,
     description: 'Para grandes empresas',
   }
 ];
@@ -328,6 +332,7 @@ export const SubscriptionPlans = () => {
   const paypalRef = useRef(null);
   const [currency, setCurrency] = useState({ code: 'DOP', symbol: 'RD$', locale: 'es-DO', rate: 1 });
   const [paypalPaid, setPaypalPaid] = useState(false);
+  const [paypalSuccess, setPaypalSuccess] = useState(false);
 
   // Efecto para verificar la suscripción cuando el componente se monta
   useEffect(() => {
@@ -415,6 +420,11 @@ export const SubscriptionPlans = () => {
       });
   }, []);
 
+  // Resetear paypalSuccess cuando se cierra o abre el diálogo
+  useEffect(() => {
+    if (!openDialog) setPaypalSuccess(false);
+  }, [openDialog]);
+
   function formatPrice(price) {
     const converted = price * currency.rate;
     return new Intl.NumberFormat(currency.locale, {
@@ -435,6 +445,35 @@ export const SubscriptionPlans = () => {
     console.log('Plan seleccionado:', plan);
     setSelectedPlan(plan);
     setOpenDialog(true);
+  };
+
+  // Manejar éxito de PayPal: activa la suscripción
+  const handlePayPalSuccess = async ({ orderId, planId: paidPlanId, backendOk }) => {
+    setPaypalSuccess(true);
+    setPaypalPaid(true);
+    setSuccessMessage(`✅ Pago recibido. Activando suscripción al ${selectedPlan?.name}…`);
+
+    try {
+      // Registrar en Firebase también (para compatibilidad)
+      await subscribe({
+        planId: selectedPlan.id,
+        planName: selectedPlan.name,
+        ...selectedPlan
+      });
+      await checkSubscription();
+      setSuccessMessage(`🎉 ¡Suscripción al ${selectedPlan?.name} activada correctamente!`);
+    } catch (e) {
+      console.warn('Error al sincronizar con Firebase:', e);
+      // El backend ya lo activó en MongoDB, así que no es crítico
+      setSuccessMessage(`🎉 ¡Suscripción al ${selectedPlan?.name} activada correctamente!`);
+    }
+    setOpenDialog(false);
+  };
+
+  const handlePayPalError = (err) => {
+    setError('Error en el pago de PayPal. Por favor intenta de nuevo.');
+    setPaypalSuccess(false);
+    setPaypalPaid(false);
   };
 
   const handleSubscribe = async () => {
@@ -498,7 +537,7 @@ export const SubscriptionPlans = () => {
     }
   };
 
-  // Agregar useEffect para escuchar el mensaje de confirmación de PayPal
+    // Agregar useEffect para escuchar el mensaje de confirmación de PayPal (popup legacy, ya no se usa)
   useEffect(() => {
     function handlePaypalMessage(event) {
       if (event.data && event.data.paypalPaid) {
@@ -1023,46 +1062,46 @@ export const SubscriptionPlans = () => {
                 </Alert>
               )}
               {selectedPlan?.hostedButtonId && (
-                <Box sx={{ my: 3, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
-                    O utiliza el botón de pago seguro:
+                <Box sx={{ my: 2 }}>
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 600, textAlign: 'center' }}>
+                    Paga de forma segura con PayPal:
                   </Typography>
-                  <div
-                    id={`paypal-container-${selectedPlan.hostedButtonId}`}
-                    style={{ minHeight: '150px', display: 'flex', justifyContent: 'center' }}
-                  ></div>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      setPaypalPaid(false);
-                      openPayPalPopup(selectedPlan.hostedButtonId, user?.uid, selectedPlan.id);
-                    }}
-                    sx={{ mt: 2 }}
-                  >
-                    Abrir ventana de pago PayPal
-                  </Button>
+                  {!paypalSuccess ? (
+                    <PayPalButton
+                      planId={selectedPlan.id}
+                      userId={user?._id || user?.id || user?.uid}
+                      amount={selectedPlan.priceUSD || undefined}
+                      onSuccess={handlePayPalSuccess}
+                      onError={handlePayPalError}
+                    />
+                  ) : (
+                    <Alert severity="success" sx={{ mt: 1 }}>
+                      ✅ Pago confirmado. Tu suscripción se está activando...
+                    </Alert>
+                  )}
                 </Box>
               )}
             </DialogContent>
             <DialogActions>
               <Button
                 onClick={() => setOpenDialog(false)}
-                disabled={loading}
+                disabled={loading || paypalSuccess}
               >
                 Cancelar
               </Button>
-              <Button
-                variant="contained"
-                onClick={handleSubscribe}
-                disabled={
-                  loading ||
-                  (selectedPlan?.id !== 'free' && !paypalPaid) ||
-                  (selectedPlan?.id === 'free' && (subscription?.freePlanUsed || subscription?.canUseFreePlan === false))
-                }
-              >
-                {loading ? <CircularProgress size={24} /> : subscription ? 'Confirmar Cambio' : 'Confirmar Suscripción'}
-              </Button>
+              {/* El botón de confirmar solo aparece si NO hay hostedButtonId (es gratuito o caso especial) */}
+              {!selectedPlan?.hostedButtonId && (
+                <Button
+                  variant="contained"
+                  onClick={handleSubscribe}
+                  disabled={
+                    loading ||
+                    (selectedPlan?.id === 'free' && (subscription?.freePlanUsed || subscription?.canUseFreePlan === false))
+                  }
+                >
+                  {loading ? <CircularProgress size={24} /> : subscription ? 'Confirmar Cambio' : 'Confirmar Suscripción'}
+                </Button>
+              )}
             </DialogActions>
           </Dialog>
         </Container>
