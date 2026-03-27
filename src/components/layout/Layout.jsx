@@ -40,7 +40,7 @@ import {
   Receipt as ReceiptIcon,
   SupportAgent as SupportAgentIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContextMongo';
 import { Navigation } from './Navigation';
 import { NotificacionesModal } from '../notifications/NotificacionesModal';
 import { SoporteTecnicoModal } from '../support/SoporteTecnicoModal';
