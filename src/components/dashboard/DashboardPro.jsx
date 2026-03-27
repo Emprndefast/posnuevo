@@ -162,14 +162,24 @@ const DashboardPro = () => {
 
       // ── Cargar lista de medios del admin ─────────────────────────────────────
       try {
-        const r = await api.get('/settings/business');
+        const isSuperAdmin = user?.email?.toLowerCase() === 'nachotechrd@gmail.com' || user?.rol === 'admin';
+        const endpoint = isSuperAdmin ? '/settings/business' : '/settings/global-promotions';
+        const r = await api.get(endpoint);
+        
         if (r.data.success && r.data.data) {
           const d = r.data.data;
-          // Soportar formato antiguo (un solo medio) y nuevo (promoMediaList)
-          if (Array.isArray(d.promoMediaList) && d.promoMediaList.length > 0) {
-            setAdminMediaList(d.promoMediaList.map((m, i) => ({ ...m, _index: i })));
-          } else if (d.promoMediaUrl) {
-            setAdminMediaList([{ url: d.promoMediaUrl, type: d.promoMediaType || 'image', kind: 'promo', title: '', _index: 0 }]);
+          if (isSuperAdmin) {
+            // Soportar formato antiguo (un solo medio) y nuevo (promoMediaList)
+            if (Array.isArray(d.promoMediaList) && d.promoMediaList.length > 0) {
+              setAdminMediaList(d.promoMediaList.map((m, i) => ({ ...m, _index: i })));
+            } else if (d.promoMediaUrl) {
+              setAdminMediaList([{ url: d.promoMediaUrl, type: d.promoMediaType || 'image', kind: 'promo', title: '', _index: 0 }]);
+            }
+          } else {
+            // Usuarios normales reciben el listado global ya estandarizado
+            if (Array.isArray(d)) {
+              setAdminMediaList(d.map((m, i) => ({ ...m, _index: i })));
+            }
           }
         }
       } catch { }
@@ -534,7 +544,7 @@ const DashboardPro = () => {
               <PromoCarousel
                 adminMedia={adminMediaList}
                 productImages={productImages}
-                userRole={userRole}
+                userRole={user?.email?.toLowerCase() === 'nachotechrd@gmail.com' ? 'admin' : 'user'}
                 onUpload={handleMediaUpload}
                 onRemove={handleRemoveMedia}
                 isUploading={uploadingMedia}
