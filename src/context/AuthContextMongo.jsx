@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
         const { token, user: newUser } = response.data;
         localStorage.setItem('token', token);
         setUser(normalizeUser(newUser));
-        return { success: true };
+        return { success: true, user: newUser, token };
       } else {
         setError(response.data.message || 'Error al registrarse');
         return { success: false, error: response.data.message };

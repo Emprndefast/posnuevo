@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { subscriptionService } from '../services/subscriptionService';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import * as authApi from '../api/auth';
+import { useAuth } from '../context/AuthContextMongo';
 
 const ROLES = [
   { value: 'admin', label: 'Administrador' },
@@ -14,6 +15,7 @@ const ROLES = [
 ];
 
 function Register() {
+  const { register: authRegister } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nombre, setNombre] = useState('');
@@ -43,11 +45,13 @@ function Register() {
         return;
       }
       
-      const response = await authApi.register({
+      const response = await authRegister({
         email,
         password,
+        nombre: nombre,
         name: nombre,
         role,
+        telefono: telefono,
         phone: telefono
       });
       
@@ -74,7 +78,7 @@ function Register() {
           });
         }
         
-        // Autologin inyectando el token que envia la API
+        // Autologin inyectando el token que envia la API (aunque authRegister ya lo hace en el context, lo reafirmamos)
         if (response.token) {
           localStorage.setItem('token', response.token);
         }
@@ -83,8 +87,8 @@ function Register() {
         // Redirigir al onboarding en lugar del login
         setTimeout(() => navigate('/setup-wizard'), 1200);
       } else {
-        setError(response.message || 'Error al registrar usuario');
-        setSnackbar({ open: true, message: response.message || 'Error al registrar usuario', severity: 'error' });
+        setError(response.error || response.message || 'Error al registrar usuario');
+        setSnackbar({ open: true, message: response.error || response.message || 'Error al registrar usuario', severity: 'error' });
       }
     } catch (err) {
       setError(err.message || 'Error al registrar usuario');

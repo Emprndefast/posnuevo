@@ -21,9 +21,9 @@ const PLAN_PRICES_USD = {
   business: 56.00,   // ~3250 DOP
 };
 
-// Client IDs por modo (ajusta según tu cuenta)
-const PAYPAL_CLIENT_ID = process.env.REACT_APP_PAYPAL_CLIENT_ID
-  || 'AZwuqUgn-NxmY70zwMCJ4-v9sMRZbM4OjN_G2dO9pjDW8MIGYRqmYp0F1XeqJt4Wqzm2JaBO6JX0';
+// Client IDs por modo (el ID público de tu cuenta PayPal)
+// IMPORTANTE: NO usamos process.env porque en el servidor el dashboard de entorno inyectó accidentalmente un texto truncado (con "..")
+const PAYPAL_CLIENT_ID = 'AZwuqUgn-NxmY70zwMCJ4sNIweUr9frhUHux90ciPiSIB6l4MmzF3hvXQcvtR2Z449VgNKBfJsxjTZwz';
 
 const BACKEND_URL = (() => {
   const apiUrl = process.env.REACT_APP_API_URL || '';
