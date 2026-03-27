@@ -1,121 +1,81 @@
 import React, { useState, useEffect, startTransition } from 'react';
+import { useNavigate, useLocation, Routes, Route } from 'react-router-dom';
 import {
   Box,
-  IconButton,
-  useTheme,
-  useMediaQuery,
   AppBar,
   Toolbar,
-  Tooltip,
   Typography,
+  IconButton,
   Avatar,
-  Stack,
   Menu,
   MenuItem,
   ListItemIcon,
-  CircularProgress,
-  ListItemText,
-  Popper,
+  Divider,
+  Badge,
+  Tooltip,
+  useTheme,
+  useMediaQuery,
+  alpha,
+  Input,
   Paper,
+  Popper,
   ClickAwayListener,
   List,
-  Input,
-  InputAdornment,
-  Divider,
-  Badge
+  ListItemText,
+  CircularProgress,
+  Stack
 } from '@mui/material';
-import { Navigation } from './Navigation';
-import { useNavigate, Link, Routes, Route } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
-import StoreIcon from '@mui/icons-material/Store';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import LogoutIcon from '@mui/icons-material/Logout';
-import SettingsIcon from '@mui/icons-material/Settings';
-import SearchIcon from '@mui/icons-material/Search';
-import { useAuth } from '../../context/AuthContextMongo';
-import SoporteTecnicoModal from '../SoporteTecnicoModal';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import {
+  Menu as MenuIcon,
   Notifications as NotificationsIcon,
+  AccountCircle as AccountCircleIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
+  Search as SearchIcon,
+  Dashboard as DashboardIcon,
+  Inventory as InventoryIcon,
   People as PeopleIcon,
-  ShoppingCart as ShoppingCartIcon,
+  ShoppingCart as SalesIcon,
   Build as BuildIcon,
   Receipt as ReceiptIcon,
-  Inventory as InventoryIcon,
-  Assessment as AssessmentIcon,
-  AccountBalance as AccountBalanceIcon,
-  Dashboard as DashboardIcon
+  SupportAgent as SupportAgentIcon
 } from '@mui/icons-material';
-import NotificacionesModal from '../common/NotificacionesModal';
-import CanvaFlyerGenerator from '../canva/CanvaFlyerGenerator';
-import ProductDetailModal from '../products/ProductDetailModal';
-import api from '../../config/api';
-// Firebase imports - Mocked for backward compatibility
-import { db, collection, query, where, onSnapshot } from '../../firebase/config';
+import { useAuth } from '../../context/AuthContext';
+import { Navigation } from './Navigation';
+import { NotificacionesModal } from '../notifications/NotificacionesModal';
+import { SoporteTecnicoModal } from '../support/SoporteTecnicoModal';
+import { ProductDetailModal } from '../products/ProductDetailModal';
+import { useBusiness } from '../../context/BusinessContext';
+import { useNotifications } from '../../context/NotificationsContext';
+import axios from 'axios';
+import CanvaFlyerGenerator from '../tools/CanvaFlyerGenerator';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const Layout = ({ children }) => {
+  const { user, logout } = useAuth();
+  const { businessData } = useBusiness();
+  const { unreadCount: notificacionesNoLeidas } = useNotifications();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [openSoporte, setOpenSoporte] = useState(false);
   const [openNotificaciones, setOpenNotificaciones] = useState(false);
-  const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
+  const [openSoporte, setOpenSoporte] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState({ products: [], customers: [], repairs: [], sales: [] });
+  const [searchResults, setSearchResults] = useState({ products: [], customers: [], sales: [], repairs: [] });
   const [isSearching, setIsSearching] = useState(false);
   const [searchAnchorEl, setSearchAnchorEl] = useState(null);
   const [navigationResults, setNavigationResults] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const location = useLocation();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const drawerWidth = 280;
 
-  useEffect(() => {
-    if (!user) return;
-    const q = query(
-      collection(db, 'notificaciones'),
-      where('uid', '==', user.uid),
-      where('leida', '==', false)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setNotificacionesNoLeidas(snap.size);
-    });
-    return () => unsub();
-  }, [user]);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        const searchInput = document.querySelector('input[placeholder*="Buscar"]');
-        if (searchInput) {
-          searchInput.focus();
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleProfile = () => {
-    startTransition(() => {
-      navigate('/perfil');
-    });
-    handleMenuClose();
-  };
+  const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleLogout = async () => {
     try {
@@ -124,265 +84,185 @@ const Layout = ({ children }) => {
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }
-    handleMenuClose();
   };
 
-  const handleSearch = async (val) => {
-    setSearchQuery(val);
-    if (val.length < 2) {
-      setSearchResults({ products: [], customers: [], repairs: [], sales: [] });
+  const handleProfile = () => {
+    handleMenuClose();
+    navigate('/profile');
+  };
+
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    if (query.length < 2) {
+      setSearchResults({ products: [], customers: [], sales: [], repairs: [] });
       setNavigationResults([]);
       return;
     }
 
     setIsSearching(true);
-    try {
-      // Local Navigation Search
-      const navMatches = [
-        { title: 'Nueva Venta', path: '/quick-sale', icon: <ShoppingCartIcon />, type: 'ACCION' },
-        { title: 'Productos / Inventario', path: '/products', icon: <InventoryIcon />, type: 'SECCION' },
-        { title: 'Lista de Ventas', path: '/sales', icon: <ReceiptIcon />, type: 'SECCION' },
-        { title: 'Clientes', path: '/customers', icon: <PeopleIcon />, type: 'SECCION' },
-        { title: 'Reparaciones', path: '/repairs', icon: <BuildIcon />, type: 'SECCION' },
-        { title: 'Configuración / Ajustes', path: '/settings', icon: <SettingsIcon />, type: 'SECCION' },
-        { title: 'Reportes y Análisis', path: '/reports', icon: <AssessmentIcon />, type: 'SECCION' },
-        { title: 'Dashboard / Inicio', path: '/dashboard', icon: <DashboardIcon />, type: 'SECCION' },
-        { title: 'Caja / Arqueo', path: '/dashboard', icon: <AccountBalanceIcon />, type: 'SECCION' }
-      ].filter(item => item.title.toLowerCase().includes(val.toLowerCase()));
-      setNavigationResults(navMatches);
+    
+    // Quick search in navigation
+    const navItems = [
+      { title: 'Ir al Dashboard 🏠', path: '/dashboard', type: 'Sección' },
+      { title: 'Ver Productos 📦', path: '/products', type: 'Sección' },
+      { title: 'Nueva Venta 🛒', path: '/sales', type: 'Acción' },
+      { title: 'Lista de Clientes 👥', path: '/customers', type: 'Sección' },
+      { title: 'Reportes y Análisis 📊', path: '/analytics', type: 'Sección' }
+    ].filter(item => item.title.toLowerCase().includes(query.toLowerCase()));
+    
+    setNavigationResults(navItems);
 
-      const response = await api.get(`/search/global?q=${val}`);
-      if (response.data.success) {
-        setSearchResults(response.data.data);
-      }
+    try {
+      const response = await axios.get(`${API_URL}/search?q=${query}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setSearchResults(response.data);
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('Error en búsqueda global:', error);
     } finally {
       setIsSearching(false);
     }
   };
 
   const handleResultClick = (path) => {
-    startTransition(() => {
-      navigate(path);
-    });
-    setSearchQuery('');
-    setSearchResults({ products: [], customers: [], repairs: [], sales: [] });
-    setNavigationResults([]);
     setSearchAnchorEl(null);
+    setSearchQuery('');
+    navigate(path);
   };
 
-  const drawerWidth = isMobile ? '100%' : '280px';
-
   return (
-    <Box sx={{
-      display: 'flex',
-      minHeight: '100vh',
-      flexDirection: isMobile ? 'column' : 'row',
-      bgcolor: 'background.default',
-      transition: 'background-color 0.3s ease'
-    }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
-          width: { xs: '100%', md: `calc(100% - ${drawerWidth})` },
-          ml: { xs: 0, md: drawerWidth },
-          zIndex: theme.zIndex.drawer + 1,
-          background: theme.palette.background.paper,
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          ml: { xs: 0, md: `${drawerWidth}px` },
+          zIndex: theme.zIndex.drawer + 2,
+          background: alpha(theme.palette.background.paper, 0.8),
+          backdropFilter: 'blur(16px)',
           color: theme.palette.text.primary,
-          boxShadow: theme.shadows[1],
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          transition: 'background-color 0.3s ease, color 0.3s ease'
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: '64px', md: '64px' }, px: 2 }}>
+        <Toolbar sx={{ minHeight: { xs: '72px', md: '80px' }, px: { xs: 2, md: 4 } }}>
           {isMobile && (
             <IconButton
               aria-label="open drawer"
               edge="start"
               onClick={handleDrawerToggle}
               sx={{
-                mr: 1,
-                color: 'inherit',
-                backgroundColor: 'action.hover',
-                '&:hover': {
-                  bgcolor: 'action.selected'
-                }
+                mr: 2,
+                color: 'primary.main',
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                borderRadius: '12px',
+                '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.15) }
               }}
             >
               <MenuIcon />
             </IconButton>
           )}
 
-          {/* Search Bar - Similar to Whabot */}
-          <Box
-            sx={{
-              flex: 1,
-              mx: { xs: 1, md: 4 },
-              display: { xs: 'none', md: 'block' },
-              position: 'relative'
-            }}
-          >
-            <Input
-              placeholder="Buscar productos, clientes, ventas, configuración... (Ctrl+K)"
-              value={searchQuery}
-              onChange={(e) => {
-                handleSearch(e.target.value);
-                setSearchAnchorEl(e.currentTarget);
-              }}
-              onFocus={(e) => {
-                if (searchQuery.length >= 2) setSearchAnchorEl(e.currentTarget);
-              }}
-              startAdornment={
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: 'primary.main', mr: 1 }} />
-                </InputAdornment>
-              }
-              endAdornment={
-                <InputAdornment position="end">
-                  <Box sx={{
-                    px: 0.8,
-                    py: 0.2,
-                    borderRadius: 1,
-                    bgcolor: 'action.hover',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    display: { xs: 'none', lg: 'block' }
-                  }}>
-                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>⌘K</Typography>
-                  </Box>
-                </InputAdornment>
-              }
-              disableUnderline
+          {/* Buscador Versión Pro */}
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, alignItems: 'center', position: 'relative', maxWidth: 650 }}>
+            <Box
               sx={{
-                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f3f4f6',
-                borderRadius: '12px',
-                px: 2,
-                py: 0.5,
                 width: '100%',
-                maxWidth: '600px',
-                border: `1px solid ${theme.palette.divider}`,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  bgcolor: 'action.hover'
-                },
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: alpha(theme.palette.action.hover, 0.05),
+                borderRadius: '50px',
+                px: 2.5,
+                py: 1.2,
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                transition: 'all 0.3s ease',
+                '&:hover': { bgcolor: alpha(theme.palette.action.hover, 0.1) },
                 '&:focus-within': {
+                  bgcolor: 'background.paper',
                   borderColor: 'primary.main',
-                  boxShadow: `0 0 0 2px ${theme.palette.primary.main}22`,
-                  bgcolor: 'background.paper'
+                  boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.15)}`
                 }
               }}
-            />
+            >
+              <SearchIcon sx={{ color: 'text.secondary', mr: 1.5, fontSize: 22 }} />
+              <Input
+                placeholder="Busca productos, clientes o lo que necesites hoy... 🔎"
+                disableUnderline
+                value={searchQuery}
+                onChange={(e) => {
+                  handleSearch(e.target.value);
+                  setSearchAnchorEl(e.currentTarget.parentElement);
+                }}
+                onFocus={(e) => {
+                  if (searchQuery.length >= 2) setSearchAnchorEl(e.currentTarget.parentElement);
+                }}
+                sx={{
+                  width: '100%',
+                  fontSize: '0.92rem',
+                  fontWeight: 600,
+                  color: 'text.primary'
+                }}
+              />
+              <Box sx={{
+                px: 1,
+                py: 0.3,
+                borderRadius: 2,
+                bgcolor: alpha(theme.palette.primary.main, 0.08),
+                display: { xs: 'none', lg: 'block' }
+              }}>
+                <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 800 }}>Ctrl+K</Typography>
+              </Box>
+            </Box>
 
-            {/* Dropdown de Resultados (Popper para evitar fritz y robo de foco) */}
             <Popper
-              open={Boolean(searchAnchorEl) && searchQuery.length >= 2 && (navigationResults.length > 0 || searchResults.products?.length > 0 || searchResults.customers?.length > 0 || searchResults.sales?.length > 0 || searchResults.repairs?.length > 0 || isSearching)}
+              open={Boolean(searchAnchorEl) && searchQuery.length >= 2}
               anchorEl={searchAnchorEl}
               placement="bottom-start"
-              style={{ zIndex: 1300, width: searchAnchorEl?.offsetWidth || 600 }}
+              style={{ zIndex: 1400, width: searchAnchorEl?.offsetWidth || 600 }}
             >
               <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
                 <Paper
-                  elevation={8}
+                  elevation={0}
                   sx={{
-                    mt: 1,
-                    maxHeight: 500,
-                    overflowY: 'auto',
-                    borderRadius: 2,
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                    border: `1px solid ${theme.palette.divider}`,
-                    bgcolor: 'background.paper'
+                    mt: 1.5,
+                    borderRadius: 3,
+                    boxShadow: '0 15px 45px rgba(0,0,0,0.12)',
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    bgcolor: alpha(theme.palette.background.paper, 0.98),
+                    backdropFilter: 'blur(12px)',
+                    overflow: 'hidden'
                   }}
                 >
-                  <List sx={{ py: 0 }}>
-                    {isSearching && (
-                      <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    )}
-
-                    {!isSearching && navigationResults.length > 0 && (
+                  <List sx={{ py: 0, maxHeight: 450, overflowY: 'auto' }}>
+                    {isSearching ? (
+                      <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress size={28} /></Box>
+                    ) : (
                       <>
-                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'primary.main', bgcolor: 'action.hover' }}>
-                          ACCIONES Y SECCIONES
-                        </Typography>
-                        {navigationResults.map((item, idx) => (
-                          <MenuItem key={idx} onClick={() => handleResultClick(item.path)}>
-                            <ListItemIcon sx={{ minWidth: 36 }}>{item.icon}</ListItemIcon>
-                            <ListItemText primary={item.title} secondary={item.type} />
-                          </MenuItem>
-                        ))}
-                        <Divider />
+                        {navigationResults.length > 0 && (
+                          <Box sx={{ p: 1 }}>
+                            <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 800, color: 'primary.main', textTransform: 'uppercase', fontSize: '0.65rem' }}>📍 ACCESOS RÁPIDOS</Typography>
+                            {navigationResults.map((item, idx) => (
+                              <MenuItem key={idx} onClick={() => handleResultClick(item.path)} sx={{ borderRadius: 2, mb: 0.5 }}>
+                                <ListItemIcon sx={{ minWidth: 40, color: 'primary.main' }}><DashboardIcon fontSize="small" /></ListItemIcon>
+                                <ListItemText primary={item.title} primaryTypographyProps={{ fontWeight: 600, fontSize: '0.88rem' }} />
+                              </MenuItem>
+                            ))}
+                          </Box>
+                        )}
+                        {searchResults.products?.length > 0 && (
+                          <Box sx={{ p: 1 }}>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 800, color: 'success.main', textTransform: 'uppercase', fontSize: '0.65rem' }}>📦 PRODUCTOS</Typography>
+                            {searchResults.products.map((p) => (
+                              <MenuItem key={p._id} onClick={() => { setSearchAnchorEl(null); setSelectedProduct(p); }} sx={{ borderRadius: 2 }}>
+                                <ListItemIcon sx={{ minWidth: 40 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
+                                <ListItemText primary={p.nombre} secondary={`RD$ ${p.precio} | Stock: ${p.stock}`} />
+                              </MenuItem>
+                            ))}
+                          </Box>
+                        )}
                       </>
-                    )}
-
-                    {searchResults.products?.length > 0 && (
-                      <>
-                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'success.main', bgcolor: 'action.hover' }}>
-                          PRODUCTOS
-                        </Typography>
-                        {searchResults.products.map((p) => (
-                          <MenuItem key={p._id} onClick={() => {
-                            setSearchAnchorEl(null);
-                            setSelectedProduct(p);
-                          }}>
-                            <ListItemIcon sx={{ minWidth: 36 }}><InventoryIcon fontSize="small" color="success" /></ListItemIcon>
-                            <ListItemText primary={p.nombre} secondary={`Stock: ${p.stock} | RD$ ${p.precio}`} />
-                          </MenuItem>
-                        ))}
-                        <Divider />
-                      </>
-                    )}
-
-                    {searchResults.customers?.length > 0 && (
-                      <>
-                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'info.main', bgcolor: 'action.hover' }}>
-                          CLIENTES
-                        </Typography>
-                        {searchResults.customers.map((c) => (
-                          <MenuItem key={c._id} onClick={() => handleResultClick(`/clientes`)}>
-                            <ListItemIcon sx={{ minWidth: 36 }}><PeopleIcon fontSize="small" color="info" /></ListItemIcon>
-                            <ListItemText primary={c.nombre} secondary={c.email || c.telefono} />
-                          </MenuItem>
-                        ))}
-                        <Divider />
-                      </>
-                    )}
-
-                    {searchResults.sales?.length > 0 && (
-                      <>
-                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'warning.main', bgcolor: 'action.hover' }}>
-                          VENTAS
-                        </Typography>
-                        {searchResults.sales.map((s) => (
-                          <MenuItem key={s._id} onClick={() => handleResultClick(`/sales`)}>
-                            <ListItemIcon sx={{ minWidth: 36 }}><ReceiptIcon fontSize="small" color="warning" /></ListItemIcon>
-                            <ListItemText primary={`Venta ${s.numero_venta}`} secondary={`Total: RD$ ${s.total} | ${s.estado}`} />
-                          </MenuItem>
-                        ))}
-                        <Divider />
-                      </>
-                    )}
-
-                    {searchResults.repairs?.length > 0 && (
-                      <>
-                        <Typography variant="caption" sx={{ px: 2, py: 1, display: 'block', fontWeight: 'bold', color: 'error.main', bgcolor: 'action.hover' }}>
-                          REPARACIONES
-                        </Typography>
-                        {searchResults.repairs.map((r) => (
-                          <MenuItem key={r._id} onClick={() => handleResultClick(`/repairs`)}>
-                            <ListItemIcon sx={{ minWidth: 36 }}><BuildIcon fontSize="small" color="error" /></ListItemIcon>
-                            <ListItemText primary={`${r.brand} ${r.device}`} secondary={`Cliente: ${r.customer_name} | ${r.status}`} />
-                          </MenuItem>
-                        ))}
-                      </>
-                    )}
-
-                    {!isSearching && navigationResults.length === 0 && searchResults.products?.length === 0 && searchResults.customers?.length === 0 && searchResults.sales?.length === 0 && searchResults.repairs?.length === 0 && (
-                      <Box sx={{ p: 3, textAlign: 'center' }}>
-                        <Typography color="textSecondary">No se encontraron resultados para "{searchQuery}"</Typography>
-                      </Box>
                     )}
                   </List>
                 </Paper>
@@ -392,147 +272,104 @@ const Layout = ({ children }) => {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {user && (
-            <>
-              <IconButton
-                color="inherit"
-                onClick={() => startTransition(() => setOpenNotificaciones(true))}
-                sx={{
-                  color: 'gray.600',
-                  mr: 1,
-                  '&:hover': {
-                    bgcolor: 'gray.100'
-                  }
-                }}
-              >
-                <Badge badgeContent={notificacionesNoLeidas} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
-              <NotificacionesModal open={openNotificaciones} onClose={() => setOpenNotificaciones(false)} />
+          <Stack direction="row" spacing={{ xs: 0.5, md: 1.5 }} alignItems="center">
+            {user && (
+              <>
+                <IconButton
+                  onClick={() => startTransition(() => setOpenNotificaciones(true))}
+                  sx={{
+                    color: 'text.secondary',
+                    bgcolor: alpha(theme.palette.action.hover, 0.05),
+                    width: 44,
+                    height: 44,
+                    '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08), color: 'error.main', transform: 'translateY(-2px)' },
+                    transition: 'all 0.25s'
+                  }}
+                >
+                  <Badge badgeContent={notificacionesNoLeidas} color="error" overlap="circular">
+                    <NotificationsIcon sx={{ fontSize: 22 }} />
+                  </Badge>
+                </IconButton>
+                <NotificacionesModal open={openNotificaciones} onClose={() => setOpenNotificaciones(false)} />
 
-              <Tooltip title="Opciones de perfil">
                 <Box
                   onClick={handleMenuOpen}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1,
+                    gap: 1.5,
                     cursor: 'pointer',
-                    py: 0.5,
-                    px: 1.5,
-                    borderRadius: 2,
+                    py: 0.8,
+                    px: 0.8,
+                    borderRadius: '40px',
+                    bgcolor: alpha(theme.palette.background.paper, 0.6),
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    transition: 'all 0.3s ease',
                     '&:hover': {
-                      bgcolor: 'gray.100'
+                      bgcolor: alpha(theme.palette.primary.main, 0.05),
+                      borderColor: alpha(theme.palette.primary.main, 0.2),
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
                     }
                   }}
                 >
                   <Avatar
                     src={user.photoURL}
-                    alt={user.displayName}
                     sx={{
-                      width: 32,
-                      height: 32,
-                      border: '1px solid',
-                      borderColor: 'gray.200',
-                      bgcolor: 'primary.main'
+                      width: 40,
+                      height: 40,
+                      boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.2)}`,
+                      transition: 'transform 0.3s ease',
+                      '&:hover': { transform: 'scale(1.1)' }
                     }}
                   >
                     {user.displayName?.[0] || user.email?.[0]}
                   </Avatar>
-                  <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                        color: 'gray.700',
-                        fontSize: '0.875rem'
-                      }}
-                    >
+                  <Box sx={{ display: { xs: 'none', lg: 'block' }, pr: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary', fontSize: '0.85rem' }}>
                       {user.displayName || user.email?.split('@')[0]}
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'gray.500',
-                        display: 'block'
-                      }}
-                    >
-                      Administrador
+                    <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 800, fontSize: '0.62rem', letterSpacing: 0.5 }}>
+                      EN LÍNEA 🟢
                     </Typography>
                   </Box>
                 </Box>
-              </Tooltip>
 
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-                onClick={handleMenuClose}
-                PaperProps={{
-                  sx: {
-                    mt: 1.5,
-                    minWidth: 200,
-                    borderRadius: 2,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                    border: '1px solid',
-                    borderColor: 'gray.300',
-                    bgcolor: 'white',
-                    '& .MuiMenuItem-root': {
-                      py: 1.5,
-                      px: 2,
-                      borderRadius: 1,
-                      color: 'text.primary',
-                      '&:hover': {
-                        bgcolor: '#f3f4f6'
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleMenuClose}
+                  onClick={handleMenuClose}
+                  PaperProps={{
+                    sx: {
+                      mt: 2,
+                      width: 240,
+                      borderRadius: 4,
+                      boxShadow: '0 15px 40px rgba(0,0,0,0.15)',
+                      p: 1,
+                      '& .MuiMenuItem-root': {
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: '0.88rem',
+                        '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.05), color: 'primary.main' }
                       }
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: 'text.secondary',
-                      minWidth: 36,
-                    }
-                  }
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              >
-                <MenuItem onClick={handleProfile}>
-                  <ListItemIcon>
-                    <AccountCircleIcon fontSize="small" />
-                  </ListItemIcon>
-                  Mi Perfil
-                </MenuItem>
-                <MenuItem onClick={() => startTransition(() => navigate('/settings'))}>
-                  <ListItemIcon>
-                    <SettingsIcon fontSize="small" />
-                  </ListItemIcon>
-                  Configuración
-                </MenuItem>
-                <MenuItem onClick={() => startTransition(() => setOpenSoporte(true))}>
-                  <ListItemIcon>
-                    <SupportAgentIcon fontSize="small" />
-                  </ListItemIcon>
-                  Soporte técnico
-                </MenuItem>
-                <Divider />
-                <MenuItem
-                  onClick={handleLogout}
-                  sx={{
-                    color: 'error.main',
-                    '&:hover': {
-                      bgcolor: 'error.50',
-                      color: 'error.dark'
                     }
                   }}
+                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                 >
-                  <ListItemIcon>
-                    <LogoutIcon fontSize="small" color="error" />
-                  </ListItemIcon>
-                  Cerrar Sesión
-                </MenuItem>
-              </Menu>
-            </>
-          )}
+                  <MenuItem onClick={handleProfile}><ListItemIcon><AccountCircleIcon /></ListItemIcon> Mi Cuenta 👤</MenuItem>
+                  <MenuItem onClick={() => startTransition(() => navigate('/settings'))}><ListItemIcon><SettingsIcon /></ListItemIcon> Ajustes ⚙️</MenuItem>
+                  <MenuItem onClick={() => startTransition(() => setOpenSoporte(true))}><ListItemIcon><SupportAgentIcon /></ListItemIcon> Soporte Amigo 🎧</MenuItem>
+                  <Divider sx={{ my: 1, opacity: 0.5 }} />
+                  <MenuItem onClick={handleLogout} sx={{ color: 'error.main', '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) } }}>
+                    <ListItemIcon><LogoutIcon color="error" /></ListItemIcon> Salir 👋
+                  </MenuItem>
+                </Menu>
+              </>
+            )}
+          </Stack>
         </Toolbar>
       </AppBar>
 
@@ -541,35 +378,24 @@ const Layout = ({ children }) => {
         onClose={handleDrawerToggle}
         drawerWidth={drawerWidth}
       />
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: { xs: 2, sm: 3, md: 4 },
-          width: {
-            xs: '100%',
-            sm: '100%'
-          },
-          ml: {
-            xs: 0,
-            sm: 0
-          },
-          mt: {
-            xs: '64px',
-            md: '64px'
-          },
-          overflow: 'auto',
-          maxWidth: '100%',
+          p: { xs: 2, sm: 3, md: 4, lg: 5 },
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          mt: { xs: '80px', md: '90px' },
           bgcolor: 'background.default',
-          transition: 'background-color 0.3s ease'
+          transition: 'all 0.3s ease'
         }}
       >
         <Routes>
-          {/* ...otras rutas... */}
           <Route path="/canva-flyer" element={<CanvaFlyerGenerator />} />
         </Routes>
         {children}
       </Box>
+
       <SoporteTecnicoModal open={openSoporte} onClose={() => setOpenSoporte(false)} />
       <ProductDetailModal
         open={Boolean(selectedProduct)}
@@ -580,4 +406,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout; 
+export default Layout;

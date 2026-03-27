@@ -412,15 +412,17 @@ const DashboardPro = () => {
             </Box>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                <Typography variant="h4" sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.75rem' }, letterSpacing: '-0.02em', color: 'text.primary' }}>Dashboard</Typography>
-                <Tooltip title="Actualizar">
+                <Typography variant="h4" sx={{ fontWeight: 900, fontSize: { xs: '1.25rem', md: '1.75rem' }, letterSpacing: '-0.02em', color: 'text.primary' }}>
+                  ¡Hola, {user?.nombre || user?.displayName?.split(' ')[0] || 'Amigo'}! 👋
+                </Typography>
+                <Tooltip title="Refrescar">
                   <IconButton onClick={fetchDashboardData} size="small" sx={{ bgcolor: alpha(theme.palette.primary.main, 0.06), color: 'primary.main', border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`, '&:hover': { bgcolor: 'primary.main', color: 'white', transform: 'rotate(180deg)' } }}>
                     <Refresh sx={{ fontSize: 16 }} />
                   </IconButton>
                 </Tooltip>
               </Box>
               <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.8rem', mt: 0.5 }}>
-                {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es }).replace(/^\w/, (c) => c.toUpperCase())}
+                ¡Qué bueno verte hoy! 😊 — {format(new Date(), "EEEE, d 'de' MMMM", { locale: es }).replace(/^\w/, (c) => c.toUpperCase())}
               </Typography>
             </Box>
           </Box>
