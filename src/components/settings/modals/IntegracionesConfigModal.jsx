@@ -30,11 +30,7 @@ const IntegracionesConfigModal = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
 
-  // Whabot Configuration
-  const [whabotEnabled, setWhabotEnabled] = useState(false);
-  const [whabotInstanceId, setWhabotInstanceId] = useState('');
-  const [whabotApiKey, setWhabotApiKey] = useState('');
-  const [whabotWebhookUrl, setWhabotWebhookUrl] = useState('');
+
 
   // Store APIs
   const [storeApis, setStoreApis] = useState([
@@ -65,12 +61,7 @@ const IntegracionesConfigModal = ({ onClose }) => {
         const config = response.data.data;
         console.log('Loaded Whabot config:', config);
         
-        if (config.whabot) {
-          setWhabotEnabled(config.whabot.enabled || false);
-          setWhabotInstanceId(config.whabot.instanceId || '');
-          setWhabotApiKey(config.whabot.apiKey || '');
-          setWhabotWebhookUrl(config.whabot.webhookUrl || '');
-        }
+          // No Whabot config to load here anymore, handled in WhatsApp modal
         
         // Load store APIs if they exist
         if (config.storeApis && Array.isArray(config.storeApis) && config.storeApis.length > 0) {
@@ -120,36 +111,7 @@ const IntegracionesConfigModal = ({ onClose }) => {
     setStoreApis(updated);
   };
 
-  const handleTestWhabot = async () => {
-    setAlert(null);
-    setLoading(true);
 
-    try {
-      const testData = {
-        instanceId: whabotInstanceId,
-        apiKey: whabotApiKey,
-      };
-
-      const response = await axios.post(`${API_URL}/whabot/test`, testData, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.data.success) {
-        setAlert({ type: 'success', message: 'Conexión con Whabot exitosa' });
-      } else {
-        setAlert({ type: 'error', message: 'Error al conectar con Whabot' });
-      }
-    } catch (error) {
-      setAlert({
-        type: 'error',
-        message: error.response?.data?.message || 'Error al probar conexión con Whabot'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleTestStoreApi = async (index) => {
     const storeApi = storeApis[index];
@@ -193,12 +155,6 @@ const IntegracionesConfigModal = ({ onClose }) => {
 
     try {
       const configData = {
-        whabot: {
-          enabled: whabotEnabled,
-          instanceId: whabotInstanceId,
-          apiKey: whabotApiKey,
-          webhookUrl: whabotWebhookUrl,
-        },
         storeApis: storeApis.filter(api => api.name && api.apiUrl && api.apiKey),
       };
 
@@ -242,74 +198,7 @@ const IntegracionesConfigModal = ({ onClose }) => {
         </Box>
       )}
 
-      {/* Whabot Configuration */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <WhatsAppIcon sx={{ fontSize: 32, color: '#25D366' }} />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Integración Whabot Pro
-          </Typography>
-        </Box>
 
-        <FormControlLabel
-          control={
-            <Switch
-              checked={whabotEnabled}
-              onChange={(e) => setWhabotEnabled(e.target.checked)}
-              color="success"
-            />
-          }
-          label="Habilitar integración con Whabot Pro"
-          sx={{ mb: 2 }}
-        />
-
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Instance ID de Whabot"
-              value={whabotInstanceId}
-              onChange={(e) => setWhabotInstanceId(e.target.value)}
-              placeholder="Tu Instance ID de Whabot"
-              size="small"
-              helperText="ID único de tu instancia de Whabot Pro"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="API Key"
-              value={whabotApiKey}
-              onChange={(e) => setWhabotApiKey(e.target.value)}
-              placeholder="Tu API Key"
-              type="password"
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Webhook URL (Opcional)"
-              value={whabotWebhookUrl}
-              onChange={(e) => setWhabotWebhookUrl(e.target.value)}
-              placeholder="https://tu-dominio.com/webhook"
-              size="small"
-              helperText="URL para recibir órdenes de Whabot"
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Button
-              variant="outlined"
-              startIcon={<StoreIcon />}
-              onClick={handleTestWhabot}
-              disabled={!whabotInstanceId || !whabotApiKey}
-              sx={{ mr: 2 }}
-            >
-              Probar Conexión
-            </Button>
-          </Grid>
-        </Grid>
-      </Box>
 
       <Divider sx={{ my: 4 }} />
 
