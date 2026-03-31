@@ -15,7 +15,7 @@ import {
   Chip,
   Grid
 } from '@mui/material';
-import axios from 'axios';
+import api from '../../../api/api';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../firebase/config';
 import { useAuth } from '../../../context/AuthContextMongo';
@@ -36,9 +36,37 @@ const WhatsAppConfigModal = ({ onClose }) => {
 
   // Whabot configuration
   const [whabotEnabled, setWhabotEnabled] = useState(false);
-  const [whabotUrl, setWhabotUrl] = useState('');
   const [whabotApiKey, setWhabotApiKey] = useState('');
   const [whabotLoading, setWhabotLoading] = useState(false);
+  const [whabotConfigLoaded, setWhabotConfigLoaded] = useState(false);
+
+  // Generar un API ID aleatorio estilo SaaS (pt_live_XXXXX)
+  const generateApiKey = () => {
+    return 'pt_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  };
+
+  // Cargar la configuración de MONGODB (WhabotConfig) cuando abren el tab
+  React.useEffect(() => {
+    if (tab === 1 && !whabotConfigLoaded && user?.uid) {
+      loadWhabotMongoConfig();
+    }
+  }, [tab, user]);
+
+  const loadWhabotMongoConfig = async () => {
+    try {
+      setWhabotLoading(true);
+      const res = await api.get('/whabot/config');
+      if (res.data.success && res.data.data) {
+        setWhabotEnabled(res.data.data.whabot?.enabled || false);
+        setWhabotApiKey(res.data.data.whabot?.apiKey || '');
+        setWhabotConfigLoaded(true);
+      }
+    } catch (error) {
+      console.error('Error cargando config de Whabot desde MongoDB:', error);
+    } finally {
+      setWhabotLoading(false);
+    }
+  };
 
   const validatePhone = (number) => /^\+[1-9]\d{10,14}$/.test(number);
 
@@ -68,7 +96,7 @@ const WhatsAppConfigModal = ({ onClose }) => {
         payload.token = token;
       }
       console.log('Enviando prueba de WhatsApp:', payload);
-      const response = await axios.post(`${API_URL}/api/notifications/test-whatsapp`, payload);
+      const response = await api.post('/notifications/test-whatsapp', payload);
       console.log('Respuesta del servidor:', response.data);
       if (response.data.success) {
         setAlert({ type: 'success', message: 'Mensaje de prueba enviado correctamente' });
@@ -136,37 +164,38 @@ const WhatsAppConfigModal = ({ onClose }) => {
   };
 
   const handleSaveWhabot = async () => {
-    if (!whabotUrl.trim()) {
-      setAlert({ type: 'error', message: 'La URL de Whabot es requerida' });
-      return;
-    }
-    if (!whabotApiKey.trim()) {
-      setAlert({ type: 'error', message: 'La API Key es requerida' });
-      return;
+    setAlert(null);
+    let keyToSave = whabotApiKey;
+    
+    // Si lo habilitan pero no hay API Key, generamos una
+    if (whabotEnabled && !keyToSave) {
+      keyToSave = generateApiKey();
+      setWhabotApiKey(keyToSave);
     }
 
     setWhabotLoading(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
+      // 1. Guardar en MONGODB (WhabotConfig) para que los webhooks funcionen
+      await api.post('/whabot/config', {
         whabot: {
           enabled: whabotEnabled,
-          url: whabotUrl,
-          apiKey: whabotApiKey
+          apiKey: keyToSave
         }
       });
       
-      setAlert({ type: 'success', message: 'Configuración de Whabot guardada correctamente' });
+      setAlert({ type: 'success', message: '¡Integración con Whabot Pro guardada exitosamente!' });
       
-      if (typeof reloadUser === 'function') {
-        await reloadUser();
-      }
     } catch (error) {
       console.error('Error al guardar configuración de Whabot:', error);
-      setAlert({ type: 'error', message: 'Error al guardar configuración de Whabot' });
+      setAlert({ type: 'error', message: 'Error al conectar con el servidor POSENT.' });
     } finally {
       setWhabotLoading(false);
     }
+  };
+
+  const copiarApiKey = () => {
+    navigator.clipboard.writeText(whabotApiKey);
+    setAlert({ type: 'success', message: 'API Key copiada al portapapeles. Ahora pégala en Whabot.' });
   };
 
   return (
@@ -303,31 +332,33 @@ const WhatsAppConfigModal = ({ onClose }) => {
 
           {whabotEnabled && (
             <>
-              <TextField
-                fullWidth
-                label="URL de Whabot Pro"
-                value={whabotUrl}
-                onChange={e => setWhabotUrl(e.target.value)}
-                margin="normal"
-                placeholder="https://tu-whabot-pro.com"
-                helperText="URL completa de tu instancia de Whabot Pro"
-              />
+              <Box sx={{ mt: 2, p: 3, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f5f5f5' }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Tu API Key de Conexión (Cópiala y pégala en Whabot Pro)
+                </Typography>
+                
+                {whabotApiKey ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                    <Typography 
+                      variant="body1" 
+                      sx={{ fontFamily: 'monospace', fontWeight: 'bold', bgcolor: 'white', p: 1, borderRadius: 1, border: '1px solid #ddd', flexGrow: 1 }}
+                    >
+                      {whabotApiKey}
+                    </Typography>
+                    <Button variant="outlined" size="small" onClick={copiarApiKey}>
+                      Copiar
+                    </Button>
+                  </Box>
+                ) : (
+                  <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>
+                    Guarda la configuración para generar tu API Key privada...
+                  </Typography>
+                )}
+              </Box>
 
-              <TextField
-                fullWidth
-                label="API Key"
-                value={whabotApiKey}
-                onChange={e => setWhabotApiKey(e.target.value)}
-                margin="normal"
-                type="password"
-                placeholder="tu-api-key-secreta"
-                helperText="API Key para autenticar con Whabot Pro"
-              />
-
-              <Alert severity="warning" sx={{ mt: 2 }}>
+              <Alert severity="success" sx={{ mt: 3 }}>
                 <Typography variant="body2">
-                  Para obtener tu API Key, ve a la configuración de Whabot Pro → 
-                  Integraciones → Generar API Key
+                  <strong>¡Mucho más fácil!</strong> Ahora solo necesitas copiar este API Key único y pegarlo en tu panel de Whabot Pro → Integraciones → POSENT. No necesitas configurar URLs ni datos adicionales.
                 </Typography>
               </Alert>
             </>
