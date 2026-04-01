@@ -53,11 +53,14 @@ export const SaleDetails = ({ open, onClose, sale, onPrint, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSale, setEditedSale] = useState(sale);
   const { enqueueSnackbar } = useSnackbar();
+  const { setCart } = useCart();
+  const navigate = useNavigate();
 
   if (!sale) return null;
 
-  const saleId = sale._id;
+  const saleId = sale._id || sale.id;
   const saleDate = new Date(sale.date || sale.createdAt);
+  const isPending = ['pending', 'pendiente', 'procesando', 'processing'].includes(sale.status?.toLowerCase());
 
   const handleSave = async () => {
     try {
@@ -73,12 +76,53 @@ export const SaleDetails = ({ open, onClose, sale, onPrint, onUpdate }) => {
     }
   };
 
+  const handleLoadToCart = async () => {
+    try {
+      const cartItems = (sale.items || []).map(item => ({
+        id: item.producto_id || item.id || `item-${Math.random()}`,
+        name: item.nombre || item.name || 'Producto',
+        price: item.precio_unitario || item.price || 0,
+        quantity: item.cantidad || item.quantity || 1,
+        code: item.codigo || item.code || '',
+        meta: { type: 'product', source: 'converted_order', orderId: sale._id || sale.id }
+      }));
+      if (cartItems.length === 0) {
+        enqueueSnackbar('La orden no tiene productos', { variant: 'warning' });
+        return;
+      }
+      try {
+        if (saleId) await api.patch(`/sales/${saleId}`, { estado: 'procesando', status: 'processing' });
+      } catch (err) {}
+      setCart(cartItems);
+      enqueueSnackbar('✅ Orden cargada al carrito', { variant: 'success' });
+      navigate('/quick-sale', { state: { saleToLoad: sale } });
+      onClose();
+    } catch (err) {
+      enqueueSnackbar('Error al cargar la orden', { variant: 'error' });
+    }
+  };
+
+  const handleCancelSale = async () => {
+    if (window.confirm('¿Confirmas que deseas cancelar definitivamente esta orden?')) {
+      try {
+        setLoading(true);
+        await api.patch(`/sales/${saleId}`, { estado: 'anulada', status: 'anulada' });
+        enqueueSnackbar('Orden cancelada correctamente', { variant: 'success' });
+        onClose();
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (err) {
+        enqueueSnackbar('Error al cancelar orden', { variant: 'error' });
+        setLoading(false);
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Grid container justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">
-            Detalles de Venta #{saleId.slice(-6)}
+          <Typography variant="h6" fontWeight="bold">
+            Detalles de Venta #{String(saleId).slice(-6)}
           </Typography>
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
@@ -86,8 +130,8 @@ export const SaleDetails = ({ open, onClose, sale, onPrint, onUpdate }) => {
         </Grid>
       </DialogTitle>
 
-      <DialogContent>
-        {error && <Alert severity="error">{error}</Alert>}
+      <DialogContent dividers>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         {loading ? (
           <Box textAlign="center" py={4}>
@@ -95,22 +139,37 @@ export const SaleDetails = ({ open, onClose, sale, onPrint, onUpdate }) => {
           </Box>
         ) : (
           <>
-            <Grid container spacing={2} mb={3}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Cliente</Typography>
-                <Typography>{sale.customerName || 'Cliente General'}</Typography>
+            <Box mb={3} p={2} bgcolor="background.default" borderRadius={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary">Cliente</Typography>
+                  <Typography variant="body1" fontWeight={500}>{sale.customerName || sale.cliente_nombre || 'Cliente General'}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary">Fecha</Typography>
+                  <Typography variant="body1">{format(saleDate, 'dd/MM/yyyy HH:mm', { locale: es })}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary">Estado</Typography>
+                  <Box mt={0.5}>
+                    <Chip label={sale.status || sale.estado} color={sale.status === 'completed' || sale.estado === 'completada' ? 'success' : isPending ? 'warning' : 'error'} size="small" />
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" color="text.secondary">Método de Pago</Typography>
+                  <Typography variant="body1">{sale.paymentMethod || sale.metodo_pago || 'No especificado'}</Typography>
+                </Grid>
+                {(sale.notes || sale.notas) && (
+                  <Grid item xs={12}>
+                    <Typography variant="caption" color="text.secondary">Notas de la orden:</Typography>
+                    <Typography variant="body2">{sale.notes || sale.notas}</Typography>
+                  </Grid>
+                )}
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2">Estado</Typography>
-                <Chip
-                  label={sale.status}
-                  color={sale.status === 'completed' ? 'success' : 'error'}
-                  size="small"
-                />
-              </Grid>
-            </Grid>
+            </Box>
 
-            <TableContainer component={Paper} variant="outlined">
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>Productos</Typography>
+            <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
               <Table size="small">
                 <TableHead>
                   <TableRow>
@@ -123,43 +182,68 @@ export const SaleDetails = ({ open, onClose, sale, onPrint, onUpdate }) => {
                 <TableBody>
                   {sale.items?.map((item, i) => (
                     <TableRow key={i}>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell align="right">{item.quantity}</TableCell>
-                      <TableCell align="right">${item.price}</TableCell>
+                      <TableCell>{item.name || item.nombre}</TableCell>
+                      <TableCell align="right">{item.quantity || item.cantidad}</TableCell>
+                      <TableCell align="right">{formatCurrency(item.price || item.precio_unitario || 0)}</TableCell>
                       <TableCell align="right">
-                        ${(item.quantity * item.price).toFixed(2)}
+                        {formatCurrency((item.quantity || item.cantidad || 0) * (item.price || item.precio_unitario || 0))}
                       </TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
-                    <TableCell colSpan={3} align="right"><b>Total</b></TableCell>
-                    <TableCell align="right"><b>${sale.total}</b></TableCell>
+                    <TableCell colSpan={3} align="right"><b>Total General</b></TableCell>
+                    <TableCell align="right">
+                      <Typography variant="subtitle1" fontWeight="bold" color="primary.main">
+                        {formatCurrency(sale.total)}
+                      </Typography>
+                    </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
 
-            <Typography mt={2}>
-              Fecha: {saleDate.toLocaleString()}
-            </Typography>
-
-            <Box mt={3} display="flex" justifyContent="flex-end" gap={1}>
+            <Box mt={2} display="flex" justifyContent="flex-end" flexWrap="wrap" gap={1.5}>
               {isEditing ? (
-                <Button startIcon={<SaveIcon />} onClick={handleSave}>
+                <Button startIcon={<SaveIcon />} onClick={handleSave} variant="contained">
                   Guardar
                 </Button>
               ) : (
                 <>
-                  <Button startIcon={<EditIcon />} onClick={() => setIsEditing(true)}>
-                    Editar
-                  </Button>
-                  <Button
-                    variant="contained"
-                    startIcon={<PrintIcon />}
-                    onClick={() => onPrint(sale)}
-                  >
-                    Imprimir
-                  </Button>
+                  {isPending && (
+                    <>
+                      <Button
+                        variant="contained"
+                        color={['procesando', 'processing'].includes(sale.status?.toLowerCase()) ? 'warning' : 'primary'}
+                        startIcon={<ShoppingBagIcon />}
+                        onClick={handleLoadToCart}
+                      >
+                        Procesar en Carrito
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        startIcon={<CancelIcon />}
+                        onClick={handleCancelSale}
+                      >
+                        Anular
+                      </Button>
+                    </>
+                  )}
+                  {onUpdate && !isPending && (
+                    <Button startIcon={<EditIcon />} onClick={() => setIsEditing(true)}>
+                      Editar Info
+                    </Button>
+                  )}
+                  {onPrint && (
+                    <Button
+                      variant={isPending ? "text" : "contained"}
+                      color="secondary"
+                      startIcon={<PrintIcon />}
+                      onClick={() => onPrint(sale)}
+                    >
+                      Imprimir
+                    </Button>
+                  )}
                 </>
               )}
             </Box>
@@ -276,7 +360,12 @@ const SalesList = ({
                   const date = new Date(sale.date || sale.createdAt);
 
                   return (
-                    <TableRow key={sale._id} hover>
+                    <TableRow 
+                      key={sale._id} 
+                      hover 
+                      onClick={() => onViewDetails(sale)} 
+                      sx={{ cursor: 'pointer' }}
+                    >
                       <TableCell>{sale._id.slice(0, 8)}...</TableCell>
                       <TableCell>
                         {format(date, 'dd/MM/yyyy HH:mm', { locale: es })}
@@ -302,7 +391,7 @@ const SalesList = ({
                       <TableCell align="center">
                         <Box display="flex" justifyContent="center" gap={0.5}>
                           <Tooltip title="Ver detalles">
-                            <IconButton size="small" onClick={() => onViewDetails(sale)}>
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); onViewDetails(sale); }}>
                               <ViewIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -317,7 +406,7 @@ const SalesList = ({
                                 <IconButton 
                                   size="small" 
                                   color={['procesando', 'processing'].includes(sale.status?.toLowerCase()) ? 'warning' : 'primary'}
-                                  onClick={() => handleLoadToCart(sale)}
+                                  onClick={(e) => { e.stopPropagation(); handleLoadToCart(sale); }}
                                 >
                                   <ShoppingBagIcon fontSize="small" />
                                 </IconButton>
@@ -327,7 +416,7 @@ const SalesList = ({
                                 <IconButton 
                                   size="small" 
                                   color="error"
-                                  onClick={() => handleCancelSale(sale)}
+                                  onClick={(e) => { e.stopPropagation(); handleCancelSale(sale); }}
                                 >
                                   <CancelIcon fontSize="small" />
                                 </IconButton>
@@ -336,7 +425,7 @@ const SalesList = ({
                           )}
 
                           <Tooltip title="Imprimir">
-                            <IconButton size="small" onClick={() => handlePrint(sale)}>
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); handlePrint(sale); }}>
                               <PrintIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
