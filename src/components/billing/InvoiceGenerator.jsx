@@ -1,38 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Paper,
-  Grid,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  CircularProgress,
-  Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton
+  Box, Typography, Paper, Grid, Button, TextField, FormControl,
+  InputLabel, Select, MenuItem, CircularProgress, Alert, Table,
+  TableBody, TableCell, TableContainer, TableHead, TableRow,
+  IconButton, Card, CardContent, Divider, Stack
 } from '@mui/material';
 import {
-  PictureAsPdf as PdfIcon,
-  Email as EmailIcon,
-  Print as PrintIcon,
-  Download as DownloadIcon,
-  Add as AddIcon,
-  Delete as DeleteIcon
+  PictureAsPdf as PdfIcon, Email as EmailIcon, Print as PrintIcon,
+  Download as DownloadIcon, Add as AddIcon, Delete as DeleteIcon,
+  Receipt as ReceiptIcon, Person as PersonIcon, Assignment as AssignmentIcon
 } from '@mui/icons-material';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { useAuth } from '../../context/AuthContextMongo';
 import { useBusiness } from '../../context/BusinessContext';
 import api from '../../api/api';
+import { format } from 'date-fns';
 
 export const InvoiceGenerator = () => {
   const [invoiceData, setInvoiceData] = useState({
@@ -40,6 +23,8 @@ export const InvoiceGenerator = () => {
     date: new Date().toISOString().split('T')[0],
     customerName: '',
     customerEmail: '',
+    customerRNC: '', // Nuevo: RNC/Cédula
+    eCfType: 'B02', // Nuevo: Tipo de Comprobante
     items: [{ description: '', quantity: 1, price: 0 }],
     notes: '',
   });
