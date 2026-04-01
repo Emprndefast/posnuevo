@@ -63,6 +63,8 @@ import {
   MoreVert as MoreVertIcon,
   CameraAlt as CameraAltIcon,
   QrCode as QrCodeIcon,
+  ShoppingBag as ShoppingBagIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContextMongo';
 import api from '../../api/api';
@@ -95,6 +97,8 @@ import cashRegisterService from '../../services/cashRegisterService';
 import OpenCashRegisterModal from '../cash-register/OpenCashRegisterModal';
 import { useBranch } from '../../context/BranchContext';
 import { useBusiness } from '../../context/BusinessContext';
+import { useSnackbar } from 'notistack';
+import { useCart } from '../../context/CartContext';
 
 const Sales = () => {
   const [sales, setSales] = useState([]);
@@ -115,6 +119,8 @@ const Sales = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+  const { setCart } = useCart();
   const [isListOpen, setIsListOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [openExpenseModal, setOpenExpenseModal] = useState(false);
@@ -726,13 +732,55 @@ const Sales = () => {
     // Opcional: podrías mostrar un mensaje o buscar la venta/cliente automáticamente
   };
 
+  const handleLoadToCart = async (sale) => {
+    try {
+      if (!sale) return;
+      const cartItems = (sale.items || []).map(item => ({
+        id: item.producto_id || item.id || `item-${Math.random()}`,
+        name: item.nombre || item.name || 'Producto',
+        price: item.precio_unitario || item.price || 0,
+        quantity: item.cantidad || item.quantity || 1,
+        code: item.codigo || item.code || '',
+        meta: { type: 'product', source: 'converted_order', orderId: sale._id || sale.id }
+      }));
+      if (cartItems.length === 0) {
+        enqueueSnackbar('La orden no tiene productos', { variant: 'warning' });
+        return;
+      }
+      try {
+        const saleId = sale._id || sale.id;
+        if (saleId) await api.patch(`/sales/${saleId}`, { estado: 'procesando', status: 'processing' });
+      } catch (err) {}
+      setCart(cartItems);
+      enqueueSnackbar('✅ Orden cargada al carrito. Procede con el pago.', { variant: 'success' });
+      navigate('/quick-sale', { state: { saleToLoad: sale } });
+      setDetailsOpen(false);
+    } catch (err) {
+      console.error('Error al cargar orden al carrito:', err);
+      enqueueSnackbar('Error al cargar la orden', { variant: 'error' });
+    }
+  };
+
+  const handleCancelSale = async (sale) => {
+    if (window.confirm('¿Estás seguro de que deseas cancelar/anular esta solicitud de pedido pendiente?')) {
+      try {
+        const saleId = sale._id || sale.id;
+        await api.patch(`/sales/${saleId}`, { estado: 'anulada', status: 'anulada' });
+        enqueueSnackbar('Orden cancelada correctamente', { variant: 'success' });
+        setDetailsOpen(false);
+        fetchSales();
+      } catch (err) {
+        console.error('Error anulando orden:', err);
+        enqueueSnackbar('Error al cancelar la orden', { variant: 'error' });
+      }
+    }
+  };
+
   return (
     <Box sx={{
-      maxWidth: '100%',
-      margin: '0 auto',
-      padding: { xs: 2, sm: 3 },
-      background: theme => theme.palette.background.default,
-      minHeight: '100vh'
+      flexGrow: 1,
+      minHeight: '100vh',
+      bgcolor: '#f8f9fa'
     }}>
       <Paper
         elevation={0}
@@ -1256,7 +1304,7 @@ const Sales = () => {
                   ))
                 ) : (
                   filteredSales.slice(0, 5).map((sale) => (
-                    <TableRow key={sale.id} hover>
+                    <TableRow key={sale.id} hover onClick={() => { setSelectedSale(sale); setDetailsOpen(true); }} sx={{ cursor: 'pointer' }}>
                       <TableCell>{format(sale.date, 'dd/MM/yyyy')}</TableCell>
                       <TableCell>{sale.customerName || 'Cliente no registrado'}</TableCell>
                       <TableCell align="right">{formatCurrency(sale.total)}</TableCell>
@@ -1415,14 +1463,38 @@ const Sales = () => {
             <DialogActions sx={{
               p: { xs: 2, sm: 3 },
               borderTop: 1,
-              borderColor: 'divider'
+              borderColor: 'divider',
+              flexWrap: 'wrap',
+              gap: 1
             }}>
+              {['pending', 'pendiente', 'procesando', 'processing'].includes(selectedSale.status?.toLowerCase()) && (
+                <>
+                  <Button
+                    variant="contained"
+                    color={['procesando', 'processing'].includes(selectedSale.status?.toLowerCase()) ? 'warning' : 'primary'}
+                    startIcon={<ShoppingBagIcon />}
+                    onClick={() => handleLoadToCart(selectedSale)}
+                    fullWidth={isMobile}
+                  >
+                    Procesar en Carrito
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    startIcon={<CancelIcon />}
+                    onClick={() => handleCancelSale(selectedSale)}
+                    fullWidth={isMobile}
+                  >
+                    Anular
+                  </Button>
+                </>
+              )}
               <Button
                 onClick={() => handlePrint(selectedSale)}
                 startIcon={<PrintIcon />}
                 variant="outlined"
                 fullWidth={isMobile}
-                sx={{ mr: { xs: 0, sm: 1 } }}
+                sx={{ ml: 'auto' }}
               >
                 Imprimir
               </Button>
