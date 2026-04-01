@@ -1,9 +1,3 @@
-/**
- * Buscador global para el POS
- * Busca en: clientes, productos, reparaciones
- * Accesible con Ctrl+K
- */
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -17,18 +11,24 @@ import {
   Box,
   CircularProgress,
   Divider,
+  Button,
 } from '@mui/material';
 import {
-  Shopping as ShoppingIcon,
+  ShoppingBag as ShoppingIcon,
   People as PeopleIcon,
   Build as BuildIcon,
-  TrendingUp as TrendingUpIcon,
+  Search as SearchIcon,
+  AddShoppingCart as AddCartIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import api from '../../config/api';
+import api from '../config/api';
+import { useCart } from '../context/CartContext';
+import { useSnackbar } from 'notistack';
 
 const GlobalSearch = ({ open, onClose }) => {
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { enqueueSnackbar } = useSnackbar();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,38 +42,39 @@ const GlobalSearch = ({ open, onClose }) => {
     const searchData = async () => {
       setLoading(true);
       try {
-        // Buscar en múltiples endpoints en paralelo
+        // Buscar en múltiples endpoints en paralelo con los prefijos correctos
         const [clientsRes, productsRes, repairsRes] = await Promise.all([
-          api.get(`/api/clientes?search=${query}`).catch(() => ({ data: { data: [] } })),
-          api.get(`/api/productos?search=${query}`).catch(() => ({ data: { data: [] } })),
-          api.get(`/api/repairs?search=${query}`).catch(() => ({ data: { data: [] } })),
+          api.get(`/customers?search=${query}`).catch(() => ({ data: { data: [] } })),
+          api.get(`/products?search=${query}`).catch(() => ({ data: { data: [] } })),
+          api.get(`/repairs?search=${query}`).catch(() => ({ data: { data: [] } })),
         ]);
 
         const clients = (clientsRes.data?.data || []).map((c) => ({
           type: 'cliente',
-          id: c._id,
-          title: c.nombre,
-          subtitle: c.email,
+          id: c._id || c.id,
+          title: c.nombre || c.name,
+          subtitle: c.email || c.telefono || 'Cliente',
           icon: PeopleIcon,
-          path: `/clientes/${c._id}`,
+          path: `/customers/${c._id || c.id}`,
         }));
 
         const products = (productsRes.data?.data || []).map((p) => ({
           type: 'producto',
-          id: p._id,
-          title: p.nombre,
-          subtitle: `RD$${p.precio}`,
+          id: p._id || p.id,
+          title: p.nombre || p.name,
+          subtitle: `RD$${p.precio || p.price}`,
           icon: ShoppingIcon,
-          path: `/productos/${p._id}`,
+          path: `/quick-sale`,
+          data: p // Guardar el objeto completo para el carrito
         }));
 
         const repairs = (repairsRes.data?.data || []).map((r) => ({
           type: 'reparacion',
-          id: r._id,
+          id: r._id || r.id,
           title: `${r.brand} ${r.device}`,
           subtitle: r.problem,
           icon: BuildIcon,
-          path: `/repairs/${r._id}`,
+          path: `/repairs/${r._id || r.id}`,
         }));
 
         setResults([...clients, ...products, ...repairs].slice(0, 15));
@@ -89,63 +90,113 @@ const GlobalSearch = ({ open, onClose }) => {
   }, [query]);
 
   const handleSelect = (result) => {
-    navigate(result.path);
+    if (result.type === 'producto') {
+      // Si es un producto, lo agregamos al carrito y vamos al POS
+      const productForCart = {
+        id: result.id,
+        name: result.title,
+        price: parseFloat(result.data.precio || result.data.price || 0),
+        quantity: 1,
+        code: result.data.codigo || result.data.code || '',
+        meta: { type: 'product', source: 'global_search' }
+      };
+      
+      addToCart(productForCart);
+      enqueueSnackbar(`${result.title} agregado al carrito`, { variant: 'success' });
+      navigate('/quick-sale');
+    } else {
+      navigate(result.path);
+    }
+    
     onClose();
     setQuery('');
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogContent>
-        <TextField
-          autoFocus
-          fullWidth
-          placeholder="Buscar clientes, productos, reparaciones..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          variant="outlined"
-          size="small"
-          sx={{ mb: 2 }}
-          InputProps={{
-            startAdornment: loading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null,
-          }}
-        />
+      <DialogContent sx={{ p: 0 }}>
+        <Box sx={{ p: 2, borderBottom: '1px solid #eee' }}>
+          <TextField
+            autoFocus
+            fullWidth
+            placeholder="Buscar por clientes, productos, reparaciones (Ctrl+K)..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            variant="standard"
+            InputProps={{
+              disableUnderline: true,
+              startAdornment: loading ? (
+                <CircularProgress size={20} sx={{ mr: 1 }} />
+              ) : (
+                <SearchIcon color="action" sx={{ mr: 1 }} />
+              ),
+            }}
+            sx={{
+              '& input': {
+                fontSize: '1.2rem',
+              }
+            }}
+          />
+        </Box>
 
-        {query && results.length === 0 && !loading && (
-          <Typography color="textSecondary" align="center" sx={{ py: 3 }}>
-            No se encontraron resultados para "{query}"
-          </Typography>
-        )}
+        <Box sx={{ maxHeight: '60vh', overflow: 'auto' }}>
+          {query && results.length === 0 && !loading && (
+            <Typography color="textSecondary" align="center" sx={{ py: 3 }}>
+              No se encontraron resultados para "{query}"
+            </Typography>
+          )}
 
-        {results.length > 0 && (
-          <List>
-            {results.map((result, index) => {
-              const Icon = result.icon;
-              return (
-                <React.Fragment key={result.id}>
-                  <ListItem
-                    button
-                    onClick={() => handleSelect(result)}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: '#f5f5f5',
-                      },
-                    }}
-                  >
-                    <ListItemIcon>
-                      <Icon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={result.title}
-                      secondary={result.subtitle}
-                    />
-                  </ListItem>
-                  {index < results.length - 1 && <Divider />}
-                </React.Fragment>
-              );
-            })}
-          </List>
-        )}
+          {results.length > 0 && (
+            <List sx={{ pt: 0 }}>
+              {results.map((result, index) => {
+                const Icon = result.icon;
+                return (
+                  <React.Fragment key={`${result.type}-${result.id}`}>
+                    <ListItem
+                      button
+                      onClick={() => handleSelect(result)}
+                      sx={{
+                        py: 1.5,
+                        '&:hover': {
+                          backgroundColor: '#f8f9fa',
+                        },
+                      }}
+                    >
+                      <ListItemIcon>
+                        <Box sx={{
+                          backgroundColor: result.type === 'producto' ? '#e7f3ff' : 
+                                           result.type === 'cliente' ? '#fff0f0' : '#f0f0f0',
+                          p: 1,
+                          borderRadius: '12px',
+                          display: 'flex'
+                        }}>
+                          <Icon fontSize="small" color={result.type === 'producto' ? 'primary' : 
+                                                      result.type === 'cliente' ? 'error' : 'action'} />
+                        </Box>
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography variant="body1" fontWeight={600}>
+                            {result.title}
+                          </Typography>
+                        }
+                        secondary={
+                          <Typography variant="body2" color="text.secondary">
+                            {result.type.charAt(0).toUpperCase() + result.type.slice(1)} • {result.subtitle}
+                          </Typography>
+                        }
+                      />
+                      {result.type === 'producto' && (
+                        <AddCartIcon fontSize="small" color="action" sx={{ opacity: 0.5 }} />
+                      )}
+                    </ListItem>
+                    {index < results.length - 1 && <Divider />}
+                  </React.Fragment>
+                );
+              })}
+            </List>
+          )}
+        </Box>
       </DialogContent>
     </Dialog>
   );

@@ -2639,7 +2639,7 @@ const Products = () => {
         {/* Resumen de productos recientes */}
         <Box sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Productos Recientes (Total: {products.length}, Loading: {loading ? 'Sí' : 'No'})
+            Productos Recientes (Total: {filteredProducts.length}, Loading: {loading ? 'Sí' : 'No'})
           </Typography>
           {console.log('Render - Total productos:', products.length, 'Loading:', loading)}
           <TableContainer
@@ -2670,14 +2670,14 @@ const Products = () => {
                       <TableCell><Skeleton width={90} /></TableCell>
                     </TableRow>
                   ))
-                ) : products.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} align="center">
                       <Typography color="text.secondary">No hay productos disponibles</Typography>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  products.slice(0, 5).map((product) => (
+                  filteredProducts.slice(0, 20).map((product) => (
                     <TableRow
                       key={product.id}
                       hover

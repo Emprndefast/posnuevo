@@ -196,8 +196,8 @@ const Sales = () => {
       // Usar la API de MongoDB backend
       const response = await api.get('/sales', {
         params: {
-          startDate: start.toISOString(),
-          endDate: end.toISOString()
+          desde: start.toISOString(),
+          hasta: end.toISOString()
         }
       });
 
