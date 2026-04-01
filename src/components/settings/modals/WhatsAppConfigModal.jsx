@@ -140,54 +140,59 @@ const WhatsAppConfigModal = ({ onClose }) => {
 
           {whabotEnabled && (
             <Box sx={{ animation: 'fadeIn 0.3s' }}>
+              {/* API KEY SECTION */}
               <Box sx={{ mt: 2, p: 3, border: '1px solid #e0e0e0', borderRadius: 3, bgcolor: '#f9f9f9', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' }}>
                 <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700, mb: 1 }}>
-                  Tu API Key Maestra
+                  1. Tu API Key Maestra
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Copia esta llave y pégala en el panel de **Whabot Pro** para sincronizar ambos sistemas instantáneamente.
+                  Copia esta llave y pégala en el panel de **Whabot Pro** -> Integración POSENT.
                 </Typography>
                 
                 {whabotApiKey ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box 
-                      sx={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '1.1rem',
-                        fontWeight: 'bold', 
-                        bgcolor: 'white', 
-                        p: 2, 
-                        borderRadius: 2, 
-                        border: '2px solid #ddd', 
-                        flexGrow: 1,
-                        color: '#333',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-                      }}
-                    >
+                    <Box sx={{ fontFamily: 'monospace', fontSize: '1.1rem', fontWeight: 'bold', bgcolor: 'white', p: 2, borderRadius: 2, border: '2px solid #ddd', flexGrow: 1, color: '#333', boxShadow: '0 2px 4px rgba(0,0,0,0.03)' }}>
                       {whabotApiKey}
                     </Box>
-                    <Button 
-                      variant="contained" 
-                      color="primary" 
-                      onClick={copiarApiKey}
-                      sx={{ py: 1.5, px: 3, borderRadius: 2, fontWeight: 700 }}
-                    >
+                    <Button variant="contained" color="primary" onClick={copiarApiKey} sx={{ py: 1.5, px: 3, borderRadius: 2, fontWeight: 700 }}>
                       Copiar
                     </Button>
                   </Box>
                 ) : (
                   <Box sx={{ p: 2, textAlign: 'center', bgcolor: alpha('#7C3AED', 0.05), borderRadius: 2, border: '1px dashed #7C3AED' }}>
                     <Typography variant="body2" color="primary" sx={{ fontStyle: 'italic' }}>
-                      Pulsar en "Guardar" para generar tu llave de acceso privada.
+                      Pulsar en "Guardar" para generar tu llave.
                     </Typography>
                   </Box>
                 )}
               </Box>
 
+              {/* WEBHOOK URL SECTION */}
+              <Box sx={{ mt: 3, p: 3, border: '1px solid #e0e0e0', borderRadius: 3, bgcolor: '#f9f9f9', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)' }}>
+                <Typography variant="subtitle2" color="primary" sx={{ fontWeight: 700, mb: 1 }}>
+                  2. Webhook URL de POSENT
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Usa esta URL en **Whabot Pro** para que las órdenes lleguen a POSENT.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ fontFamily: 'monospace', fontSize: '0.9rem', bgcolor: 'white', p: 2, borderRadius: 2, border: '1px solid #ddd', flexGrow: 1, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {`${window.location.origin.replace('3000', '3002')}/api/whabot/webhook`}
+                  </Box>
+                  <Button size="small" variant="outlined" onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin.replace('3000', '3002')}/api/whabot/webhook`);
+                    setAlert({ type: 'success', message: 'Webhook URL copiada.' });
+                  }}>
+                    Copiar
+                  </Button>
+                </Box>
+              </Box>
+
               <Box sx={{ mt: 3, p: 2, borderRadius: 2, bgcolor: '#e8f5e9', border: '1px solid #2e7d32', display: 'flex', gap: 2, alignItems: 'center' }}>
                 <SettingsIcon color="success" />
                 <Typography variant="body2" color="#1b5e20">
-                  <strong>¡Configuración Simplificada!</strong> Ya no necesitas configurar URLs manuales o Webhooks complejos. Esta llave lo hace todo por ti de forma segura.
+                  <strong>¡Sincronización Total!</strong> Al guardar, POSENT comenzará a recibir pedidos y actualizar stock reservado automáticamente.
                 </Typography>
               </Box>
             </Box>
