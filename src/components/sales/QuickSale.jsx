@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 // import useScanDetection from 'use-scan-detection';
 
 import {
@@ -552,6 +553,7 @@ const QuickSale = () => {
   const theme = useMuiTheme();
   const { user, loading: userLoading } = useAuth();
   const { cart, setCart, addProductToCart, removeFromCart, updateQuantity, clearCart, updateDiscount } = useCart();
+  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -606,6 +608,30 @@ const QuickSale = () => {
       setError('Usuario no autenticado');
     }
   }, [user]);
+
+  // Manejar carga de venta desde navegación
+  useEffect(() => {
+    if (location.state?.saleToLoad) {
+      const sale = location.state.saleToLoad;
+      console.log('🔄 Cargando orden desde estado de navegación:', sale);
+
+      // Si hay cliente, seleccionarlo (esperando a que los clientes se carguen)
+      if (sale.customerId || sale.cliente_id) {
+        const cId = sale.customerId || sale.cliente_id;
+        const exists = customers.find(c => (c.id || c._id) === cId);
+        if (exists) {
+          setSelectedCustomer(exists);
+        } else if (sale.customerName) {
+           setSelectedCustomer({ _id: cId, name: sale.customerName, id: cId });
+        }
+      }
+
+      if (sale.notas) setNotes(sale.notas);
+      
+      // Limpiar el estado para no recargar en cada re-render
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, customers]);
 
   useEffect(() => {
     // Agregar log para verificar la configuración de Telegram
@@ -954,7 +980,8 @@ const QuickSale = () => {
         total: calculateTotal(),
         cliente_id: selectedCustomer?.id || null,
         metodo_pago: paymentMethod,
-        estado: 'completada'
+        estado: 'completada',
+        converted_order_id: cart.find(item => item.meta?.orderId)?.meta?.orderId || null
       };
 
       console.log('📦 Preparando venta para backend:', saleData);
